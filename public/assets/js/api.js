@@ -44,6 +44,14 @@
 
         const data = await response.json();
         
+        // Normalize Go backend format (ret/msg) to ElysiaJS/frontend expected format (status/message)
+        if (typeof data.ret !== 'undefined') {
+          data.status = data.ret === 1 ? 'success' : 'error';
+        }
+        if (typeof data.msg !== 'undefined' && typeof data.message === 'undefined') {
+          data.message = data.msg;
+        }
+
         if (response.ok && data.status === 'success') {
           return data;
         } else {

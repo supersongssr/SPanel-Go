@@ -7,6 +7,11 @@ app:
   salt: ""                           # 密码加密 salt 值 (对齐旧版 .config.php 空字符串以防计算漂移)
   muKey: "glzjin"                    # 面板与节点通信校验的主密钥
 
+security:
+  enable_reg_captcha: false          # 注册图形验证码开关 (已关闭)
+  enable_login_captcha: false        # 登录图形验证码开关 (已关闭)
+  enable_email_verify: false         # 注册邮箱验证码发送校验开关 (已关闭)
+
 database:
   driver: "mysql"
   host: "127.0.0.1:3306"

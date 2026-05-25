@@ -146,7 +146,11 @@
         async loadCaptcha() {
           try {
             const res = await SPanelAPI.request('/auth/captcha', { method: 'GET' });
-            this.captchaProvider = res.captcha_provider || 'graphic';
+            if (res.enable_login_captcha === false) {
+              this.captchaProvider = 'none';
+            } else {
+              this.captchaProvider = res.captcha_provider || 'graphic';
+            }
             if (this.captchaProvider === 'geetest') {
               this.geetestId = res.geetest_id;
               this.$nextTick(() => {

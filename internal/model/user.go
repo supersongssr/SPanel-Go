@@ -37,6 +37,8 @@ type User struct {
 	Obfs               string    `gorm:"column:obfs" json:"obfs"`
 	ObfsParam          string    `gorm:"column:obfs_param" json:"obfs_param"`
 	SubLimit           int32     `gorm:"column:sub_limit" json:"sub_limit"`
+	Theme              string    `gorm:"column:theme" json:"theme"`
+	GaToken            string    `gorm:"column:ga_token" json:"ga_token"`
 }
 
 // TableName 设置对应的数据表名

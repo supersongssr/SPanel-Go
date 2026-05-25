@@ -10,6 +10,7 @@ import (
 // Config 全局配置结构体
 type Config struct {
 	App      AppConfig      `yaml:"app"`
+	Security SecurityConfig `yaml:"security"`
 	Database DatabaseConfig `yaml:"database"`
 	Redis    RedisConfig    `yaml:"redis"`
 	JWT      JWTConfig      `yaml:"jwt"`
@@ -22,6 +23,12 @@ type AppConfig struct {
 	Key   string `yaml:"key"`
 	Salt  string `yaml:"salt"`
 	MuKey string `yaml:"muKey"`
+}
+
+type SecurityConfig struct {
+	EnableRegCaptcha   bool `yaml:"enable_reg_captcha"`
+	EnableLoginCaptcha bool `yaml:"enable_login_captcha"`
+	EnableEmailVerify  bool `yaml:"enable_email_verify"`
 }
 
 type DatabaseConfig struct {
