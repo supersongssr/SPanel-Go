@@ -44,6 +44,14 @@ func SetupRouter() *gin.Engine {
 		userGroup.POST("/ticket", handler.DefaultTicketHandler.CreateTicket)
 		userGroup.GET("/ticket/:id", handler.DefaultTicketHandler.GetTicketDetail)
 		userGroup.PUT("/ticket/:id", handler.DefaultTicketHandler.ReplyTicket)
+
+		// 个人及连接安全设置路由挂载
+		userGroup.POST("/port/reset", handler.DefaultUserHandler.ResetPort)
+		userGroup.POST("/sspwd", handler.DefaultUserHandler.UpdateSSPassword)
+		userGroup.POST("/method", handler.DefaultUserHandler.UpdateSSMethod)
+		userGroup.POST("/password", handler.DefaultUserHandler.UpdateWebPassword)
+		userGroup.POST("/ga/set", handler.DefaultUserHandler.Enable2FA)
+		userGroup.POST("/ga/reset", handler.DefaultUserHandler.Disable2FA)
 	}
 
 	// 5. 管理员中心组 (Admin Protected)
