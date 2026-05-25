@@ -1,0 +1,32 @@
+# SPanel-Go 全局系统配置文件
+
+app:
+  name: "SPanel-Go"
+  port: 8080
+  key: "1145141919810"                # 系统安全密钥，请及时更改为随机字符串
+  salt: ""                           # 密码加密 salt 值 (对齐旧版 .config.php 空字符串以防计算漂移)
+  muKey: "glzjin"                    # 面板与节点通信校验的主密钥
+
+database:
+  driver: "mysql"
+  host: "127.0.0.1:3306"
+  database: "sspanel"
+  username: "sspanel"
+  password: "password"
+  charset: "utf8mb4"
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_lifetime_mins: 60
+
+redis:
+  host: "127.0.0.1:6379"
+  password: ""
+  db: 0
+
+jwt:
+  secret: "spanel_jwt_secret_key_change_me"  # JWT 签名密钥
+  expire_hours: 24                          # Token 过期时间（小时）
+
+pow:
+  enabled: false
+  min_difficulty: 10000
