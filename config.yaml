@@ -10,9 +10,9 @@ app:
 database:
   driver: "mysql"
   host: "127.0.0.1:3306"
-  database: "sspanel"
-  username: "sspanel"
-  password: "password"
+  database: "test-spanel-go"
+  username: "spanel"
+  password: "JGJLxpmlqgVqNjiX"
   charset: "utf8mb4"
   max_idle_conns: 10
   max_open_conns: 100
