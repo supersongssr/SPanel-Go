@@ -52,8 +52,7 @@ func (h *SubHandler) GetSubscription(c *gin.Context) {
 	var nodes []model.Node
 	query := database.DB.Where("type = 1")
 	if user.IsAdmin != 1 {
-		query = query.Where("(node_group = ? OR node_group = 0)", user.NodeGroup).
-			Where("node_class <= ?", user.Class)
+		query = query.Where("(node_group = ? OR node_group = 0)", user.NodeGroup)
 	}
 
 	if err := query.Order("sort ASC").Find(&nodes).Error; err != nil {

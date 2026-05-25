@@ -2,5 +2,4 @@
 
 - ENV
     - [] deploy test env : plans/deploy
-
-注册和等级页面图形验证码失败,请修复
+  - agy --conversation=146a5b5f-9e8f-4ffd-9f14-9e92ee997a87

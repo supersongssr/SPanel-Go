@@ -148,7 +148,7 @@ func (h *PublicHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// 7. 组装响应成功对象
+	// 7. 组装响应成功对象 (兼容 snake_case and camelCase)
 	c.JSON(http.StatusOK, gin.H{
 		"ret": 1,
 		"msg": "登录成功",
@@ -157,8 +157,10 @@ func (h *PublicHandler) Login(c *gin.Context) {
 			"user": gin.H{
 				"id":        user.ID,
 				"user_name": user.UserName,
+				"userName":  user.UserName,
 				"email":     user.Email,
 				"is_admin":  user.IsAdmin,
+				"isAdmin":   user.IsAdmin == 1,
 				"class":     user.Class,
 			},
 		},
@@ -269,6 +271,22 @@ func (h *PublicHandler) Register(c *gin.Context) {
 			"msg": "创建用户失败：" + err.Error(),
 		})
 		return
+	}
+
+	// 6. 注册成功后，自动为用户创建并分配专属的 RSS 订阅链接建档 (type=11)
+	subToken := generateRandomStr(16)
+	link := model.Link{
+		Type:    11,
+		UserID:  int64(user.ID),
+		Token:   subToken,
+		Address: "",
+		Port:    0,
+		Ios:     0,
+		Geo:     0,
+		Method:  "",
+	}
+	if err := database.DB.Create(&link).Error; err != nil {
+		fmt.Printf("警告：为新用户分配订阅链接失败: %v\n", err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -30,3 +30,9 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+tmp/
+
+# Runtime and compiled files
+spanel-api
+spanel.pid
+api.log

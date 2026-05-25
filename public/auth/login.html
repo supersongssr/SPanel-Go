@@ -243,7 +243,7 @@
 
             this.statusText = '登录验证成功，正在进入工作台...';
             setTimeout(() => {
-              if (loginResult.data.user.isAdmin === 1) {
+              if (loginResult.data.user.isAdmin === true || loginResult.data.user.isAdmin === 1 || loginResult.data.user.is_admin === 1) {
                 window.location.replace('/admin/dashboard.html');
               } else {
                 window.location.replace('/user/dashboard.html');

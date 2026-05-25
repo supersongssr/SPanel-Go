@@ -56,6 +56,12 @@
               <i class="fa-solid fa-user-gear mr-1.5"></i>我的账户<i class="fa-solid fa-chevron-down text-[10px] ml-1 transition" :class="open ? 'rotate-180' : ''"></i>
             </button>
             <div class="absolute right-0 mt-2 w-40 rounded-xl bg-slate-900 border border-slate-800 shadow-xl py-1 z-50" x-show="open" x-transition>
+              <template x-if="isAdmin">
+                <a href="/admin/dashboard.html" class="block px-4 py-2 text-xs text-indigo-400 hover:bg-indigo-950/30 hover:text-indigo-300 transition font-semibold"><i class="fa-solid fa-gauge mr-2"></i>管理后台</a>
+              </template>
+              <template x-if="isAdmin">
+                <hr class="border-slate-800 my-1">
+              </template>
               <a href="/user/profile.html" class="block px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-user mr-2"></i>个人中心</a>
               <a href="/user/edit.html" class="block px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-shield-halved mr-2"></i>安全设置</a>
               <hr class="border-slate-800 my-1">
@@ -183,6 +189,7 @@
     function dashboardPage() {
       return {
         userEmail: '',
+        isAdmin: false,
         userClass: 0,
         classExpire: '',
         userMoney: '0.00',
@@ -201,6 +208,7 @@
             try {
               const u = JSON.parse(storedUser);
               this.userEmail = u.email;
+              this.isAdmin = u.isAdmin === true || u.isAdmin === 1 || u.is_admin === 1;
             } catch(e) {}
           }
           await this.fetchDashboardData();
@@ -252,10 +260,10 @@
         },
 
         async copySubLink() {
-          // 订阅 Token 通用获取
+          // 订阅 Token 通用获取 (对齐 link 表 type=11)
           try {
             const profile = await SPanelAPI.request('/user/profile');
-            const token = profile.data.passwd; // 使用 passwd 字段作为订阅 token (对齐 legacy schema)
+            const token = profile.data.sub_token; 
             const subLink = `${window.location.origin}/link/${token}`;
             await navigator.clipboard.writeText(subLink);
             alert('通用订阅链接已复制到您的剪贴板，快去客户端导入吧！');

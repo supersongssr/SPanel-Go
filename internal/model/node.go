@@ -12,7 +12,6 @@ type Node struct {
 	Sort              int32   `gorm:"column:sort" json:"sort"`
 	CustomMethod      int8    `gorm:"column:custom_method" json:"custom_method"`
 	TrafficRate       float32 `gorm:"column:traffic_rate" json:"traffic_rate"`
-	NodeClass         int32   `gorm:"column:node_class" json:"node_class"` // 节点访问的等级限制
 	NodeSpeedlimit     string  `gorm:"column:node_speedlimit;type:decimal(12,2)" json:"node_speedlimit"`
 	NodeConnector     int32   `gorm:"column:node_connector" json:"node_connector"`
 	NodeBandwidth     string  `gorm:"column:node_bandwidth;type:decimal(12,2)" json:"node_bandwidth"`

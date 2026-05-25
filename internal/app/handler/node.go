@@ -121,10 +121,9 @@ func (h *NodeHandler) MuUsers(c *gin.Context) {
 	}
 
 	// 2. 筛选有权连接此节点的活跃用户
-	// 条件：enable=1 且 (user.node_group == node.node_group 或 node.node_group == 0) 且 user.class >= node.node_class
+	// 条件：enable=1 且 (user.node_group == node.node_group 或 node.node_group == 0)
 	var users []model.User
-	query := database.DB.Where("enable = 1").
-		Where("class >= ?", node.NodeClass)
+	query := database.DB.Where("enable = 1")
 
 	if node.NodeGroup != 0 {
 		query = query.Where("node_group = ?", node.NodeGroup)
