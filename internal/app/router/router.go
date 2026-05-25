@@ -20,11 +20,14 @@ func SetupRouter() *gin.Engine {
 		c.JSON(200, gin.H{"msg": "pong"})
 	})
 
-	// 3. 身份验证组 (Public)
-	publicGroup := r.Group("/api/v1/public")
+	// 3. 身份验证组 (Public / Auth)
+	authGroup := r.Group("/api/v1/auth")
 	{
-		publicGroup.GET("/pow_challenge", handler.DefaultPublicHandler.PowChallenge)
-		publicGroup.POST("/login", handler.DefaultPublicHandler.Login)
+		authGroup.GET("/captcha", handler.DefaultPublicHandler.Captcha)
+		authGroup.POST("/pow-challenge", handler.DefaultPublicHandler.PowChallenge)
+		authGroup.POST("/login", handler.DefaultPublicHandler.Login)
+		authGroup.POST("/register", handler.DefaultPublicHandler.Register)
+		authGroup.POST("/send-code", handler.DefaultPublicHandler.SendCode)
 	}
 
 	// 4. 用户中心组 (User Protected)
@@ -32,7 +35,9 @@ func SetupRouter() *gin.Engine {
 	userGroup.Use(middleware.Auth())
 	{
 		userGroup.GET("/profile", handler.DefaultUserHandler.Profile)
-		userGroup.GET("/nodes", handler.DefaultUserHandler.Nodes)
+		userGroup.GET("/node", handler.DefaultUserHandler.Nodes) // 对应 frontend /user/node
+		userGroup.GET("/dashboard", handler.DefaultUserHandler.Dashboard) // 对应 frontend /user/dashboard
+		userGroup.POST("/checkin", handler.DefaultUserHandler.Checkin) // 对应 frontend /user/checkin
 	}
 
 	// 5. 节点通信组 (Node/Mu API Protected)

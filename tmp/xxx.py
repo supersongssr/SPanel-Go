@@ -1,0 +1,1 @@
+/root/.gemini/antigravity-cli/scratch/agy-notifier.py

@@ -110,3 +110,43 @@ func (h *UserHandler) Nodes(c *gin.Context) {
 		"data": formattedNodes,
 	})
 }
+
+// Dashboard 用户仪表盘数据看板 Stub
+func (h *UserHandler) Dashboard(c *gin.Context) {
+	userVal, _ := c.Get("user")
+	user := userVal.(*model.User)
+
+	c.JSON(http.StatusOK, gin.H{
+		"ret": 1,
+		"msg": "获取成功",
+		"data": gin.H{
+			"announcement": gin.H{
+				"content": "欢迎使用全新 SPanel-Go 高性能极速面板！系统测试环境部署成功。",
+				"date":    "2026-05-25",
+			},
+			"user": gin.H{
+				"id":              user.ID,
+				"user_name":       user.UserName,
+				"email":           user.Email,
+				"money":           user.Money,
+				"class":           user.Class,
+				"port":            user.Port,
+				"method":          user.Method,
+				"passwd":          user.Passwd,
+				"v2ray_uuid":      user.V2rayUUID,
+				"u":               user.U,
+				"d":               user.D,
+				"transfer_enable": user.TransferEnable,
+			},
+		},
+	})
+}
+
+// Checkin 用户签到接口 Stub
+func (h *UserHandler) Checkin(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"ret": 1,
+		"msg": "签到成功！获取测试环境随机奖励 1024 MB 流量",
+	})
+}
+
