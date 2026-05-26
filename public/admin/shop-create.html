@@ -113,36 +113,112 @@
     <!-- 表单卡片 -->
     <div class="glass-card rounded-3xl p-8 border border-slate-800/80">
       <form @submit.prevent="submitForm" class="space-y-6">
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">商品套餐名称</label>
-          <input type="text" required x-model="form.name" placeholder="例如：高级轻量年付 A 套餐" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition">
+        <!-- 基础配置 -->
+        <div class="border-b border-slate-800/60 pb-6">
+          <h3 class="text-sm font-semibold text-purple-400 mb-4 flex items-center"><i class="fa-solid fa-cube mr-2"></i>基础信息配置</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">商品套餐名称</label>
+              <input type="text" required x-model="form.name" placeholder="例如：高级轻量年付 A 套餐" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">销售价格 (元)</label>
+              <input type="text" required x-model="form.price" placeholder="例如：19.90" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">销售价格 (元)</label>
-          <input type="text" required x-model="form.price" placeholder="例如：19.90" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+        <!-- 流量与有效期设定 -->
+        <div class="border-b border-slate-800/60 pb-6">
+          <h3 class="text-sm font-semibold text-purple-400 mb-4 flex items-center"><i class="fa-solid fa-chart-simple mr-2"></i>流量与有效期设定</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">流量 (GB)</label>
+              <input type="number" required x-model.number="form.bandwidth" placeholder="例如：100" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">账户有效期天数 (expire，0代表不过期)</label>
+              <input type="number" required x-model.number="form.expire" placeholder="例如：30" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">自动续订天数 (0为关闭)</label>
+              <input type="number" required x-model.number="form.auto_renew" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+              <span class="text-[10px] text-slate-500 mt-1 block">0为不允许自动续订，其他为到了那么多天之后就会自动从用户的账户上划钱抵扣</span>
+            </div>
+            <div class="flex items-center pt-6">
+              <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" x-model="form.auto_reset_bandwidth" class="rounded border-slate-800 text-purple-600 bg-slate-900 focus:ring-purple-500">
+                <span class="text-xs text-slate-300 select-none">续费时自动重置用户流量为上面配置的流量值</span>
+              </label>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">套餐规格/参数详情内容说明</label>
-          <textarea required x-model="form.content" rows="6" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition resize-none custom-scrollbar" placeholder="请输入商品套餐规格，前台购买解析，例如：&#10;等级天数: 30&#10;可用流量: 150GB&#10;会员等级: 1"></textarea>
+        <!-- 等级配置 -->
+        <div class="border-b border-slate-800/60 pb-6">
+          <h3 class="text-sm font-semibold text-purple-400 mb-4 flex items-center"><i class="fa-solid fa-crown mr-2"></i>会员等级与权益</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">升级会员等级 (class)</label>
+              <input type="number" required x-model.number="form.class" placeholder="0" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">等级有效期天数 (class_expire)</label>
+              <input type="number" required x-model.number="form.class_expire" placeholder="0" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+            </div>
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-6 pt-2">
-          <label class="flex items-center space-x-3 cursor-pointer">
-            <input type="checkbox" x-model="form.auto_renew" class="rounded border-slate-800 text-purple-600 bg-slate-900 focus:ring-purple-500">
-            <span class="text-xs text-slate-300 select-none">支持下周期自动余额续扣费</span>
-          </label>
-          <label class="flex items-center space-x-3 cursor-pointer">
-            <input type="checkbox" x-model="form.auto_reset_bandwidth" class="rounded border-slate-800 text-purple-600 bg-slate-900 focus:ring-purple-500">
-            <span class="text-xs text-slate-300 select-none">次月/新周期自动重置总可用流量</span>
-          </label>
+        <!-- 重置配置 -->
+        <div class="border-b border-slate-800/60 pb-6">
+          <h3 class="text-sm font-semibold text-purple-400 mb-4 flex items-center"><i class="fa-solid fa-arrows-spin mr-2"></i>定期流量重置设定</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">限制多少天内有效 (reset_exp)</label>
+              <input type="number" required x-model.number="form.reset_exp" placeholder="0" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">每隔多少天重置 (reset)</label>
+              <input type="number" required x-model.number="form.reset" placeholder="0" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">重置流量为多少 G (reset_value)</label>
+              <input type="number" required x-model.number="form.reset_value" placeholder="0" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+            </div>
+          </div>
+        </div>
+
+        <!-- 限速与IP -->
+        <div class="border-b border-slate-800/60 pb-6">
+          <h3 class="text-sm font-semibold text-purple-400 mb-4 flex items-center"><i class="fa-solid fa-gauge-high mr-2"></i>网络属性限制</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">端口限速 (Mbps，0为无限制)</label>
+              <input type="number" required x-model.number="form.speedlimit" placeholder="0" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">IP 限制连接数 (0为无限制)</label>
+              <input type="number" required x-model.number="form.connector" placeholder="0" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition font-mono">
+            </div>
+          </div>
+        </div>
+
+        <!-- 额外支持 -->
+        <div class="pb-4">
+          <h3 class="text-sm font-semibold text-purple-400 mb-4 flex items-center"><i class="fa-solid fa-list-check mr-2"></i>前台展示增值服务支持</h3>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">服务支持图标文字配置</label>
+            <input type="text" x-model="form.content_extra" placeholder="例如：check-全球节点分布;clear-快速客服响应" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 focus:outline-none transition">
+            <span class="text-[10px] text-slate-500 mt-1 block">例：<code>check-全球节点分布;clear-快速客服响应</code>，减号左边为 icon 代号右边为文字，以分号隔开。</span>
+          </div>
         </div>
 
         <div class="pt-2">
           <label class="flex items-center space-x-3 cursor-pointer">
             <input type="checkbox" x-model="form.status" class="rounded border-slate-800 text-purple-600 bg-slate-900 focus:ring-purple-500">
-            <span class="text-xs text-slate-300 select-none">立即上架在售 (取消勾选代表暂不下架隐藏)</span>
+            <span class="text-xs text-slate-300 select-none">立即上架在售 (取消勾选代表下架隐藏)</span>
           </label>
         </div>
 
@@ -161,17 +237,48 @@
         form: {
           name: '',
           price: '',
-          content: '等级天数: 30\n可用流量: 100GB\n账户等级: 1',
-          auto_renew: true,
+          bandwidth: 100,
+          expire: 30,
+          auto_renew: 0,
           auto_reset_bandwidth: true,
+          class: 1,
+          class_expire: 30,
+          reset_exp: 0,
+          reset: 0,
+          reset_value: 0,
+          speedlimit: 0,
+          connector: 0,
+          content_extra: 'check-全球节点分布;check-快速客服响应;check-全平台客户端',
           status: true
         },
 
         async submitForm() {
           try {
+            const contentObj = {
+              bandwidth: parseInt(this.form.bandwidth) || 0,
+              expire: parseInt(this.form.expire) || 0,
+              class: parseInt(this.form.class) || 0,
+              class_expire: parseInt(this.form.class_expire) || 0,
+              reset_exp: parseInt(this.form.reset_exp) || 0,
+              reset: parseInt(this.form.reset) || 0,
+              reset_value: parseInt(this.form.reset_value) || 0,
+              speedlimit: parseInt(this.form.speedlimit) || 0,
+              connector: parseInt(this.form.connector) || 0,
+              content_extra: this.form.content_extra || ''
+            };
+
+            const payload = {
+              name: this.form.name,
+              price: this.form.price,
+              content: JSON.stringify(contentObj),
+              auto_renew: parseInt(this.form.auto_renew) || 0,
+              auto_reset_bandwidth: this.form.auto_reset_bandwidth ? 1 : 0,
+              status: this.form.status ? 1 : 0
+            };
+
             await SPanelAPI.request('/admin/shop', {
               method: 'POST',
-              body: JSON.stringify(this.form)
+              body: JSON.stringify(payload)
             });
             alert('新商品套餐成功上架并对外销售！');
             window.location.replace('/admin/shops.html');

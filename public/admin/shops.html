@@ -126,19 +126,19 @@
               <div class="flex justify-between items-start mb-4">
                 <h3 class="text-lg font-bold text-white font-outfit" x-text="shop.name"></h3>
                 <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold border" 
-                      :class="shop.status === 'on_sale' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'"
-                      x-text="shop.status === 'on_sale' ? '在售' : '下架'"></span>
+                      :class="shop.status === 1 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'"
+                      x-text="shop.status === 1 ? '在售' : '下架'"></span>
               </div>
               <div class="text-2xl font-bold text-indigo-400 font-outfit mb-4" x-text="'￥' + shop.price"></div>
               
               <div class="space-y-2 mb-6">
                 <div class="flex items-center text-xs text-slate-400">
-                  <i class="fa-solid fa-rotate-right mr-2 text-purple-400 w-4"></i>自动续费：<span x-text="shop.auto_renew ? '支持' : '不支持'"></span>
+                  <i class="fa-solid fa-rotate-right mr-2 text-purple-400 w-4"></i>自动续费：<span x-text="shop.auto_renew > 0 ? (shop.auto_renew + ' 天自动续扣') : '不支持'"></span>
                 </div>
                 <div class="flex items-center text-xs text-slate-400">
-                  <i class="fa-solid fa-clock-rotate-left mr-2 text-purple-400 w-4"></i>重置流量：<span x-text="shop.auto_reset_bandwidth ? '支持次月重置' : '不支持重置'"></span>
+                  <i class="fa-solid fa-clock-rotate-left mr-2 text-purple-400 w-4"></i>重置流量：<span x-text="shop.auto_reset_bandwidth === 1 ? '支持新周期重置' : '不支持重置'"></span>
                 </div>
-                <div class="mt-3 text-xs bg-slate-900/50 p-3 rounded-lg border border-slate-800 text-slate-300 whitespace-pre-wrap leading-relaxed custom-scrollbar max-h-24 overflow-y-auto" x-text="shop.content"></div>
+                <div class="mt-3 text-xs bg-slate-900/50 p-3 rounded-lg border border-slate-800 text-slate-300 whitespace-pre-wrap leading-relaxed custom-scrollbar max-h-24 overflow-y-auto" x-text="formatContent(shop.content)"></div>
               </div>
             </div>
 
@@ -214,6 +214,43 @@
         async init() {
           await this.fetchShops();
           await this.fetchBoughtList();
+        },
+
+        formatContent(contentStr) {
+          if (!contentStr) return '无规格参数详情说明';
+          try {
+            const parsed = JSON.parse(contentStr);
+            if (typeof parsed !== 'object' || parsed === null) {
+              return contentStr; // Return raw text if legacy
+            }
+            
+            let desc = [];
+            if (parsed.bandwidth) desc.push(`流量: ${parsed.bandwidth} GB`);
+            if (parsed.expire) desc.push(`有效账户天数: ${parsed.expire} 天`);
+            if (parsed.class) desc.push(`升级会员等级: VIP ${parsed.class}`);
+            if (parsed.class_expire) desc.push(`等级有效期天数: ${parsed.class_expire} 天`);
+            if (parsed.reset && parsed.reset_value) {
+              if (parsed.reset_exp) {
+                desc.push(`定期重置: ${parsed.reset_exp}天内，每${parsed.reset}天重置为${parsed.reset_value}G`);
+              } else {
+                desc.push(`定期重置: 每${parsed.reset}天重置为${parsed.reset_value}G`);
+              }
+            }
+            if (parsed.speedlimit) desc.push(`端口限速: ${parsed.speedlimit} Mbps`);
+            if (parsed.connector) desc.push(`IP 限制数: ${parsed.connector} 个`);
+            if (parsed.content_extra) {
+              const services = parsed.content_extra.split(';').map(s => {
+                const parts = s.split('-');
+                return parts.length > 1 ? parts[1] : parts[0];
+              }).filter(Boolean);
+              if (services.length > 0) {
+                desc.push(`服务支持: ${services.join(', ')}`);
+              }
+            }
+            return desc.length > 0 ? desc.join('\n') : '无规格参数详情说明';
+          } catch (e) {
+            return contentStr; // Return raw text if not JSON
+          }
         },
 
         async fetchShops() {
