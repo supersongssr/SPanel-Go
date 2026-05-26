@@ -231,6 +231,20 @@ func (h *PublicHandler) Register(c *gin.Context) {
 	v2rayUUID := generateUUID()
 	port := findAvailablePort()
 
+	refBy := int32(0)
+	if req.Code != "" {
+		var inviteCode model.InviteCode
+		if err := database.DB.Where("code = ?", req.Code).First(&inviteCode).Error; err == nil {
+			refBy = inviteCode.UserID
+		} else {
+			// 自动兼容兜底：如果传入的不是邀请码字符串，而是直连的用户 UID 数字
+			var refUser model.User
+			if err := database.DB.Where("id = ?", req.Code).First(&refUser).Error; err == nil {
+				refBy = refUser.ID
+			}
+		}
+	}
+
 	hashedPassword := service.DefaultAuthService.SHA256Hash(req.Password, config.GlobalConfig.App.Salt)
 
 	user := model.User{
@@ -252,7 +266,7 @@ func (h *PublicHandler) Register(c *gin.Context) {
 		Money:          "0.00",
 		RegDate:        time.Now(),
 		InviteNum:      0,
-		RefBy:          0,
+		RefBy:          refBy,
 		Method:         "aes-256-gcm",
 		RegIP:          c.ClientIP(),
 		NodeSpeedlimit: "0.00",

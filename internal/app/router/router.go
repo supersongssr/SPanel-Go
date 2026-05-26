@@ -38,6 +38,8 @@ func SetupRouter() *gin.Engine {
 		userGroup.GET("/node", handler.DefaultUserHandler.Nodes) // 对应 frontend /user/node
 		userGroup.GET("/dashboard", handler.DefaultUserHandler.Dashboard) // 对应 frontend /user/dashboard
 		userGroup.POST("/checkin", handler.DefaultUserHandler.Checkin) // 对应 frontend /user/checkin
+		userGroup.GET("/invite", handler.DefaultUserHandler.GetInvite)    // 对应 frontend /user/invite
+
 
 		// 工单系统路由挂载
 		userGroup.GET("/ticket", handler.DefaultTicketHandler.GetTickets)

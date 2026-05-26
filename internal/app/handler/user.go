@@ -592,3 +592,134 @@ func verifyTOTP(secret string, code string) bool {
 	}
 	return false
 }
+
+// GetInvite 获取当前用户的推广返佣详情 (对接前端 user/invite.html)
+func (h *UserHandler) GetInvite(c *gin.Context) {
+	userVal, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"ret": 0,
+			"msg": "未授权的访问",
+		})
+		return
+	}
+
+	user := userVal.(*model.User)
+
+	// 1. 累计已赚取佣金：对 payback 表 ref_get 字段求和
+	var totalEarned float64
+	database.DB.Model(&model.Payback{}).Where("ref_by = ?", user.ID).Select("COALESCE(SUM(ref_get), 0)").Scan(&totalEarned)
+
+	// 2. 成功邀请下线好友：在 user 表中检索 ref_by = 当前用户 ID
+	var downlines []model.User
+	database.DB.Where("ref_by = ?", user.ID).Order("id DESC").Find(&downlines)
+
+	type formattedFriend struct {
+		ID      int32  `json:"id"`
+		Email   string `json:"email"`
+		RegDate string `json:"reg_date"`
+	}
+	friendsList := make([]formattedFriend, 0, len(downlines))
+	for _, f := range downlines {
+		parts := strings.Split(f.Email, "@")
+		obfuscated := f.Email
+		if len(parts) == 2 {
+			name := parts[0]
+			domain := parts[1]
+			if len(name) > 3 {
+				obfuscated = name[:3] + "***@" + domain
+			} else {
+				obfuscated = name + "***@" + domain
+			}
+		}
+		friendsList = append(friendsList, formattedFriend{
+			ID:      f.ID,
+			Email:   obfuscated,
+			RegDate: f.RegDate.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	// 3. 返利提成流水账单：在 payback 表中查询 ref_by = 当前用户 ID
+	var paybacks []model.Payback
+	database.DB.Where("ref_by = ?", user.ID).Order("id DESC").Find(&paybacks)
+
+	consumerIDs := make([]int64, 0, len(paybacks))
+	for _, p := range paybacks {
+		consumerIDs = append(consumerIDs, p.UserID)
+	}
+
+	consumerMap := make(map[int64]string)
+	if len(consumerIDs) > 0 {
+		var consumers []model.User
+		database.DB.Where("id IN ?", consumerIDs).Find(&consumers)
+		for _, c := range consumers {
+			parts := strings.Split(c.Email, "@")
+			obfuscated := c.Email
+			if len(parts) == 2 {
+				name := parts[0]
+				domain := parts[1]
+				if len(name) > 3 {
+					obfuscated = name[:3] + "***@" + domain
+				} else {
+					obfuscated = name + "***@" + domain
+				}
+			}
+			consumerMap[int64(c.ID)] = obfuscated
+		}
+	}
+
+	type formattedConsumer struct {
+		Email string `json:"email"`
+	}
+	type formattedRebate struct {
+		ID       int64             `json:"id"`
+		Total    string            `json:"total"`
+		RefGet   string            `json:"ref_get"`
+		Datetime string            `json:"datetime"`
+		Consumer formattedConsumer `json:"consumer"`
+	}
+
+	rebateList := make([]formattedRebate, 0, len(paybacks))
+	for _, p := range paybacks {
+		cEmail := consumerMap[p.UserID]
+		if cEmail == "" {
+			cEmail = "已注销账户"
+		}
+		rebateList = append(rebateList, formattedRebate{
+			ID:       p.ID,
+			Total:    p.Total,
+			RefGet:   p.RefGet,
+			Datetime: time.Unix(p.DateTime, 0).Format("2006-01-02 15:04:05"),
+			Consumer: formattedConsumer{Email: cEmail},
+		})
+	}
+
+	// 4. 专属推广链接与邀请码获取 (优先从 ss_invite_code 载入)
+	var inviteCode model.InviteCode
+	if err := database.DB.Where("user_id = ?", user.ID).First(&inviteCode).Error; err != nil {
+		// 若因首次上架漏配置，则现场高强度生成一个 10 位长度邀请码建档
+		codeStr := generateLocalRandomStr(10)
+		inviteCode = model.InviteCode{
+			Code:      codeStr,
+			UserID:    user.ID,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		database.DB.Create(&inviteCode)
+	}
+
+	inviteURL := fmt.Sprintf("/auth/register.html?ref=%s", inviteCode.Code)
+
+	c.JSON(http.StatusOK, gin.H{
+		"ret": 1,
+		"msg": "获取成功",
+		"data": gin.H{
+			"invite_num":   user.InviteNum,
+			"total_earned": fmt.Sprintf("%.2f", totalEarned),
+			"invite_url":   inviteURL,
+			"downlines":    friendsList,
+			"rebates":      rebateList,
+		},
+	})
+}
+
