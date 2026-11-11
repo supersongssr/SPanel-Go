@@ -36,3 +36,4 @@ tmp/
 spanel-api
 spanel.pid
 api.log
+.plans/
