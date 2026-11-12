@@ -2,7 +2,9 @@
 
 app:
   name: "SPanel-Go"
-  port: 8080
+  port: 8080                        # 基础端口 (用户端实例缺省端口)
+  userPort: 8080                    # 用户端实例 (cmd/user) 监听端口，面向公网
+  fullPort: 8081                    # 全功能实例 (cmd/full) 监听端口，建议仅内网/白名单开放
   key: "1145141919810"                # 系统安全密钥，请及时更改为随机字符串
   salt: ""                           # 密码加密 salt 值 (对齐旧版 .config.php 空字符串以防计算漂移)
   muKey: "glzjin"                    # 面板与节点通信校验的主密钥

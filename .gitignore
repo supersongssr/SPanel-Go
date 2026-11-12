@@ -34,6 +34,8 @@ tmp/
 
 # Runtime and compiled files
 spanel-api
-spanel.pid
-api.log
+spanel-user
+spanel-full
+*.pid
+*.log
 .plans/
