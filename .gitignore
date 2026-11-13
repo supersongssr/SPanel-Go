@@ -33,9 +33,7 @@ go.work.sum
 tmp/
 
 # Runtime and compiled files
-spanel-api
-spanel-user
-spanel-full
+spanel
 *.pid
 *.log
 .plans/

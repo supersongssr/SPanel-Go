@@ -4,25 +4,23 @@ SPanel（PHP 版，位于 `/var/www/SPanel`）的 Go 重构版。基于 Gin + GO
 
 ---
 
-## 架构总览：双实例 (Dual-Build) 架构
+## 架构总览：全功能单体
 
-本项目编译为**两个独立部署单元**，来自同一份代码库（共享 `internal/`），每个单元 = **后端 Go API + 前端纯静态 HTML**：
+本项目编译为**单一部署单元** = **后端 Go API + 前端纯静态 HTML**，一个进程承载全部功能：
 
-| | 用户端 `cmd/user` (minimal) | 全功能端 `cmd/full` (含 admin) |
-|---|---|---|
-| 二进制 | `spanel-user` | `spanel-full` |
-| 定位 | 面向公网的最小实例 | 管理端，全功能实例 |
-| 后端路由 | auth / user / 节点通信 (node+mu) / 订阅 | 以上全部 + `/api/v1/admin/*` + `/api/*` 对外 API (30 条) |
-| 前端静态页 | `public/user` `public/auth` `public/assets` | 以上全部 + `public/admin` |
-| 部署位置 | 公网域名（如 `www.xxx.com`） | 内网 / 网关白名单之后（如 `admin.xxx.com` 仅允许管理 IP） |
-| 默认端口 | `app.userPort`（回落 `port`） | `app.fullPort`（回落 `port+1`） |
-| 数据库/Redis/JWT | 共享同一份 `config.yaml`，同库同密钥 | 同左 |
+| 组成 | 内容 |
+|---|---|
+| 二进制 | `spanel`（唯一入口 `cmd/spanel`） |
+| 后端路由 | auth / user / admin / 节点通信 (node+mu) / 订阅 / `/api/*` 对外 API (30 条) |
+| 前端静态页 | `public/user` `public/auth` `public/admin` `public/assets` |
+| 默认端口 | `app.port`（可 `-port` 参数覆盖） |
 
-### 设计动机
+### 设计要点
 
-1. **公网最小暴露面**：user 实例不注册任何 admin 路由，`/api/v1/admin/*` 是真实 404（路由表中不存在），而非中间件拦截。
-2. **独立部署更新**：admin 变更只需重编译并重启 `spanel-full`，不影响线上 user 实例；反之亦然。
-3. **代码只有一份**：路由注册函数化（`RegisterUserRoutes` / `RegisterAdminRoutes`），两个入口共用，无重复维护。
+1. **单一产物**：一次构建、一份二进制、一条流水线，无版本漂移问题。
+2. **路由分层即可控**：`/api/v1/admin/*` 经 Auth + Admin 双重中间件保护；对外机器 API 经 muKey/node token 鉴权。
+3. **网关层叠加管控**：admin 页面与路由建议在 nginx/网关叠加 IP 白名单 (见部署建议)。
+4. **代码组织函数化**：路由注册函数化（`RegisterUserRoutes` / `RegisterAdminRoutes` / `RegisterApiRoutes`），结构清晰、无重复维护。
 
 ---
 
@@ -31,15 +29,15 @@ SPanel（PHP 版，位于 `/var/www/SPanel`）的 Go 重构版。基于 Gin + GO
 ```text
 SPanel-Go/
 ├── cmd/
-│   ├── user/main.go          # 用户端入口 (minimal)：SetupUserRouter()
-│   └── full/main.go          # 全功能端入口：SetupRouter()
+│   └── spanel/main.go       # 唯一入口：SetupRouter() 组装全部功能
 ├── internal/
 │   ├── app/
-│   │   ├── bootstrap/        # 服务实例启动引导 (配置/DB/Redis/HTTP/优雅退出)
+│   │   ├── bootstrap/        # 服务启动引导 (配置/DB/Redis/HTTP/优雅退出)
 │   │   ├── router/
-│   │   │   ├── router.go     # 基础引擎 + SetupUserRouter / SetupRouter 组装
+│   │   │   ├── router.go     # 基础引擎 + SetupRouter 组装
 │   │   │   ├── user_routes.go    # RegisterUserRoutes + 用户端静态页挂载
-│   │   │   └── admin_routes.go   # RegisterAdminRoutes + admin 静态页挂载
+│   │   │   ├── admin_routes.go   # RegisterAdminRoutes + admin 静态页挂载
+│   │   │   └── api_routes.go     # RegisterApiRoutes (/api/* 30 条)
 │   │   ├── handler/          # 接口处理器 (public/user/ticket/admin/node/sub)
 │   │   └── middleware/       # Auth / Admin / NodeAuth / Cors
 │   ├── service/              # 核心业务逻辑
@@ -48,8 +46,8 @@ SPanel-Go/
 │   └── pkg/                  # 公共库 (database / captcha)
 ├── public/
 │   ├── user/  auth/  admin/  assets/   # 前端纯静态 HTML
-├── config.yaml               # 全局配置 (两个实例共用)
-└── run.sh                    # 双实例构建/启动/停止/状态管理脚本
+├── config.yaml               # 全局配置
+└── run.sh                    # 构建/启动/停止/状态管理脚本
 ```
 
 ---
@@ -57,14 +55,13 @@ SPanel-Go/
 ## 构建与运行
 
 ```bash
-./run.sh build            # 编译 spanel-user + spanel-full
-./run.sh start            # 启动全部实例
-./run.sh start user       # 仅启动用户端
-./run.sh restart full     # 仅重启全功能端 (不影响用户端)
-./run.sh stop|status|logs # 停止 / 状态 / 日志 (logs 需指定 user|full)
+./run.sh build            # 编译 spanel
+./run.sh start            # 启动
+./run.sh restart          # 重启
+./run.sh stop|status|logs # 停止 / 状态 / 日志
 ```
 
-端口可通过 `-port` 参数覆盖：`./spanel-user -port 9000`。
+端口可通过 `-port` 参数覆盖：`./spanel -port 9000`。
 
 ---
 
@@ -74,32 +71,35 @@ SPanel-Go/
 
 ```yaml
 app:
-  port: 8080        # 基础端口
-  userPort: 8080    # 用户端实例 (cmd/user)，缺省回落 port
-  fullPort: 8081    # 全功能实例 (cmd/full)，缺省回落 port+1
+  port: 8080        # 监听端口
 ```
-
-两个实例共享同一份 `config.yaml`（同数据库、同 Redis、同 JWT secret）。JWT 密钥共享使 full 端的 Masquerade（管理员模拟用户）签发的 token 可直接用于 user 端，无需额外打通。
 
 ---
 
 ## 部署建议 (安全)
 
-user 域名走公网；full 域名务必叠加网络层控制，nginx 示例：
+单域名部署即可服务全部功能；管理面建议在网关层叠加 IP 白名单，nginx 示例：
 
 ```nginx
-# 管理端：仅允许管理 IP + 内网穿透场景
-server {
-    server_name admin.xxx.com;
-    allow <管理IP>;
-    deny all;
-    location / { proxy_pass http://127.0.0.1:8081; }
-}
-
-# 用户端：正常公网服务
+# 面板：正常公网服务
 server {
     server_name www.xxx.com;
-    location / { proxy_pass http://127.0.0.1:8080; }
+
+    # 管理端路由与页面：仅允许管理 IP
+    location /api/v1/admin/ {
+        allow <管理IP>;
+        deny all;
+        proxy_pass http://127.0.0.1:8080;
+    }
+    location /admin/ {
+        allow <管理IP>;
+        deny all;
+        proxy_pass http://127.0.0.1:8080;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+    }
 }
 ```
 
@@ -113,13 +113,11 @@ server {
 
 1. **API 部分（优先）** —— `/link/:token` 订阅分发、`/mu/*` 与 `/api/node/*` 节点通信。节点与用户客户端依赖此入口，最先完成可保证存量服务不受影响。状态：✅ 初版完成。
 2. **user 部分（其次）** —— auth 登录注册、用户中心（仪表盘/节点/签到/邀请/工单/安全设置）及 `public/user` 静态页。状态：开发中。
-3. **admin 部分（最后）** —— 管理后台全部路由及 `public/admin` 静态页，仅在 full 实例中注册。状态：开发中。
-
-> 实施顺序的意义：公网 user 实例承载 API + user 功能即可稳定服务存量用户；admin 功能独立在 full 实例中迭代，随时可部署或暂停，互不干扰。
+3. **admin 部分（最后）** —— 管理后台全部路由及 `public/admin` 静态页。状态：开发中。
 
 ---
 
-## `/api/` 对外 API 路由表（30 条，仅 full 实例注册）
+## `/api/` 对外 API 路由表（30 条）
 
 > 完整方案见 `.plans/2026-11-12_api-routes-all.md`；契约文档对齐 PHP `docs/api2/`。
 > 鉴权：`muKey` = 全局面板密钥（Bearer / X-API-Token / token 参数三态）；`node token` = 每节点独立 `ss_node.api_token`。

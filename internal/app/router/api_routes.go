@@ -7,7 +7,7 @@ import (
 	"spanel-go/internal/app/middleware"
 )
 
-// RegisterApiRoutes 注册全部 /api/ 开头的对外 API 路由 (仅 full 实例调用)。
+// RegisterApiRoutes 注册全部 /api/ 开头的对外 API 路由。
 //
 // 对齐 PHP config/routes.php 的 /api、/api/v2、/api/v2/backend 三组, 共 30 条:
 //

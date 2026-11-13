@@ -94,13 +94,11 @@ func (n *NodeConfig) EnforceIPCheck() bool {
 }
 
 type AppConfig struct {
-	Name     string `yaml:"name"`
-	Port     int    `yaml:"port"`     // 基础端口 (用户端实例缺省端口)
-	UserPort int    `yaml:"userPort"` // 用户端实例 (cmd/user) 监听端口，缺省回落到 port
-	FullPort int    `yaml:"fullPort"` // 全功能实例 (cmd/full) 监听端口，缺省回落到 port+1
-	Key      string `yaml:"key"`
-	Salt     string `yaml:"salt"`
-	MuKey    string `yaml:"muKey"`
+	Name  string `yaml:"name"`
+	Port  int    `yaml:"port"` // 监听端口
+	Key   string `yaml:"key"`
+	Salt  string `yaml:"salt"`
+	MuKey string `yaml:"muKey"`
 }
 
 type SecurityConfig struct {

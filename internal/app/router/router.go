@@ -22,18 +22,8 @@ func NewBaseRouter() *gin.Engine {
 	return r
 }
 
-// SetupUserRouter 用户端实例 (minimal)：公网最小暴露面，仅包含用户运行所需功能
-// 组成：公共基础 + 用户路由组 (auth / user / 节点通信 / 订阅) + 用户端静态页面
-func SetupUserRouter() *gin.Engine {
-	r := NewBaseRouter()
-	RegisterUserRoutes(r)
-	RegisterUserStatic(r)
-	return r
-}
-
-// SetupRouter 全功能实例 (full)：包含用户端全部功能 + 管理端路由与静态页面
-// 建议仅部署在内网或网关 (nginx) 白名单之后，不直接暴露公网
-// 注: /api/* 对外 API (节点/支付回调) 亦仅在本实例注册 (后端公网可达由网关层保障)
+// SetupRouter 组装全功能路由引擎：
+// 用户端 (auth/user/mu/link) + 管理端 (admin) + /api/* 对外 API + 全部静态页面
 func SetupRouter() *gin.Engine {
 	r := NewBaseRouter()
 	RegisterUserRoutes(r)

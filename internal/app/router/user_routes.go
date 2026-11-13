@@ -53,7 +53,7 @@ func RegisterUserRoutes(r *gin.Engine) {
 	// 3. 节点通信组 (Mu API Protected)
 	// 注: 旧版简化 /api/node/status 桩已删除 —— PHP 版完整端口
 	// (V2ApiController::status, muKey 三态鉴权 + reportStatus 全量语义)
-	// 由 RegisterApiRoutes 在 full 实例注册, 见 internal/app/router/api_routes.go
+	// 由 RegisterApiRoutes 注册, 见 internal/app/router/api_routes.go
 	muGroup := r.Group("/mu")
 	muGroup.Use(middleware.NodeAuth())
 	{
@@ -70,7 +70,7 @@ func RegisterUserStatic(r *gin.Engine) {
 	registerCommonPages(r)
 }
 
-// RegisterAdminStatic 挂载管理端前端静态页面 (public/admin)，仅 full 实例调用
+// RegisterAdminStatic 挂载管理端前端静态页面 (public/admin)
 // 注：根页面与 404 兜底页已由 RegisterUserStatic 统一注册
 func RegisterAdminStatic(r *gin.Engine) {
 	mountStatic(r, "admin")

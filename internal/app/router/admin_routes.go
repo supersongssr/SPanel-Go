@@ -7,7 +7,7 @@ import (
 	"spanel-go/internal/app/middleware"
 )
 
-// RegisterAdminRoutes 注册管理端后端路由 (仅 full 实例注册)：
+// RegisterAdminRoutes 注册管理端后端路由：
 // 全部位于 /api/v1/admin 之下，经 Auth + Admin 双重中间件保护
 func RegisterAdminRoutes(r *gin.Engine) {
 	adminGroup := r.Group("/api/v1/admin")

@@ -1,99 +1,77 @@
 #!/bin/bash
 
-# SPanel-Go Service Management & Deployment Script (双实例架构)
+# SPanel-Go Service Management & Deployment Script (单实例全功能)
 #
-#   user -> cmd/user  公网最简用户端  (auth/user/node/mu/link + 用户端静态页)
-#   full -> cmd/full  全功能端        (用户端全部功能 + admin 路由与静态页, 建议内网/白名单部署)
+#   spanel -> cmd/spanel  全功能单体 (用户端 + 管理端 + 对外 API + 全部静态页)
 #
-# Usage: ./run.sh {build|start|stop|restart|status|logs} [user|full|all]
+# Usage: ./run.sh {build|start|stop|restart|status|logs}
 
 export PATH=$PATH:/usr/local/go/bin
 GO_BIN="/usr/local/go/bin/go"
 
-TARGET="${2:-all}"
-
-# ---------- helpers ----------
-
-svc_bin() { echo "spanel-$1"; }
-svc_pid() { echo "spanel-$1.pid"; }
-svc_log() { echo "$1.log"; }
-
-# 在目标实例上执行函数: each <func>
-each() {
-    for t in user full; do
-        [ "$TARGET" = "all" ] || [ "$TARGET" = "$t" ] || continue
-        "$1" "$t"
-    done
-}
+BIN="spanel"
+PID_FILE="spanel.pid"
+LOG_FILE="spanel.log"
 
 # ---------- build ----------
-
-build_one() {
-    local t=$1
+do_build() {
     echo "========================================="
-    echo "Compiling $t instance (./cmd/$t/) -> ./spanel-$t"
+    echo "Compiling SPanel-Go (./cmd/spanel/) -> ./$BIN"
     echo "========================================="
     if [ -x "$GO_BIN" ]; then
-        $GO_BIN build -o "spanel-$t" "./cmd/$t/"
+        $GO_BIN build -o "$BIN" "./cmd/spanel/"
     else
-        go build -o "spanel-$t" "./cmd/$t/"
+        go build -o "$BIN" "./cmd/spanel/"
     fi
     if [ $? -eq 0 ]; then
-        echo "✅ Compilation successful! Binary generated: ./spanel-$t"
+        echo "✅ Compilation successful! Binary generated: ./$BIN"
     else
-        echo "❌ Compilation failed for spanel-$t. Please check build errors above."
+        echo "❌ Compilation failed for $BIN. Please check build errors above."
         exit 1
     fi
 }
 
 # ---------- start ----------
-
-start_one() {
-    local t=$1 bin pid
-    bin="spanel-$t"
+do_start() {
     echo "========================================="
-    echo "Starting $t instance..."
+    echo "Starting SPanel-Go..."
     echo "========================================="
 
-    if [ -f "$(svc_pid $t)" ]; then
-        pid=$(cat "$(svc_pid $t)")
+    if [ -f "$PID_FILE" ]; then
+        pid=$(cat "$PID_FILE")
         if ps -p "$pid" > /dev/null 2>&1; then
-            echo "⚠️  $t instance is already running (PID: $pid)."
+            echo "⚠️  SPanel-Go is already running (PID: $pid)."
             return
         fi
-        rm -f "$(svc_pid $t)"
+        rm -f "$PID_FILE"
     fi
 
-    if [ ! -f "$bin" ]; then
-        echo "Binary ./$bin not found. Triggering automated build first..."
-        build_one "$t"
+    if [ ! -f "$BIN" ]; then
+        echo "Binary ./$BIN not found. Triggering automated build first..."
+        do_build
     fi
 
-    nohup "./$bin" > "$(svc_log $t)" 2>&1 &
+    nohup "./$BIN" > "$LOG_FILE" 2>&1 &
     pid=$!
-    echo "$pid" > "$(svc_pid $t)"
+    echo "$pid" > "$PID_FILE"
     disown "$pid"
 
     sleep 1
     if ps -p "$pid" > /dev/null 2>&1; then
-        echo "✅ $t instance started (PID: $pid), logs: ./$(svc_log $t)"
+        echo "✅ SPanel-Go started (PID: $pid), logs: ./$LOG_FILE"
     else
-        echo "❌ $t instance failed to start. Printing recent logs below:"
-        tail -n 20 "$(svc_log $t)"
-        rm -f "$(svc_pid $t)"
+        echo "❌ SPanel-Go failed to start. Printing recent logs below:"
+        tail -n 20 "$LOG_FILE"
+        rm -f "$PID_FILE"
     fi
 }
 
 # ---------- stop ----------
-
-stop_one() {
-    local t=$1 bin pid
-    bin="spanel-$t"
-
-    if [ -f "$(svc_pid $t)" ]; then
-        pid=$(cat "$(svc_pid $t)")
+do_stop() {
+    if [ -f "$PID_FILE" ]; then
+        pid=$(cat "$PID_FILE")
         if ps -p "$pid" > /dev/null 2>&1; then
-            echo "Stopping $t instance (PID: $pid)..."
+            echo "Stopping SPanel-Go (PID: $pid)..."
             kill "$pid"
             for i in {1..10}; do
                 ps -p "$pid" > /dev/null 2>&1 || break
@@ -103,84 +81,73 @@ stop_one() {
                 echo "⚠️  Graceful shutdown timed out. Forcing termination..."
                 kill -9 "$pid"
             fi
-            echo "✅ $t instance stopped."
+            echo "✅ SPanel-Go stopped."
         else
-            echo "⚠️  $t PID file exists but process is not running. Cleaning up stale PID file."
+            echo "⚠️  PID file exists but process is not running. Cleaning up stale PID file."
         fi
-        rm -f "$(svc_pid $t)"
+        rm -f "$PID_FILE"
     else
-        pid=$(pgrep -f "./$bin")
+        pid=$(pgrep -x "$BIN")
         if [ ! -z "$pid" ]; then
-            echo "Found matching process(es) for $t: $pid. Stopping them..."
+            echo "Found matching process(es): $pid. Stopping them..."
             kill $pid
             sleep 1
             kill -9 $pid > /dev/null 2>&1
-            echo "✅ $t instance stopped."
+            echo "✅ SPanel-Go stopped."
         else
-            echo "ℹ️  $t instance is already stopped."
+            echo "ℹ️  SPanel-Go is already stopped."
         fi
     fi
 }
 
 # ---------- status ----------
-
-status_one() {
-    local t=$1 pid
+do_status() {
     echo "========================================="
-    echo "SPanel-Go [$t] Instance Status"
+    echo "SPanel-Go Status"
     echo "========================================="
 
-    if [ -f "$(svc_pid $t)" ]; then
-        pid=$(cat "$(svc_pid $t)")
+    if [ -f "$PID_FILE" ]; then
+        pid=$(cat "$PID_FILE")
         if ps -p "$pid" > /dev/null 2>&1; then
-            echo "🟢 [$t] RUNNING (PID: $pid, Uptime: $(ps -o etime= -p "$pid" | tr -d ' '), Memory: $(ps -o rss= -p "$pid" | awk '{printf "%.1f MB", $1/1024}'))"
+            echo "🟢 RUNNING (PID: $pid, Uptime: $(ps -o etime= -p "$pid" | tr -d ' '), Memory: $(ps -o rss= -p "$pid" | awk '{printf "%.1f MB", $1/1024}'))"
             ss -tulnp 2>/dev/null | grep "$pid" || netstat -tulnp 2>/dev/null | grep "$pid"
             return 0
         fi
-        echo "🔴 [$t] STOPPED (Stale PID file exists)"
+        echo "🔴 STOPPED (Stale PID file exists)"
         return 1
     fi
-    echo "🔴 [$t] STOPPED"
+    echo "🔴 STOPPED"
     return 1
 }
 
 # ---------- logs ----------
-
-logs_one() {
-    local t=$1 log
-    log="$(svc_log $t)"
-    if [ -f "$log" ]; then
+do_logs() {
+    if [ -f "$LOG_FILE" ]; then
         echo "========================================="
-        echo "Recent Logs (tailing ./$log):"
+        echo "Recent Logs (tailing ./$LOG_FILE):"
         echo "========================================="
-        tail -n 50 "$log"
+        tail -n 50 "$LOG_FILE"
         echo "========================================="
         echo "Tailing log file. Press Ctrl+C to exit."
-        tail -f "$log"
+        tail -f "$LOG_FILE"
     else
-        echo "❌ Log file not found: ./$log"
+        echo "❌ Log file not found: ./$LOG_FILE"
     fi
 }
 
 # ---------- entry ----------
-
 case "$1" in
-    build)   each build_one ;;
-    start)   each start_one ;;
-    stop)    each stop_one ;;
-    restart) each stop_one; sleep 1; each start_one ;;
-    status)  each status_one ;;
-    logs)
-        case "$TARGET" in
-            user|full) logs_one "$TARGET" ;;
-            *) echo "Usage: $0 logs [user|full]"; exit 1 ;;
-        esac
-        ;;
+    build)   do_build ;;
+    start)   do_start ;;
+    stop)    do_stop ;;
+    restart) do_stop; sleep 1; do_start ;;
+    status)  do_status ;;
+    logs)    do_logs ;;
     *)
-        echo "Usage: $0 {build|start|stop|restart|status|logs} [user|full|all]"
-        echo "  e.g. ./run.sh build          # 编译 user + full 两个实例"
-        echo "       ./run.sh start user     # 仅启动用户端实例"
-        echo "       ./run.sh restart full   # 仅重启全功能实例 (不影响 user)"
+        echo "Usage: $0 {build|start|stop|restart|status|logs}"
+        echo "  e.g. ./run.sh build     # 编译 ./spanel"
+        echo "       ./run.sh start     # 启动"
+        echo "       ./run.sh logs      # 查看日志"
         exit 1
         ;;
 esac
