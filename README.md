@@ -12,7 +12,7 @@ SPanel（PHP 版，位于 `/var/www/SPanel`）的 Go 重构版。基于 Gin + GO
 |---|---|---|
 | 二进制 | `spanel-user` | `spanel-full` |
 | 定位 | 面向公网的最小实例 | 管理端，全功能实例 |
-| 后端路由 | auth / user / 节点通信 (node+mu) / 订阅 (link) | 以上全部 + `/api/v1/admin/*` |
+| 后端路由 | auth / user / 节点通信 (node+mu) / 订阅 | 以上全部 + `/api/v1/admin/*` + `/api/*` 对外 API (30 条) |
 | 前端静态页 | `public/user` `public/auth` `public/assets` | 以上全部 + `public/admin` |
 | 部署位置 | 公网域名（如 `www.xxx.com`） | 内网 / 网关白名单之后（如 `admin.xxx.com` 仅允许管理 IP） |
 | 默认端口 | `app.userPort`（回落 `port`） | `app.fullPort`（回落 `port+1`） |
@@ -116,3 +116,54 @@ server {
 3. **admin 部分（最后）** —— 管理后台全部路由及 `public/admin` 静态页，仅在 full 实例中注册。状态：开发中。
 
 > 实施顺序的意义：公网 user 实例承载 API + user 功能即可稳定服务存量用户；admin 功能独立在 full 实例中迭代，随时可部署或暂停，互不干扰。
+
+---
+
+## `/api/` 对外 API 路由表（30 条，仅 full 实例注册）
+
+> 完整方案见 `.plans/2026-11-12_api-routes-all.md`；契约文档对齐 PHP `docs/api2/`。
+> 鉴权：`muKey` = 全局面板密钥（Bearer / X-API-Token / token 参数三态）；`node token` = 每节点独立 `ss_node.api_token`。
+
+### v2 backend 组（生产核心，节点插件 ↔ 面板，`{"data"}`/`{"error"}` 信封）
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/v2/backend/users` | 本节点有效用户全量快照（node token） |
+| GET | `/api/v2/backend/users/delta?since=` | 增量用户同步 v6.1（单水位线） |
+| POST | `/api/v2/backend/traffic` | 批量流量上报（原始字节，倍率在此乘） |
+| POST | `/api/v2/backend/status` | 节点状态心跳（uptime/load/在线数） |
+| GET | `/api/v2/backend/healthz` | 健康检查（无鉴权） |
+
+### v2 节点生命周期族（muKey 三态，`status/message` 信封，节点开通脚本契约）
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST | `/api/node/apply_id` | 申请节点 ID（恒新建不复用 + IP 登记） |
+| POST | `/api/node/register` | 节点注册（node_id 可省；DNS/clone/协议预设） |
+| POST | `/api/node/status` | 状态/流量心跳（`traffic_used` 唯一权威写入方，NIC 口径） |
+| POST | `/api/node/config` | 生成 xray 配置（raw JSON + `X-Config-Hash`） |
+| POST | `/api/node/nginx_config` | 渲染 nginx 配置（text/plain，HTTP 状态码信封） |
+| POST | `/api/node/resolve_dns` | 整组 DNS 对账（CF + DB） |
+| POST | `/api/node/unlock_check` | 流媒体解锁检测上报 |
+| POST | `/api/node/edit` | 节点字段编辑（EDITABLE_FIELDS 白名单） |
+| POST | `/api/node/delete` | 节点直接删除通道（全量级联，不可逆） |
+| GET | `/api/nodes` | 全量节点导出（`ret/data` 旧信封，raw 全列输出） |
+
+### v2 治理组（muKey，`{"data"}`/`{"error"}` 信封）
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/v2/user` | 按邮箱/ID 查用户（仅 Bearer；含流量汇总） |
+| POST | `/api/v2/node/purge_dns` | 临时节点 DNS 秒级注销（整组，幂等） |
+| POST | `/api/v2/node/offline` | 节点下架（整组置 type=0，幂等） |
+
+### v1 保留（生产在用）
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST | `/api/clonepay` | 支付同步回调（IP 白名单 + MD5 签名 + 幂等入账 + 返利） |
+
+### v0 / v1 已停用（对齐 PHP 2026-11-12 版本清点决议）
+
+- v0 死路由 ×5（`/api/token*`、`GET /api/node`、`/api/user/:id`、`/api/sublink`）→ **410** + 迁移指引头
+- v1 弃用族 ×6（`node/new`、`simple_api_tools`、`getNodeDomain`、`node/proxy`、`ssn_sub`、`ssn_v2`）→ **401** 直接拒绝（Go 版不移植）

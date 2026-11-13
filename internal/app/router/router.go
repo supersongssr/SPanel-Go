@@ -33,11 +33,13 @@ func SetupUserRouter() *gin.Engine {
 
 // SetupRouter 全功能实例 (full)：包含用户端全部功能 + 管理端路由与静态页面
 // 建议仅部署在内网或网关 (nginx) 白名单之后，不直接暴露公网
+// 注: /api/* 对外 API (节点/支付回调) 亦仅在本实例注册 (后端公网可达由网关层保障)
 func SetupRouter() *gin.Engine {
 	r := NewBaseRouter()
 	RegisterUserRoutes(r)
 	RegisterUserStatic(r)
 	RegisterAdminRoutes(r)
 	RegisterAdminStatic(r)
+	RegisterApiRoutes(r)
 	return r
 }

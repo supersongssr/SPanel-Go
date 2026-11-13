@@ -54,8 +54,8 @@ func (h *TicketHandler) GetTickets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"ret": 1,
-		"msg": "获取成功",
+		"ret":  1,
+		"msg":  "获取成功",
 		"data": formatted,
 	})
 }

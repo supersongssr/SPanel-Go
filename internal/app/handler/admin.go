@@ -69,12 +69,12 @@ func (h *AdminHandler) Dashboard(c *gin.Context) {
 		"ret": 1,
 		"msg": "获取成功",
 		"data": gin.H{
-			"total_users":        totalUsers,
-			"active_users":       activeUsers,
-			"total_nodes":        totalNodes,
-			"total_revenue":      totalRevenue,
+			"total_users":         totalUsers,
+			"active_users":        activeUsers,
+			"total_nodes":         totalNodes,
+			"total_revenue":       totalRevenue,
 			"total_traffic_bytes": totalTrafficBytes,
-			"user_growth":        userGrowth,
+			"user_growth":         userGrowth,
 		},
 	})
 }

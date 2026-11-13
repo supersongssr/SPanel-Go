@@ -37,3 +37,46 @@ jwt:
 pow:
   enabled: false
   min_difficulty: 10000
+
+# ── 支付系统 (对齐 PHP payment_system / clonepay_apis) ─────────────────────
+payment:
+  system: "none"                  # none | fakapay | clonepay (仅 clonepay 时 /api/clonepay 生效)
+  clonepay_apis:                  # from → 密钥三元组 (IP 为回调方直连地址)
+    # game:
+    #   safeip: "1.2.3.4"
+    #   safeipv6: "::1"
+    #   paytoken: "xxx"
+
+# ── 管理通知 bot (notify 最小件; /telegram_callback 另行立项) ────────────
+telegram:
+  enable: false
+  token: ""                       # bot token
+  admin_token: ""                 # 管理通知 bot token, 留空回退 token
+  admin_chat_id: ""               # 管理通知目标 chat id
+  admin_topic_id: 0               # 论坛群话题 id, 0 不指定
+
+# ── 邀请返利 (对齐 PHP code_payback / code_payback2 / invite_gift_money / invite_gift)
+invite:
+  code_payback: 20                # 一级返利 % (直接邀请人, 每笔充值)
+  code_payback2: 5                # 二级返利 % (两级合计勿超 50, 超出自动拒发达标奖励)
+  invite_gift_money: 5            # 达标奖励: 被邀请人累计充值 > 本值×2 时一次性发放
+  invite_gift: 1                  # 达标奖励流量 (GB)
+
+# ── Cloudflare DNS (节点注册/DNS 对账/注销; 对齐 PHP node_domain_pool) ─────
+cloudflare:
+  api_token: ""                   # 默认 CF API token
+  domain_pool:
+    # "example.com":
+    #   zone_id: ""               # 留空则用 token 调 CF API 自动查询
+    #   api_token: ""             # 域名独立 token, 留空回退默认
+    #   cdn: false                # true = xhttp-cdn 专用域名
+    #   records_limit: 0          # 0 = 不限
+
+# ── 节点生命周期 (对齐 PHP node_default_v2_name 等) ──────────────────────────
+node:
+  default_v2_name: "vision-curvePreferences"  # 协议组缺省名
+  fallback_host: "www.apple.com"              # nginx 伪装回落域名
+  enforce_reporter_ip_check: true             # 上报者 IP 强制校验 (不一致拒收上报)
+  node_group: 4                                # register 未上报 node_group 时回退默认分组 (PHP 默认 4)
+  node_clone_class_max: 10                    # clone 节点等级随机上限
+  cloudflare_cdn_preferred_domains: []        # CDN add= 优选域名池, 空回退节点真实 IP

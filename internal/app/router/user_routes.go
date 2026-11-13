@@ -30,7 +30,7 @@ func RegisterUserRoutes(r *gin.Engine) {
 	userGroup.Use(middleware.Auth())
 	{
 		userGroup.GET("/profile", handler.DefaultUserHandler.Profile)
-		userGroup.GET("/node", handler.DefaultUserHandler.Nodes)         // 对应 frontend /user/node
+		userGroup.GET("/node", handler.DefaultUserHandler.Nodes)          // 对应 frontend /user/node
 		userGroup.GET("/dashboard", handler.DefaultUserHandler.Dashboard) // 对应 frontend /user/dashboard
 		userGroup.POST("/checkin", handler.DefaultUserHandler.Checkin)    // 对应 frontend /user/checkin
 		userGroup.GET("/invite", handler.DefaultUserHandler.GetInvite)    // 对应 frontend /user/invite
@@ -50,13 +50,10 @@ func RegisterUserRoutes(r *gin.Engine) {
 		userGroup.POST("/ga/reset", handler.DefaultUserHandler.Disable2FA)
 	}
 
-	// 3. 节点通信组 (Node/Mu API Protected)
-	nodeGroup := r.Group("/api/node")
-	nodeGroup.Use(middleware.NodeAuth())
-	{
-		nodeGroup.POST("/status", handler.DefaultNodeHandler.Status)
-	}
-
+	// 3. 节点通信组 (Mu API Protected)
+	// 注: 旧版简化 /api/node/status 桩已删除 —— PHP 版完整端口
+	// (V2ApiController::status, muKey 三态鉴权 + reportStatus 全量语义)
+	// 由 RegisterApiRoutes 在 full 实例注册, 见 internal/app/router/api_routes.go
 	muGroup := r.Group("/mu")
 	muGroup.Use(middleware.NodeAuth())
 	{

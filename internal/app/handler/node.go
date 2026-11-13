@@ -3,7 +3,6 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"spanel-go/internal/model"
 	"spanel-go/internal/pkg/database"
@@ -14,80 +13,6 @@ import (
 type NodeHandler struct{}
 
 var DefaultNodeHandler = &NodeHandler{}
-
-// Status 节点心跳与状态接收接口 (接收节点上报的流量、在线人数、负载等)
-func (h *NodeHandler) Status(c *gin.Context) {
-	nodeIDStr := c.Query("node_id")
-	if nodeIDStr == "" {
-		nodeIDStr = c.PostForm("node_id")
-	}
-
-	nodeID, err := strconv.Atoi(nodeIDStr)
-	if err != nil || nodeID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"ret": 0,
-			"msg": "invalid node_id",
-		})
-		return
-	}
-
-	// 1. 校验数据库连接
-	if database.DB == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"ret": 0,
-			"msg": "system maintenance: database is offline",
-		})
-		return
-	}
-
-	// 2. 查找节点是否存在
-	var node model.Node
-	if err := database.DB.First(&node, nodeID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"ret": 0,
-			"msg": "node not found",
-		})
-		return
-	}
-
-	// 2. 更新节点心跳时间与在线状态
-	now := time.Now().Unix()
-	updates := map[string]interface{}{
-		"node_heartbeat": now,
-		"node_online":    1,
-	}
-
-	// 支持接收负载和在线用户数上报 (初版以 Query/PostForm 参数接收示范)
-	if load := c.PostForm("load"); load != "" {
-		updates["info"] = "System Load: " + load
-	}
-	if online := c.PostForm("online_users"); online != "" {
-		if val, err := strconv.Atoi(online); err == nil {
-			updates["node_online"] = val
-		}
-	}
-
-	if err := database.DB.Model(&node).Updates(updates).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"ret": 0,
-			"msg": "failed to update status",
-		})
-		return
-	}
-
-	// 3. 返回节点流量控制字段给代理后端
-	c.JSON(http.StatusOK, gin.H{
-		"ret": 1,
-		"msg": "success",
-		"data": gin.H{
-			"traffic_used":        node.TrafficUsed,
-			"traffic_left":        node.TrafficLeft,
-			"traffic_used_daily":  node.TrafficUsedDaily,
-			"traffic_left_daily":  node.TrafficLeftDaily,
-			"traffic_limit":       node.TrafficLimit,
-		},
-	})
-}
 
 // MuUsers 代理后端拉取有权限使用此节点的活跃用户列表接口
 func (h *NodeHandler) MuUsers(c *gin.Context) {

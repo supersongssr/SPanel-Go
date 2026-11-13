@@ -722,4 +722,3 @@ func (h *UserHandler) GetInvite(c *gin.Context) {
 		},
 	})
 }
-
