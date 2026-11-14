@@ -68,7 +68,7 @@ func Run(opt Options) {
 	// 4. 内嵌后台任务调度器 (jobs.enabled 且 DB/Redis 就绪; 方案 2026-11-13 §3)
 	startScheduler(cfg, dbOK, redisOK)
 
-	// 5. SIGHUP 热加载任务配置 (改 config.yaml jobs 段后 kill -HUP 即生效, 无需重启)
+	// 5. SIGHUP 热加载任务配置 (改 config.yaml/.config.yaml jobs 段后 kill -HUP 即生效, 无需重启)
 	sighup := make(chan os.Signal, 1)
 	signal.Notify(sighup, syscall.SIGHUP)
 	go func() {

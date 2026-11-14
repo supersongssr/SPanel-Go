@@ -94,9 +94,12 @@ func backupFn(full bool) func(context.Context, *RunContext) error {
 			}
 		}
 
-		// config.yaml 副本 (对齐 PHP 备份 .config.php)
+		// config.yaml 副本 (对齐 PHP 备份 .config.php); .config.yaml 为隐私覆盖配置, 一并备份
 		if data, err := os.ReadFile("config.yaml"); err == nil {
 			_ = os.WriteFile(filepath.Join(tmpDir, "configbak.yaml"), data, 0o600)
+		}
+		if data, err := os.ReadFile(".config.yaml"); err == nil {
+			_ = os.WriteFile(filepath.Join(tmpDir, ".configbak.yaml"), data, 0o600)
 		}
 
 		// Radius 库 (enable 时)

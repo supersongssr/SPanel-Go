@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
@@ -295,21 +296,65 @@ type PowConfig struct {
 // GlobalConfig 全局配置句柄
 var GlobalConfig *Config
 
-// LoadConfig 从指定路径加载 YAML 配置文件
+// LoadConfig 从指定路径加载 YAML 配置文件 (config.yaml 默认配置)。
+// 若同目录存在 .config.yaml (用户隐私覆盖配置, 已加入 .gitignore),
+// 则将其同名键深度覆盖进默认配置 —— 密码、密钥等敏感信息应放在 .config.yaml。
 func LoadConfig(path string) (*Config, error) {
-	file, err := os.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read config file error: %w", err)
 	}
 
+	if overridePath := filepath.Join(filepath.Dir(path), ".config.yaml"); fileExists(overridePath) {
+		override, err := os.ReadFile(overridePath)
+		if err != nil {
+			return nil, fmt.Errorf("read override config %s error: %w", overridePath, err)
+		}
+		if data, err = mergeYAML(data, override); err != nil {
+			return nil, fmt.Errorf("merge %s error: %w", overridePath, err)
+		}
+	}
+
 	var cfg Config
-	if err := yaml.Unmarshal(file, &cfg); err != nil {
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("unmarshal yaml error: %w", err)
 	}
 
 	GlobalConfig = &cfg
 	applyConfigDefaults(&cfg)
 	return &cfg, nil
+}
+
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
+}
+
+// mergeYAML 深度合并两份 YAML 文档: override 中的键递归覆盖 base 的同名键,
+// base 中未被覆盖的键保持不变; 返回合并后的 YAML 字节。
+func mergeYAML(base, override []byte) ([]byte, error) {
+	var baseMap, overrideMap map[string]any
+	if err := yaml.Unmarshal(base, &baseMap); err != nil {
+		return nil, fmt.Errorf("unmarshal base yaml: %w", err)
+	}
+	if err := yaml.Unmarshal(override, &overrideMap); err != nil {
+		return nil, fmt.Errorf("unmarshal override yaml: %w", err)
+	}
+	deepMerge(baseMap, overrideMap)
+	return yaml.Marshal(baseMap)
+}
+
+// deepMerge 将 src 递归覆盖进 dst: 双方均为 map 时下钻合并, 否则 src 覆盖 dst。
+func deepMerge(dst, src map[string]any) {
+	for k, v := range src {
+		if dstMap, ok := dst[k].(map[string]any); ok {
+			if srcMap, ok := v.(map[string]any); ok {
+				deepMerge(dstMap, srcMap)
+				continue
+			}
+		}
+		dst[k] = v
+	}
 }
 
 // applyConfigDefaults 各配置段缺省值

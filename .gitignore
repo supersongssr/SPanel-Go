@@ -27,6 +27,9 @@ go.work.sum
 # env file
 .env
 
+# 用户隐私覆盖配置 (密码/密钥等敏感信息, 深度覆盖 config.yaml 同名键)
+.config.yaml
+
 # Editor/IDE
 # .idea/
 # .vscode/

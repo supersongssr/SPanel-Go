@@ -1,11 +1,16 @@
-# SPanel-Go 全局系统配置文件
+# SPanel-Go 全局系统配置文件 (默认配置, 会提交到 git, 勿放隐私信息)
+#
+# 隐私覆盖机制: 同目录 .config.yaml (已加入 .gitignore) 中的同名键会
+# 深度覆盖本文件 —— 密码、密钥等敏感信息请只写在 .config.yaml,
+# 模板参见 .config.yaml.example。改完任一配置文件重启生效
+# (jobs 段支持 kill -HUP <pid> 热加载)。
 
 app:
   name: "SPanel-Go"
   port: 8080                        # 监听端口
-  key: "1145141919810"                # 系统安全密钥，请及时更改为随机字符串
+  key: ""                           # 系统安全密钥 → 敏感信息请写在 .config.yaml
   salt: ""                           # 密码加密 salt 值 (对齐旧版 .config.php 空字符串以防计算漂移)
-  muKey: "glzjin"                    # 面板与节点通信校验的主密钥
+  muKey: ""                         # 面板与节点通信校验主密钥 → 敏感信息请写在 .config.yaml
 
 security:
   enable_reg_captcha: false          # 注册图形验证码开关 (已关闭)
@@ -16,8 +21,8 @@ database:
   driver: "mysql"
   host: "127.0.0.1:3306"
   database: "test-spanel"           # 与 PHP 测试面板同库 (podman mysql:5.7)
-  username: "test-spanel"
-  password: "m5WsHxCbMTM2b8CW"
+  username: ""                      # → 敏感信息请写在 .config.yaml
+  password: ""                      # → 敏感信息请写在 .config.yaml
   charset: "utf8mb4"
   max_idle_conns: 10
   max_open_conns: 100
@@ -29,7 +34,7 @@ redis:
   db: 0
 
 jwt:
-  secret: "spanel_jwt_secret_key_change_me"  # JWT 签名密钥
+  secret: ""                        # JWT 签名密钥 → 敏感信息请写在 .config.yaml
   expire_hours: 24                          # Token 过期时间（小时）
 
 pow:

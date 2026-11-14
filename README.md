@@ -46,7 +46,8 @@ SPanel-Go/
 │   └── pkg/                  # 公共库 (database / captcha)
 ├── public/
 │   ├── user/  auth/  admin/  assets/   # 前端纯静态 HTML
-├── config.yaml               # 全局配置
+├── config.yaml               # 全局默认配置 (进 git, 勿放隐私信息)
+├── .config.yaml.example     # 隐私覆盖配置模板 (复制为 .config.yaml, 已 gitignore)
 └── run.sh                    # 构建/启动/停止/状态管理脚本
 ```
 
@@ -66,6 +67,29 @@ SPanel-Go/
 ---
 
 ## 配置说明
+
+配置分两层：
+
+| 文件 | 作用 | 是否进 git |
+|------|------|-----------|
+| `config.yaml` | 默认配置（端口、开关、任务排程等非敏感项） | ✅ 提交 |
+| `.config.yaml` | 用户隐私覆盖配置（密码、密钥等敏感项） | ❌ 已 gitignore |
+
+`.config.yaml` 中的同名键会**深度覆盖** `config.yaml`，只需写需要覆盖的部分，例如：
+
+```yaml
+# .config.yaml
+app:
+  key: "your-random-key"
+  muKey: "your-mu-key"
+database:
+  username: "xxx"
+  password: "xxx"
+jwt:
+  secret: "random-secret"
+```
+
+模板参见 `.config.yaml.example`。
 
 `config.yaml` 中端口相关字段：
 
