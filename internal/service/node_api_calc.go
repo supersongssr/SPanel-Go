@@ -484,6 +484,29 @@ func monthlySendResetDayWarn(flushNodes map[int64]string) {
 	notify.Warning("节点流量周期配置缺失", body)
 }
 
+// FlushPendingResetDayWarn 对齐 PHP NodeMonthlyTraffic::flushPendingResetDayWarn
+// (HourlyJob 兑底): 上报触发后 60s 合并窗口内若无新触发, pending 会滞留内存; 本函数
+// 每小时检查一次, 满窗且有 pending 则强制发送, 把告警延迟收敛到 ~1h。
+func FlushPendingResetDayWarn() {
+	now := timex.Unix()
+	resetDayWarnCoalesce.Lock()
+	if len(resetDayWarnCoalesce.pending) == 0 ||
+		now-resetDayWarnCoalesce.lastSend < monthlyResetDayWarnCoalesceSecs {
+		resetDayWarnCoalesce.Unlock()
+		return
+	}
+	flush := resetDayWarnCoalesce.pending
+	resetDayWarnCoalesce.pending = map[int64]string{}
+	resetDayWarnCoalesce.lastSend = now
+	resetDayWarnCoalesce.Unlock()
+	monthlySendResetDayWarn(flush)
+}
+
+// PreferredCDNDomains 导出清洗后的优选域名池 (cdnbandetect 探测取 CF 边缘 IP 用)。
+func PreferredCDNDomains() []string {
+	return addressPolicyPreferredDomains()
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 配置读取 (PHP Config::get 对应物)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -599,3 +622,47 @@ func isValidIPv6(raw string) bool {
 
 // errNodeAPINilDB 统一的 DB 未初始化错误
 var errNodeAPINilDB = errors.New("database not initialized")
+
+// ── 月度周期重置辅助 (对齐 PHP NodeMonthlyTraffic isResetDayToday/resetCycle/recordReset) ──
+
+// monthlyIsResetDayToday 今天是否本节点的月度重置日 (reset_day 锚点, 月末夹紧)。
+func MonthlyIsResetDayToday(node *model.Node) bool {
+	resetDay := int(node.TrafficResetDay)
+	if resetDay <= 0 {
+		return false
+	}
+	today := timex.DayOfMonth()
+	daysInMonth := timex.DaysInCurrentMonth()
+	if resetDay > daysInMonth {
+		resetDay = daysInMonth
+	}
+	return today == resetDay
+}
+
+// monthlyResetCycle 周期重置: 归零 traffic_used 及 daily 派生字段, 重算 left=全额配额。
+// 刻意不恢复 type/custom_rss (上线判定归 reportStatus, 见 PHP resetCycle 头注释)。
+func MonthlyResetCycle(node *model.Node) {
+	log.Printf("[NodeApi] [traffic_used_audit] node=#%d traffic_used %d->0 src=node.resetCycle",
+		node.ID, node.TrafficUsed)
+	node.TrafficUsed = 0
+	node.TrafficUsedDaily = 0
+	node.TrafficLeftDaily = 0
+	if node.TrafficLimit > 0 {
+		node.TrafficLeft = node.TrafficLimit
+	} else {
+		node.TrafficLeft = 0
+	}
+}
+
+// monthlyRecordReset 持久化重置基准 traffic_last_reset_time (安全网数据源)。
+func MonthlyRecordReset(nodeID int64) {
+	if database.DB == nil {
+		return
+	}
+	err := database.DB.Model(&model.Node{}).
+		Where("id = ?", nodeID).
+		Update("traffic_last_reset_time", timex.Unix()).Error
+	if err != nil {
+		log.Printf("[NodeMonthlyTraffic] recordReset failed node_id=%d: %v", nodeID, err)
+	}
+}

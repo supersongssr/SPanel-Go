@@ -45,6 +45,16 @@ func Warning(title, message string) {
 	Send("⚠️ " + title + "\n" + message)
 }
 
+// Error 发送 error 级通知（对齐 NotifyLogger::error：标题 + 正文拼接）
+func Error(title, message string) {
+	Send("🚨 " + title + "\n" + message)
+}
+
+// Info 发送 info 级通知（对齐 NotifyLogger::info）
+func Info(title, message string) {
+	Send("ℹ️ " + title + "\n" + message)
+}
+
 // DedupNotify 带去重的通知：Redis SETNX(key, TTL) 成功才发送。
 // Redis 不可用时跳过本次通知（fail-safe，防高频上报刷爆 TG，对齐 PHP notifyDeprecatedEndpoint）。
 func DedupNotify(key string, ttl time.Duration, send func()) {
@@ -136,4 +146,30 @@ func resolveAdminChatID() string {
 
 func chatIDConfigured(id string) bool {
 	return id != "" && id != "x" // 'x' 为 PHP 历史占位值，视为未配置
+}
+
+// SendToChat 发送纯文本到指定 chat (sendDailyUsageByTG 等用户私发场景)。
+// 返回错误供调用方统计失败数 (与管理通知的 fire-and-forget 语义不同)。
+func SendToChat(chatID int64, text string) error {
+	cfg := config.GlobalConfig
+	if cfg == nil || !cfg.Telegram.Enable || cfg.Telegram.Token == "" {
+		return fmt.Errorf("telegram not enabled")
+	}
+	payload := map[string]any{"chat_id": chatID, "text": text}
+	body, _ := json.Marshal(payload)
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", cfg.Telegram.Token)
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := httpCLi.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("sendMessage http %d", resp.StatusCode)
+	}
+	return nil
 }

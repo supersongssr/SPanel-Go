@@ -46,6 +46,19 @@ type User struct {
 	TelegramID      int64     `gorm:"column:telegram_id" json:"telegram_id"`             // Telegram 绑定 chat id
 	IMType          int32     `gorm:"column:im_type" json:"im_type"`                     // IM 类型 (4=telegram)
 	IMValue         string    `gorm:"column:im_value" json:"im_value"`                   // IM 账号名
+	// —— 后台任务 (dailyjob/checkjob) 依赖的周期/统计列 ——
+	Score           int32  `gorm:"column:score" json:"score"`                         // 积分 (活跃+1/违规-1)
+	BanTimes        int32  `gorm:"column:ban_times" json:"ban_times"`                 // 违规计数
+	RenewTime       int32  `gorm:"column:renew_time" json:"renew_time"`               // 流量周期到期时间戳 (记账)
+	TransferLimit   int64  `gorm:"column:transfer_limit" json:"transfer_limit"`       // 周期下行配额 (bytes)
+	LastDayT        int64  `gorm:"column:last_day_t" json:"last_day_t"`               // 昨日快照 d (bytes)
+	RssCount        int32  `gorm:"column:rss_count" json:"rss_count"`                 // 订阅计数 (当日)
+	RssCountLastday int32  `gorm:"column:rss_count_lastday" json:"rss_count_lastday"` // 昨日订阅数快照
+	RssIpsCount     int32  `gorm:"column:rss_ips_count" json:"rss_ips_count"`         // 订阅 IP 来源计数 (当日)
+	RssIpsLastday   int32  `gorm:"column:rss_ips_lastday" json:"rss_ips_lastday"`     // 昨日 IP 来源快照
+	Warming         string `gorm:"column:warming" json:"warming"`                     // 禁用引导文案 (面板展示)
+	SendDailyMail   int32  `gorm:"column:sendDailyMail" json:"sendDailyMail"`         // 每日报告邮件订阅 (1=发)
+	Plan            string `gorm:"column:plan" json:"plan"`                           // 套餐标记 (createAdmin 用)
 }
 
 // TableName 设置对应的数据表名

@@ -20,6 +20,160 @@ type Config struct {
 	Invite     InviteConfig     `yaml:"invite"`
 	Cloudflare CloudflareConfig `yaml:"cloudflare"`
 	Node       NodeConfig       `yaml:"node"`
+	Jobs       JobsConfig       `yaml:"jobs"`
+	SMTP       SMTPConfig       `yaml:"smtp"`
+	Radius     RadiusConfig     `yaml:"radius"`
+	Backup     BackupConfig     `yaml:"backup"`
+}
+
+// SMTPConfig 邮件发送配置 (对齐 PHP mailDriver=smtp 的 smtp_* 键; P2 mailer)
+type SMTPConfig struct {
+	Host     string `yaml:"host"` // smtp 服务器
+	Port     int    `yaml:"port"` // 465=SSL / 587=STARTTLS
+	Username string `yaml:"username"`
+	Password string `yaml:"password"` // PHP 键名拼写 smtp_passsword
+	Sender   string `yaml:"sender"`   // 发件人地址
+	Name     string `yaml:"name"`     // 发件人显示名
+	SSL      bool   `yaml:"ssl"`      // smtp_ssl: 465→隐式 TLS, 587→STARTTLS
+}
+
+// RadiusConfig Radius 独立库连接 (对齐 PHP radius_db_* 键; enable_radius 总开关)
+type RadiusConfig struct {
+	Enable   bool   `yaml:"enable"`   // enable_radius
+	Host     string `yaml:"host"`     // radius_db_host (host:port)
+	User     string `yaml:"user"`     // radius_db_user
+	Password string `yaml:"password"` // radius_db_password
+	Database string `yaml:"database"` // radius_db_database
+}
+
+// BackupConfig 自动备份配置 (对齐 PHP auto_backup_email / auto_backup_passwd / backup_notify)
+type BackupConfig struct {
+	Email    string `yaml:"email"`    // 接收备份的邮箱; 空 = 备份任务直接跳过
+	Password string `yaml:"password"` // zip 加密密码
+	Notify   bool   `yaml:"notify"`   // backup_notify: 完成后 TG 播报
+}
+
+// JobsConfig 后台任务调度配置 (对齐 /etc/crontab 的 6 条 SPanel 任务)
+// schedules 未列出的任务回退注册表内置默认表达式; 列出且置 "" = 不排程仅手动。
+type JobsConfig struct {
+	Enabled   bool              `yaml:"enabled"`   // 总开关 (false = serve 不启动调度器, 纯 Web)
+	Timezone  string            `yaml:"timezone"`  // cron 时区, 缺省 Asia/Shanghai
+	Catchup   bool              `yaml:"catchup"`   // 启动补偿: 停机跨过触发点的任务启动时补跑一次 (默认 false)
+	Schedules map[string]string `yaml:"schedules"` // 任务名 → cron 5 段表达式
+	Params    JobsParams        `yaml:"params"`    // 任务参数 (对齐 PHP Config::getWithDefault 键)
+}
+
+// JobsParams 任务参数。数值 0 视为未配置回退默认; 负数 = 关闭该模块 (对齐 PHP <=0 关闭语义)。
+// 默认 true 的 bool 用 *bool (nil = 未配置 → true)。
+type JobsParams struct {
+	UserRateLimitEnabled           bool    `yaml:"user_rate_limit_enabled"`             // 小时/日限额总开关 (默认 false)
+	UserHourlyTrafficLimitGB       int     `yaml:"user_hourly_traffic_limit"`           // 每小时限额 GB, 默认 8
+	UserDailyTrafficLimitGB        int     `yaml:"user_daily_traffic_limit"`            // 每日限额 GB, 默认 32
+	UserCycleQuotaEnabled          *bool   `yaml:"user_cycle_quota_enabled"`            // 周期配额模块开关, 默认 true
+	UserActionLogRetention         int     `yaml:"user_action_log_retention"`           // 审计每用户保留条数, 默认 100
+	UserActionLogAnonRetentionDays int     `yaml:"user_action_log_anon_retention_days"` // 匿名审计保留天数, 默认 7
+	NodeHeartbeatOfflineSetTimeout int     `yaml:"node_heartbeat_offline_set_timeout"`  // 心跳超时下线秒数, 默认 259200 (3天)
+	NodeSortEngine                 string  `yaml:"node_sort_engine"`                    // 健康分引擎 v2|v1, 默认 v2
+	NodeForceResetStaleDays        int     `yaml:"node_force_reset_stale_days"`         // 强制重置窗口天, 默认 32 (负=关)
+	NodeGcEnable                   *bool   `yaml:"node_gc_enable"`                      // 死节点 GC 总开关, 默认 true
+	NodeGcDeadDays                 int     `yaml:"node_gc_dead_days"`                   // L3 删行天数, 默认 64 (负=关)
+	NodeDnsCleanupInactiveDays     int     `yaml:"node_dns_cleanup_inactive_days"`      // L2 DNS 清理天数, 默认 32 (负=关)
+	NodeDnsCleanupMarkNodeName     *bool   `yaml:"node_dns_cleanup_mark_node_name"`     // 清空后节点名追加 DNS❌, 默认 true
+	NodeDeadPoolMinTotal           int     `yaml:"node_dead_pool_min_total"`            // 水位线回收门槛总数, 默认 1000
+	NodeDeadPoolMaxRatio           float64 `yaml:"node_dead_pool_max_ratio"`            // 水位线触发比例, 默认 0.50
+	NodeDeadPoolTargetRatio        float64 `yaml:"node_dead_pool_target_ratio"`         // 回收目标比例, 默认 0.48
+	NodeDeadPoolMinAgeDays         int     `yaml:"node_dead_pool_min_age_days"`         // 回收候选最小死龄, 默认 32
+	AccountExpireDeleteDays        int     `yaml:"account_expire_delete_days"`          // 过期 N 天删号 (负=关, 0 也开), 默认 7
+	AutoCleanUncheckDays           int     `yaml:"auto_clean_uncheck_days"`             // 0级未签到 N 天删号, 默认 32 (<=0 关)
+	AutoCleanUnusedDays            int     `yaml:"auto_clean_unused_days"`              // 0级未使用 N 天删号, 默认 32 (<=0 关)
+	AutoCleanMinMoney              float64 `yaml:"auto_clean_min_money"`                // 0级清理余额上限, 默认 1
+	TrafficlogDetailKeepHours      int     `yaml:"trafficlog_detail_keep_hours"`        // 流量明细保留小时, 默认 24
+	UserTrafficDailyDays           int     `yaml:"user_traffic_daily_days"`             // 日汇总保留天数, 默认 90 (<=0 永久)
+	JobRunLogKeepDays              int     `yaml:"job_run_log_keep_days"`               // 任务台账保留天数, 默认 90
+}
+
+// ApplyDefaults 填充缺省值 (对齐 PHP getWithDefault 默认口径)
+func (p *JobsParams) ApplyDefaults() {
+	if p.UserHourlyTrafficLimitGB == 0 {
+		p.UserHourlyTrafficLimitGB = 8
+	}
+	if p.UserDailyTrafficLimitGB == 0 {
+		p.UserDailyTrafficLimitGB = 32
+	}
+	if p.UserCycleQuotaEnabled == nil {
+		t := true
+		p.UserCycleQuotaEnabled = &t
+	}
+	if p.UserActionLogRetention == 0 {
+		p.UserActionLogRetention = 100
+	}
+	if p.UserActionLogAnonRetentionDays == 0 {
+		p.UserActionLogAnonRetentionDays = 7
+	}
+	if p.NodeHeartbeatOfflineSetTimeout == 0 {
+		p.NodeHeartbeatOfflineSetTimeout = 259200
+	}
+	if p.NodeSortEngine == "" {
+		p.NodeSortEngine = "v2"
+	}
+	if p.NodeForceResetStaleDays == 0 {
+		p.NodeForceResetStaleDays = 32
+	}
+	if p.NodeGcEnable == nil {
+		t := true
+		p.NodeGcEnable = &t
+	}
+	if p.NodeGcDeadDays == 0 {
+		p.NodeGcDeadDays = 64
+	}
+	if p.NodeDnsCleanupInactiveDays == 0 {
+		p.NodeDnsCleanupInactiveDays = 32
+	}
+	if p.NodeDnsCleanupMarkNodeName == nil {
+		t := true
+		p.NodeDnsCleanupMarkNodeName = &t
+	}
+	if p.NodeDeadPoolMinTotal == 0 {
+		p.NodeDeadPoolMinTotal = 1000
+	}
+	if p.NodeDeadPoolMaxRatio == 0 {
+		p.NodeDeadPoolMaxRatio = 0.50
+	}
+	if p.NodeDeadPoolTargetRatio == 0 {
+		p.NodeDeadPoolTargetRatio = 0.48
+	}
+	if p.NodeDeadPoolMinAgeDays == 0 {
+		p.NodeDeadPoolMinAgeDays = 32
+	}
+	if p.AccountExpireDeleteDays == 0 {
+		p.AccountExpireDeleteDays = 7
+	}
+	if p.AutoCleanUncheckDays == 0 {
+		p.AutoCleanUncheckDays = 32
+	}
+	if p.AutoCleanUnusedDays == 0 {
+		p.AutoCleanUnusedDays = 32
+	}
+	if p.AutoCleanMinMoney == 0 {
+		p.AutoCleanMinMoney = 1
+	}
+	if p.TrafficlogDetailKeepHours == 0 {
+		p.TrafficlogDetailKeepHours = 24
+	}
+	if p.UserTrafficDailyDays == 0 {
+		p.UserTrafficDailyDays = 90
+	}
+	if p.JobRunLogKeepDays == 0 {
+		p.JobRunLogKeepDays = 90
+	}
+}
+
+// BoolOrDefault *bool 缺省取 def
+func BoolOrDefault(b *bool, def bool) bool {
+	if b == nil {
+		return def
+	}
+	return *b
 }
 
 // PaymentConfig 支付系统配置 (对齐 PHP payment_system / clonepay_apis)
@@ -83,6 +237,9 @@ type NodeConfig struct {
 	// CloudflareCDNPreferredDomains 对齐 PHP Config 键 cloudflare_cdn_preferred_domains
 	// (CDN 模式 add= 优选域名池, 空 → 回退节点真实 IP)。PHP 默认 []。
 	CloudflareCDNPreferredDomains []string `yaml:"cloudflare_cdn_preferred_domains"`
+	// CloudflareCDNPreferredIPsCSV 对齐 PHP 键 cloudflare_cdn_preferred_ips_csv
+	// (rotateCdnIps 消费型 CSV 池, 末尾 LIFO 弹出; 空 = 未配置, 耗尽/未配回退真实 IP)。
+	CloudflareCDNPreferredIPsCSV string `yaml:"cloudflare_cdn_preferred_ips_csv"`
 }
 
 // EnforceIPCheck 解析后的上报者 IP 强制校验开关 (缺省 true, 对齐 PHP getWithDefault)
@@ -151,5 +308,14 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	GlobalConfig = &cfg
+	applyConfigDefaults(&cfg)
 	return &cfg, nil
+}
+
+// applyConfigDefaults 各配置段缺省值
+func applyConfigDefaults(cfg *Config) {
+	if cfg.Jobs.Timezone == "" {
+		cfg.Jobs.Timezone = "Asia/Shanghai"
+	}
+	cfg.Jobs.Params.ApplyDefaults()
 }

@@ -15,9 +15,9 @@ security:
 database:
   driver: "mysql"
   host: "127.0.0.1:3306"
-  database: "test-spanel-go"
-  username: "spanel"
-  password: "JGJLxpmlqgVqNjiX"
+  database: "test-spanel"           # 与 PHP 测试面板同库 (podman mysql:5.7)
+  username: "test-spanel"
+  password: "m5WsHxCbMTM2b8CW"
   charset: "utf8mb4"
   max_idle_conns: 10
   max_open_conns: 100
@@ -78,3 +78,61 @@ node:
   node_group: 4                                # register 未上报 node_group 时回退默认分组 (PHP 默认 4)
   node_clone_class_max: 10                    # clone 节点等级随机上限
   cloudflare_cdn_preferred_domains: []        # CDN add= 优选域名池, 空回退节点真实 IP
+
+# ── 后台任务调度 (方案 .plans/2026-11-13_后台定时任务与命令移植方案.md) ────
+# 装一条全开: enabled=true 后 serve 进程内嵌调度器, 不再需要系统 crontab;
+# schedules 覆盖注册表默认表达式, 置 "" = 该任务不排程仅手动 (./spanel job <name>)。
+# 表达式默认值对齐生产 /etc/crontab L26-32 (podman exec php xcat *)。
+jobs:
+  # ── 任务注册表 (./spanel job list 可见) ──
+  # 排程任务: dailyjob/hourlyjob/cdnbandetect/dbclean/checkjob/sendDiaryMail
+  # 手动任务 (置 "" 或缺省即仅手动): backup/backupfull/financeMail{Day,Week,Month}/
+  #   radiusSync{Login,Vpn}/cleanExpiredDns/cdnzoneaudit/forceResetStaleNodes/
+  #   pruneDeadNodes(--confirm)/calcNodeRate/rotateCdnIps/listStaleDNS
+  # catchup: true = 停机跨过触发点的任务启动时补跑一次 (默认 false)
+  # SIGHUP: 改完本段 kill -HUP <pid> 热加载, 无需重启
+  # ⚠️ 切换 runbook (PHP cron 仍在打本库, 双跑风险):
+  #   ① 确认 PHP/Go 指向同一 Redis (已确认: 127.0.0.1:6379 = 容器 redis)
+  #   ② 注释 /etc/crontab 中 6 条 podman exec php*-spanel 行
+  #   ③ 本处置 enabled: true 并重启 Go 服务
+  #   ④ 观察 job_run_log 台账 3 天 → 删除旧 crontab 行
+  enabled: false   # ⚠️ PHP cron 未停前保持 false, 防同库双跑
+  timezone: "Asia/Shanghai"
+  schedules:
+    dailyjob:      "11 4 * * *"   # P1 移植后生效 (注册表无此任务时配置忽略)
+    sendDiaryMail: "22 4 * * *"   # P2
+    dbclean:       "4 5 * * *"
+    checkjob:      "17 5 * * *"   # P2
+    hourlyjob:     "30 * * * *"
+    cdnbandetect:  "*/10 * * * *"
+  params:
+    user_rate_limit_enabled: false            # 小时/日限额模块总开关 (PHP 默认 false)
+    user_hourly_traffic_limit: 8              # 每小时限额 GB
+    node_heartbeat_offline_set_timeout: 259200 # 心跳超时下线 (秒, 3 天)
+    trafficlog_detail_keep_hours: 24          # 流量明细保留窗口
+    user_traffic_daily_days: 90               # 日汇总保留天数
+    job_run_log_keep_days: 90                 # 任务台账保留天数
+
+# ── 邮件发送 (对齐 PHP smtp_*; mailDriver 仅移植 smtp) ──────────────────────
+smtp:
+  host: ""
+  port: 465                     # 465=隐式TLS / 587=STARTTLS
+  username: ""
+  password: ""
+  sender: ""
+  name: ""
+  ssl: true
+
+# ── Radius 独立库 (enable_radius 总开关; 空 host = 全部旁路) ────────────────
+radius:
+  enable: false
+  host: ""                      # host:port
+  user: ""
+  password: ""
+  database: ""
+
+# ── 自动备份 (backup 任务; email 为空 = 备份任务跳过) ───────────────────────
+backup:
+  email: ""                     # auto_backup_email
+  password: ""                  # zip 加密密码
+  notify: false                 # backup_notify

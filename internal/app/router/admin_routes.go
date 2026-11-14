@@ -70,5 +70,8 @@ func RegisterAdminRoutes(r *gin.Engine) {
 		adminGroup.GET("/audit/login", handler.DefaultAdminHandler.AuditLogin)
 		adminGroup.GET("/audit/alive", handler.DefaultAdminHandler.AuditAlive)
 		adminGroup.GET("/audit/traffic", handler.DefaultAdminHandler.AuditTraffic)
+
+		// 后台任务运维 (方案 .plans/2026-11-13 §3.5)
+		handler.RegisterJobsAdminRoutes(adminGroup)
 	}
 }

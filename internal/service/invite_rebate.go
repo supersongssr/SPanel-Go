@@ -16,9 +16,12 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math"
+	"strconv"
+	"strings"
 	"time"
 
 	"spanel-go/internal/config"
@@ -167,3 +170,78 @@ func FormatMoney(v float64) string { return fmt.Sprintf("%.2f", RoundAmount(v)) 
 
 // UseDatabase 默认句柄入口 (独立执行, 不在事务内)
 func UseDatabase() *gorm.DB { return database.DB }
+
+// ClawbackLegacy 注册返利回收 (对齐 PHP InviteRebate::clawbackLegacy, DailyJob/CheckJob 共用):
+// 仅旧口径 (ref_rebate_status=0) 且从未充值 (totalRecharge==0) 才回收; 新口径永不回收。
+// 返回 (邀请人 id, 是否实际回收); 未回收返回 (0, false)。
+//
+// 语义链 (与 PHP 逐条对齐):
+//
+//	重读最新行 → 新口径卫语句 → ref_by 有效性 → 注册奖励记录存在 (total=-1)
+//	→ 未回收过 (callback!=1 且无 -2 记录) → 充值过即兑现 → 原子扣余额 + 写 -2 记录 + 标记 callback=1
+func ClawbackLegacy(ctx context.Context, userID int64) (int64, bool) {
+	db := UseDatabase()
+	if db == nil {
+		return 0, false
+	}
+	q := db.WithContext(ctx)
+
+	// 重读最新行 (防调用方持有旧模型绕过新口径卫语句)
+	var u model.User
+	if err := q.Select("id", "ref_by", "ref_rebate_status").First(&u, userID).Error; err != nil {
+		return 0, false
+	}
+	// 新口径 (首充达标发放) 无已发之物, 永不回收
+	if u.RefRebateStatus != 0 {
+		return 0, false
+	}
+	if u.RefBy == 0 {
+		return 0, false
+	}
+	// 邀请人已不存在 → 无处扣回
+	var ref model.User
+	if err := q.Select("id").First(&ref, u.RefBy).Error; err != nil {
+		return 0, false
+	}
+	// 注册奖励记录不存在 → 无物可收 (total=-1, decimal 以字符串接)
+	var pb model.Payback
+	if err := q.Where("total = -1 AND userid = ? AND ref_by = ?", userID, int64(u.RefBy)).
+		First(&pb).Error; err != nil {
+		return 0, false
+	}
+	// 已收回过 (callback=1 或已有 -2 记录) → 防重复回收
+	if pb.Callback == 1 {
+		return 0, false
+	}
+	var negCount int64
+	q.Model(&model.Payback{}).
+		Where("total = -2 AND userid = ? AND ref_by = ?", userID, int64(u.RefBy)).
+		Count(&negCount)
+	if negCount >= 1 {
+		return 0, false
+	}
+	// 公约数判定: 充值过 (哪怕 1 元) 视为已兑现, 不回收
+	if TotalRecharge(q, userID) != 0 {
+		return 0, false
+	}
+	// 扣回: 仅余额 (已发放流量不回收, 两代口径混用); ref_get decimal 字符串 → float
+	refGet, _ := strconv.ParseFloat(strings.TrimSpace(pb.RefGet), 64)
+	if err := q.Model(&model.User{}).Where("id = ?", ref.ID).
+		Update("money", gorm.Expr("money - ?", refGet)).Error; err != nil {
+		log.Printf("[InviteRebate] clawback decrement failed ref=%d: %v", ref.ID, err)
+		return 0, false
+	}
+	// 回收记录 total=-2
+	now := time.Now().Unix()
+	err := q.Create(&model.Payback{
+		Total: "-2", UserID: userID, RefBy: int64(u.RefBy),
+		RefGet: fmt.Sprintf("-%.2f", refGet), DateTime: now,
+	}).Error
+	if err != nil {
+		log.Printf("[InviteRebate] clawback insert payback failed user=%d: %v", userID, err)
+	}
+	// 标记原奖励记录已被收回
+	q.Model(&model.Payback{}).Where("id = ?", pb.ID).Update("callback", 1)
+	log.Printf("[InviteRebate] legacy clawback user_id=%d ref_by=%d clawback=-%.2f", userID, u.RefBy, refGet)
+	return int64(ref.ID), true
+}
