@@ -14,7 +14,6 @@ import (
 	"spanel-go/internal/service"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type AdminHandler struct{}
@@ -295,21 +294,16 @@ func (h *AdminHandler) Masquerade(c *gin.Context) {
 		return
 	}
 
-	// 使用与 auth service 相同方式生成 JWT
-	expireTime := time.Now().Add(time.Duration(config.GlobalConfig.JWT.ExpireHours) * time.Hour)
-	claims := jwt.MapClaims{
-		"user_id":   user.ID,
-		"email":     user.Email,
-		"is_admin":  user.IsAdmin,
-		"exp":       expireTime.Unix(),
-		"issued_at": time.Now().Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(config.GlobalConfig.JWT.Secret))
+	// §4.0-7: 携带 act_as_admin claim 签发目标用户 JWT (用户侧 /api/v1/user/back-to-admin
+	// 依据该 claim 无状态还原管理员身份); 同时 Set-Cookie 供 MPA 用户中心直接使用
+	adminUser := c.MustGet("user").(*model.User)
+	ttl := int64(24 * 3600)
+	tokenString, err := service.DefaultAuthService.GenerateTokenEx(&user, ttl, adminUser.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"ret": 0, "msg": "生成Token失败"})
 		return
 	}
+	service.DefaultAuthService.SetAuthCookie(c, tokenString, ttl)
 
 	c.JSON(http.StatusOK, gin.H{
 		"ret": 1,

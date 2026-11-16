@@ -153,13 +153,13 @@
 
             <!-- 服务描述列表 -->
             <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-900 space-y-3">
-              <div class="flex items-center text-xs text-slate-300">
-                <i class="fa-solid fa-circle-check text-indigo-400 mr-2"></i>
-                <span x-text="item.content"></span>
+              <div class="flex items-start text-xs text-slate-300">
+                <i class="fa-solid fa-circle-check text-indigo-400 mr-2 mt-0.5"></i>
+                <span x-text="contentSummary(item.content)"></span>
               </div>
               <div class="flex items-center text-xs text-slate-400">
                 <i class="fa-solid fa-circle-check text-indigo-400/50 mr-2"></i>
-                <span x-text="item.auto_reset_bandwidth ? '续费重置并刷新流量' : '流量永久累计叠加'"></span>
+                <span x-text="item.auto_renew ? '支持自动续费' : '单次购买一次性结算'"></span>
               </div>
             </div>
           </div>
@@ -194,7 +194,7 @@
             <span class="text-white font-semibold font-outfit" x-text="'￥' + selectedShop?.price"></span>
           </div>
           
-          <!-- 优惠券码输入 -->
+          <!-- 优惠码输入 + 购买选项 -->
           <div>
             <label class="block text-slate-400 text-xs mb-2">使用优惠码 (如有)</label>
             <div class="flex space-x-2">
@@ -205,6 +205,17 @@
               </button>
             </div>
             <p class="text-[10px] text-emerald-400 mt-1" x-show="couponDiscountMsg" x-text="couponDiscountMsg"></p>
+          </div>
+
+          <div class="space-y-2 py-1">
+            <label class="flex items-center justify-between bg-slate-950/60 border border-slate-900 rounded-xl px-4 py-2.5 cursor-pointer">
+              <span class="text-xs text-slate-300"><i class="fa-solid fa-rotate text-indigo-400 mr-2"></i>开启自动续费 (次日自动扣款)</span>
+              <input type="checkbox" x-model="autoRenew" class="accent-indigo-500 w-4 h-4">
+            </label>
+            <label class="flex items-center justify-between bg-slate-950/60 border border-slate-900 rounded-xl px-4 py-2.5 cursor-pointer">
+              <span class="text-xs text-slate-300"><i class="fa-solid fa-ban text-rose-400 mr-2"></i>关闭其他套餐的自动续费</span>
+              <input type="checkbox" x-model="disableOthers" class="accent-rose-500 w-4 h-4">
+            </label>
           </div>
 
           <div class="flex justify-between pt-3 text-sm font-semibold">
@@ -240,6 +251,8 @@
         couponLoading: false,
         checkoutLoading: false,
         finalPrice: '0.00',
+        autoRenew: false,
+        disableOthers: false,
 
         async init() {
           await this.fetchUserBalance();
@@ -256,10 +269,20 @@
         async fetchShops() {
           try {
             const res = await SPanelAPI.request('/user/shop');
-            this.shops = res.data || [];
+            this.shops = res.data.items || [];
           } catch (err) {
             console.error(err.message);
           }
+        },
+
+        // 套餐 content 对象摘要 (class/bandwidth/expire 等)
+        contentSummary(content) {
+          if (!content || typeof content !== 'object') return '套餐权益详见购买须知';
+          const parts = [];
+          if (content.class) parts.push('VIP' + content.class + ' 等级');
+          if (content.bandwidth) parts.push(content.bandwidth + ' GB 流量');
+          if (content.expire) parts.push(content.expire + ' 天有效期');
+          return parts.length > 0 ? parts.join(' · ') : '套餐权益详见购买须知';
         },
 
         openCheckoutModal(shop) {
@@ -284,30 +307,17 @@
             const res = await SPanelAPI.request('/user/coupon/check', {
               method: 'POST',
               body: JSON.stringify({
-                code: this.couponCode,
-                shop_id: this.selectedShop.id
+                coupon: this.couponCode.trim(),
+                shop: this.selectedShop.id
               })
             });
 
-            this.couponCredit = res.data.credit;
-            const creditNum = Number(this.couponCredit);
-            const originalPrice = parseFloat(this.selectedShop.price);
-
-            let price = originalPrice;
-            if (creditNum > 0 && creditNum < 100) {
-              // 百分比折扣 (如 20 代表 8 折，扣除 20%)
-              price = originalPrice * (100 - creditNum) / 100;
-              this.couponDiscountMsg = `已成功应用优折码！尊享 ${10 - (creditNum/10)} 折优惠优惠。`;
-            } else if (creditNum >= 100) {
-              // 直减金额
-              price = originalPrice - creditNum;
-              this.couponDiscountMsg = `已成功应用抵金码！立减 ￥${creditNum} 元。`;
-            }
-
-            if (price < 0) price = 0;
-            this.finalPrice = price.toFixed(2);
+            this.finalPrice = Number(res.data.final_price).toFixed(2);
+            this.couponDiscountMsg = '优惠码可用！折后价 ￥' + this.finalPrice +
+              (res.data.discount ? ' (优惠 ' + res.data.discount + ')' : '');
           } catch (err) {
             this.couponDiscountMsg = '';
+            this.finalPrice = this.selectedShop.price;
             alert(err.message || '优惠券校验失败，可能不支持该商品。');
           } finally {
             this.couponLoading = false;
@@ -320,8 +330,10 @@
             const res = await SPanelAPI.request('/user/buy', {
               method: 'POST',
               body: JSON.stringify({
-                shop_id: this.selectedShop.id,
-                coupon_code: this.couponCode || undefined
+                shop: this.selectedShop.id,
+                coupon: this.couponCode.trim(),
+                disableothers: this.disableOthers,
+                autorenew: this.autoRenew
               })
             });
 
@@ -335,7 +347,8 @@
           }
         },
 
-        logout() {
+        async logout() {
+          try { await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
           localStorage.removeItem('spanel_jwt');
           localStorage.removeItem('spanel_user');
           window.location.replace('/auth/login.html');

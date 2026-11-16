@@ -7,28 +7,51 @@ import (
 	"spanel-go/internal/config"
 	"spanel-go/internal/model"
 	"spanel-go/internal/pkg/database"
+	"spanel-go/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Auth JWT 统一用户身份验证中间件
+// enableWhitelist enable==0 用户仍可访问的端点后缀 (PHP Auth 中间件豁免名单等价:
+// disable/reactive/logout/backtoadmin 系列; 其余 → 403 + 前端跳 /user/disable.html)
+var enableWhitelist = []string{
+	"/api/v1/user/disable",
+	"/api/v1/user/reactive",
+	"/api/v1/user/logout",
+	"/api/v1/user/back-to-admin",
+	"/api/v1/user/profile", // 禁用页需要展示基础信息
+}
+
+// Auth 统一用户身份验证中间件 (§4.0 方案 B):
+//  1. HttpOnly Cookie `spanel_token` 优先 (浏览器同源自动携带)
+//  2. Authorization: Bearer <jwt> 兜底 (调试/未来 API 客户端)
+//  3. ?token= 查询参数最后兜底 (getiosconf 下载直链)
+//
+// tv (token_version) 比对: 中间件每请求本就拉取 user 行, 顺手比对 claims.tv,
+// 不一致 → 401 (改密/重置/管理员踢下线已 tv+1, 旧凭证即时全端失效)。
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr := ""
 
-		// 1. 尝试从 Authorization Header 获取 Token
-		authHeader := c.GetHeader("Authorization")
-		if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
-			tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
+		// 1. HttpOnly Cookie 优先
+		if ck, err := c.Request.Cookie(service.CookieName); err == nil && ck.Value != "" {
+			tokenStr = ck.Value
 		}
 
-		// 2. 如果 Header 没有，尝试从 URL Query 获取 Token
+		// 2. Authorization Header 兜底
+		if tokenStr == "" {
+			authHeader := c.GetHeader("Authorization")
+			if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+				tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
+			}
+		}
+
+		// 3. URL Query 最后兜底
 		if tokenStr == "" {
 			tokenStr = c.Query("token")
 		}
 
-		// 3. 校验 Token 存在性
 		if tokenStr == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"ret": 0,
@@ -38,15 +61,14 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 
-		// 4. 解析 JWT Token
+		// 4. 解析 JWT
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.GlobalConfig.JWT.Secret), nil
 		})
-
 		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"ret": 0,
-				"msg": "身份凭证已过期或无效，请重新登录",
+				"msg": "登录态已过期或无效，请重新登录",
 			})
 			c.Abort()
 			return
@@ -56,7 +78,7 @@ func Auth() gin.HandlerFunc {
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"ret": 0,
-				"msg": "身份凭证解析失败",
+				"msg": "登录态解析失败",
 			})
 			c.Abort()
 			return
@@ -74,7 +96,6 @@ func Auth() gin.HandlerFunc {
 
 		userID := int32(userIDFloat)
 
-		// 5. 校验数据库连接
 		if database.DB == nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"ret": 0,
@@ -84,7 +105,7 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 
-		// 6. 从数据库中拉取用户详细状态
+		// 5. 拉取用户行 (顺带完成 tv 吊销比对, 零额外查询)
 		var user model.User
 		if err := database.DB.First(&user, userID).Error; err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -95,19 +116,43 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 
-		// 7. 校验用户是否启用 (enable == 1)
-		if user.Enable != 1 {
-			c.JSON(http.StatusForbidden, gin.H{
-				"ret": 0,
-				"msg": "该账户已被封禁或禁用，请联系管理员",
-			})
-			c.Abort()
-			return
+		// 6. token_version 比对 (§4.0: 不等 = 凭证已被吊销)
+		if tvFloat, has := claims["tv"].(float64); has {
+			if int32(tvFloat) != user.TokenVersion {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"ret": 0,
+					"msg": "登录态已失效（密码已变更或被强制下线），请重新登录",
+				})
+				c.Abort()
+				return
+			}
 		}
 
-		// 8. 注入上下文方便 Handler 直接消费
+		// 7. enable 校验: 被禁用户仅可触达豁免端点, 其余 403 + 前端跳禁用引导页
+		if user.Enable != 1 {
+			path := c.Request.URL.Path
+			allowed := false
+			for _, w := range enableWhitelist {
+				if strings.HasPrefix(path, w) {
+					allowed = true
+					break
+				}
+			}
+			if !allowed {
+				c.JSON(http.StatusForbidden, gin.H{
+					"ret":  0,
+					"msg":  "该账户已被封禁或禁用",
+					"data": gin.H{"redirect": "/user/disable.html"},
+				})
+				c.Abort()
+				return
+			}
+		}
+
+		// 8. 注入上下文
 		c.Set("user", &user)
 		c.Set("user_id", user.ID)
+		c.Set("claims", claims)
 
 		c.Next()
 	}

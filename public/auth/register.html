@@ -218,22 +218,13 @@
         async loadCaptcha() {
           try {
             const res = await SPanelAPI.request('/auth/captcha', { method: 'GET' });
-            if (res.enable_reg_captcha === false) {
+            if (res.captcha_provider === 'none' || res.enable_reg_captcha === false) {
               this.captchaProvider = 'none';
             } else {
-              this.captchaProvider = res.captcha_provider || 'graphic';
+              this.captchaProvider = 'graphic';
             }
-            if (res.enable_email_verify === false) {
-              this.enableEmailVerify = false;
-            } else {
-              this.enableEmailVerify = true;
-            }
-            if (this.captchaProvider === 'geetest') {
-              this.geetestId = res.geetest_id;
-              this.$nextTick(() => {
-                this.initGeetest();
-              });
-            } else {
+            this.enableEmailVerify = !!res.enable_email_verify;
+            if (this.captchaProvider === 'graphic') {
               this.captchaId = res.captchaId;
               this.captchaSvg = res.svg;
               this.captchaCode = '';
@@ -243,43 +234,15 @@
           }
         },
 
-        initGeetest() {
-          if (window.initGeetest4) {
-            window.initGeetest4({
-              captchaId: this.geetestId,
-              product: 'float',
-              onError: (err) => {
-                console.error('[Geetest] config.onError:', err);
-              }
-            }, (captchaObj) => {
-              const container = document.getElementById('geetest-captcha');
-              if (container) container.innerHTML = '';
-              captchaObj.appendTo('#geetest-captcha');
-              captchaObj.onSuccess(() => {
-                this.geetestValidate = captchaObj.getValidate();
-              });
-              this.geetestCaptchaObj = captchaObj;
-            });
-          } else {
-            console.error('[Geetest] initGeetest4 is not defined');
-          }
-        },
-
         async refreshCaptcha() {
-          if (this.captchaProvider === 'geetest') {
-            if (this.geetestCaptchaObj) {
-              this.geetestCaptchaObj.reset();
-            }
-            this.geetestValidate = null;
-          } else {
-            try {
-              const res = await SPanelAPI.request('/auth/captcha', { method: 'GET' });
-              this.captchaId = res.captchaId;
-              this.captchaSvg = res.svg;
-              this.captchaCode = '';
-            } catch (err) {
-              alert('图形验证码拉取失败，请检查网络。');
-            }
+          if (this.captchaProvider !== 'graphic') return;
+          try {
+            const res = await SPanelAPI.request('/auth/captcha', { method: 'GET' });
+            this.captchaId = res.captchaId;
+            this.captchaSvg = res.svg;
+            this.captchaCode = '';
+          } catch (err) {
+            alert('图形验证码拉取失败，请检查网络。');
           }
         },
 
@@ -291,10 +254,6 @@
             alert('请先输入您的电子邮箱。');
             return;
           }
-          if (this.captchaProvider === 'geetest' && !this.geetestValidate) {
-            alert('请先完成极验安全滑块验证。');
-            return;
-          }
           if (this.captchaProvider === 'graphic' && !this.captchaCode) {
             alert('请先填写图形验证码以完成人机防刷预检。');
             return;
@@ -302,29 +261,17 @@
 
           this.sending = true;
           try {
-            // 1. 发起算力挑战请求
-            let powResult;
-            if (this.captchaProvider === 'geetest') {
-              powResult = await SPanelAPI.getPowChallengeAndSolve({
-                geetestParams: this.geetestValidate
-              });
-            } else {
-              powResult = await SPanelAPI.getPowChallengeAndSolve(this.captchaId, this.captchaCode);
-            }
-
-            // 2. 将算力 Nonce 与邮箱一并提交发送接口
             await SPanelAPI.request('/auth/send-code', {
               method: 'POST',
               body: JSON.stringify({
                 email: this.email,
-                powSalt: powResult.powSalt,
-                powNonce: powResult.powNonce,
+                captchaId: this.captchaId,
+                captchaCode: this.captchaCode,
               })
             });
 
             alert('邮箱验证码发送成功，请前往收件箱（或垃圾箱）查看！');
-            
-            // 3. 激活 cooldown 倒计时
+
             this.cooldown = 60;
             this.timer = setInterval(() => {
               this.cooldown--;
@@ -335,7 +282,7 @@
 
           } catch (err) {
             alert(err.message || '发送失败，请重试。');
-            this.refreshCaptcha(); // 发送失败强制重刷人机
+            this.refreshCaptcha();
           } finally {
             this.sending = false;
           }
@@ -345,55 +292,51 @@
          * 提交最终的注册表单
          */
         async submitRegister() {
-          if (this.captchaProvider === 'geetest' && !this.geetestValidate) {
-            alert('请先完成极验安全滑块验证。');
-            return;
-          }
           if (this.captchaProvider === 'graphic' && !this.captchaCode) {
             alert('请先填写图形验证码以完成人机防刷预检。');
             return;
           }
+          if (this.password.length < 8) {
+            alert('密码长度至少 8 位。');
+            return;
+          }
 
           this.loading = true;
-          this.statusText = '准备算力盐以防御恶意攻击...';
+          this.statusText = '正在创建账户...';
 
           try {
-            this.statusText = '正在加速计算 POW 注册防爆破挑战...';
-            
-            let powResult;
-            if (this.captchaProvider === 'geetest') {
-              powResult = await SPanelAPI.getPowChallengeAndSolve({
-                geetestParams: this.geetestValidate
-              });
-            } else {
-              powResult = await SPanelAPI.getPowChallengeAndSolve(this.captchaId, this.captchaCode);
-            }
-
-            this.statusText = '算力校验成功，正在创建安全账户...';
             await SPanelAPI.request('/auth/register', {
               method: 'POST',
               body: JSON.stringify({
                 email: this.email,
                 password: this.password,
+                repassword: this.password,
                 userName: this.userName,
                 imType: Number(this.imType),
                 imValue: this.imValue,
                 code: this.code,
                 emailCode: this.emailCode,
-                powSalt: powResult.powSalt,
-                powNonce: powResult.powNonce,
+                captchaId: this.captchaId,
+                captchaCode: this.captchaCode,
               })
             });
 
-            this.statusText = '账号创建成功，正在引导至登入页...';
-            alert('恭喜您，注册成功！3秒后将自动前往登录页面。');
+            // 注册即自动登录 (HttpOnly Cookie 已由服务端签发), 存非凭证摘要
+            localStorage.removeItem('spanel_jwt');
+            localStorage.setItem('spanel_user', JSON.stringify({
+              user_name: this.userName || this.email.split('@')[0],
+              email: this.email,
+              isAdmin: false,
+            }));
+
+            this.statusText = '注册成功，正在进入控制台...';
             setTimeout(() => {
-              window.location.replace('/auth/login.html');
-            }, 2500);
+              window.location.replace('/user/dashboard.html');
+            }, 1200);
 
           } catch (err) {
             alert(err.message || '注册异常，请刷新重试。');
-            this.refreshCaptcha(); // 强制重刷
+            this.refreshCaptcha();
             this.loading = false;
           }
         }

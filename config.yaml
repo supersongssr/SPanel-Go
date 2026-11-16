@@ -13,9 +13,12 @@ app:
   muKey: ""                         # 面板与节点通信校验主密钥 → 敏感信息请写在 .config.yaml
 
 security:
-  enable_reg_captcha: false          # 注册图形验证码开关 (已关闭)
-  enable_login_captcha: false        # 登录图形验证码开关 (已关闭)
-  enable_email_verify: false         # 注册邮箱验证码发送校验开关 (已关闭)
+  enable_reg_captcha: false          # 注册图形验证码开关
+  enable_login_captcha: false        # 登录图形验证码开关
+  enable_email_verify: false         # 注册邮箱验证码发送校验开关
+  register_mode: "open"              # 注册模式: open | invite | close (PHP 同名键)
+  email_verify_ttl: 600              # EV 验证码有效期 (秒, 默认 600)
+  email_verify_iplimit: 5            # 同 IP 在途验证码上限 (默认 5)
 
 database:
   driver: "mysql"
@@ -141,3 +144,12 @@ backup:
   email: ""                     # auto_backup_email
   password: ""                  # zip 加密密码
   notify: false                 # backup_notify
+
+# 用户端业务开关 (缺省取 PHP 默认; 方案 §4.0/§6)
+user:
+  min_port: 11111                    # 端口池下限
+  max_port: 55555                    # 端口池上限
+  port_price: 0.1                    # 随机重置端口价格 (元), <0 关闭购买
+  port_price_specify: 1.0            # 钦定端口价格 (元), <0 关闭
+  enable_kill: false                 # 允许用户自助注销账户
+  enable_user_custom_group: false    # 允许用户自助更换节点分组

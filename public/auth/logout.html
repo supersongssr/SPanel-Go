@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>退出登录 - SPanel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>body{font-family:'Inter',sans-serif}</style>
+</head>
+<body class="min-h-full bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+  <div class="text-center space-y-4">
+    <i class="fa-solid fa-circle-check text-5xl text-emerald-400 hidden"></i>
+    <i id="spinner" class="fa-solid fa-spinner animate-spin text-4xl text-indigo-400"></i>
+    <p id="msg" class="text-sm text-slate-400">正在安全退出...</p>
+    <a id="link" href="/auth/login.html" class="hidden text-indigo-400 text-sm font-semibold hover:text-indigo-300 transition">若未自动跳转，点此前往登录页</a>
+  </div>
+  <script src="/assets/js/api.js"></script>
+  <script>
+    (async function () {
+      const msg = document.getElementById('msg');
+      try {
+        // 服务端过期 HttpOnly Cookie; 本地清非凭证摘要
+        await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' });
+      } catch (e) { /* cookie 过期失败也继续本地清理 */ }
+      localStorage.removeItem('spanel_jwt');
+      localStorage.removeItem('spanel_user');
+      msg.textContent = '已安全退出，正在前往登录页...';
+      document.getElementById('spinner').classList.add('hidden');
+      setTimeout(() => { window.location.replace('/auth/login.html'); }, 800);
+    })();
+  </script>
+</body>
+</html>

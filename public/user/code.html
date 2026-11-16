@@ -120,6 +120,11 @@
           <p class="text-slate-400 text-xs mb-6 leading-relaxed">请输入您购买到的礼品卡、流量包或余额卡密充值码进行激活。系统将实时兑现到您的钱包余额或高速流量配额中。</p>
 
           <div class="space-y-4">
+            <div class="flex items-center justify-between bg-slate-950/60 border border-slate-900 rounded-xl px-4 py-3">
+              <span class="text-xs text-slate-400"><i class="fa-solid fa-wallet text-emerald-400 mr-2"></i>账户余额</span>
+              <span class="text-emerald-400 font-semibold font-outfit" x-text="'￥' + Number(money).toFixed(2)">￥0.00</span>
+            </div>
+
             <div>
               <label class="block text-slate-300 text-xs font-semibold mb-2">充值激活码 (Card Key)</label>
               <input type="text" x-model="cardCode" placeholder="输入形如 SPanel-XXXX-XXXX 的卡密" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition font-mono">
@@ -128,6 +133,11 @@
             <button @click="activateCard" :disabled="loading" class="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-xl py-3 text-sm font-semibold hover:brightness-110 active:scale-[0.98] transition disabled:opacity-50 disabled:pointer-events-none">
               <span x-show="!loading"><i class="fa-solid fa-circle-check mr-1"></i>立即激活充值</span>
               <span x-show="loading"><i class="fa-solid fa-spinner animate-spin mr-1"></i>正在充值兑换...</span>
+            </button>
+
+            <button @click="checkPayStatus" :disabled="checking" class="w-full bg-slate-900 border border-slate-800 hover:border-indigo-500/50 text-slate-300 hover:text-indigo-400 rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50 disabled:pointer-events-none">
+              <span x-show="!checking"><i class="fa-solid fa-satellite-dish mr-1"></i>充值到账检测</span>
+              <span x-show="checking"><i class="fa-solid fa-spinner animate-spin mr-1"></i>检测中 (每 5 秒轮询, 共 3 次)...</span>
             </button>
           </div>
         </div>
@@ -161,16 +171,16 @@
               </thead>
               <tbody class="divide-y divide-slate-800/40">
                 <template x-for="history in histories" :key="history.id">
-                  <tr>
+                  <tr class="transition hover:bg-slate-800/50">
                     <td class="py-3.5 font-mono text-slate-200" x-text="history.code"></td>
                     <td class="py-3.5">
                       <span class="px-2 py-0.5 rounded text-[10px] font-medium border"
-                            :class="history.type === '余额充值卡' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20'"
-                            x-text="history.type"></span>
+                            :class="history.type === -1 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20'"
+                            x-text="history.type_desc || history.type"></span>
                     </td>
                     <td class="py-3.5 font-outfit font-semibold text-slate-300"
-                        x-text="history.type === '余额充值卡' ? '￥' + Number(history.number).toFixed(2) : history.number + ' GB'"></td>
-                    <td class="py-3.5 font-mono text-slate-400 text-right" x-text="history.used_at"></td>
+                        x-text="amountText(history)"></td>
+                    <td class="py-3.5 font-mono text-slate-400 text-right" x-text="history.usedatetime"></td>
                   </tr>
                 </template>
                 <template x-if="histories.length === 0">
@@ -193,7 +203,9 @@
       return {
         cardCode: '',
         loading: false,
+        checking: false,
         histories: [],
+        money: 0,
 
         async init() {
           await this.fetchHistory();
@@ -202,9 +214,43 @@
         async fetchHistory() {
           try {
             const res = await SPanelAPI.request('/user/code/history');
-            this.histories = res.data;
+            this.histories = res.data.items || [];
+            this.money = res.data.money || 0;
           } catch(err) {
             console.error('拉取卡密兑换历史出错：' + err.message);
+          }
+        },
+
+        // 充值额度展示: 金额码 ￥ / 流量码 GB / 时长码 天
+        amountText(history) {
+          if (history.type === -1) return '￥' + Number(history.number).toFixed(2);
+          if (history.type === 10001) return history.number + ' GB';
+          if (history.type === 10002) return history.number + ' 天';
+          return history.number;
+        },
+
+        // 充值到账检测: 每 5 秒轮询 1 次, 共 3 次; 命中 ret:1 则刷新流水
+        async checkPayStatus() {
+          if (this.checking) return;
+          this.checking = true;
+          const since = Math.floor(Date.now() / 1000);
+          try {
+            for (let i = 1; i <= 3; i++) {
+              try {
+                await SPanelAPI.request('/user/code/check?time=' + since);
+                alert('检测到新的充值已到账，已为您刷新流水。');
+                await this.fetchHistory();
+                return;
+              } catch (err) {
+                // ret:0 (暂未到账) 会走异常分支, 继续下一轮
+                if (i < 3) {
+                  await new Promise(r => setTimeout(r, 5000));
+                }
+              }
+            }
+            alert('暂未检测到新的充值到账记录。');
+          } finally {
+            this.checking = false;
           }
         },
 
@@ -229,7 +275,8 @@
           }
         },
 
-        logout() {
+        async logout() {
+          try { await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
           localStorage.removeItem('spanel_jwt');
           localStorage.removeItem('spanel_user');
           window.location.replace('/auth/login.html');

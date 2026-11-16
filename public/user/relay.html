@@ -138,13 +138,13 @@
                 <td class="py-4">
                   <div class="flex items-center space-x-2">
                     <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-                    <span class="font-medium text-slate-200" x-text="rule.source_node_name"></span>
+                    <span class="font-medium text-slate-200" x-text="rule.source_node?.name ?? '-'"></span>
                   </div>
                 </td>
                 <td class="py-4">
                   <div class="flex items-center space-x-2">
                     <span class="w-2 h-2 rounded-full bg-pink-500"></span>
-                    <span class="text-slate-300" x-text="rule.dist_node_name"></span>
+                    <span class="text-slate-300" x-text="rule.dist_node?.name ?? (rule.dist_ip || '-')"></span>
                   </div>
                 </td>
                 <td class="py-4 font-mono font-bold text-indigo-400" x-text="rule.port"></td>
@@ -256,8 +256,7 @@
 
         async init() {
           await this.fetchUserPort();
-          await this.fetchRules();
-          await this.fetchNodes();
+          await this.fetchRules(); // 列表 + 可选节点一次拉齐 (res.data.nodes)
         },
 
         async fetchUserPort() {
@@ -273,7 +272,8 @@
         async fetchRules() {
           try {
             const res = await SPanelAPI.request('/user/relay');
-            this.rules = res.data || [];
+            this.rules = res.data.items || [];
+            this.nodes = res.data.nodes || [];
           } catch(err) {
             console.error('拉取中转规则出错：' + err.message);
           }
@@ -281,8 +281,8 @@
 
         async fetchNodes() {
           try {
-            const res = await SPanelAPI.request('/user/node');
-            this.nodes = res.data || [];
+            const res = await SPanelAPI.request('/user/relay');
+            this.nodes = res.data.nodes || [];
           } catch(err) {
             console.error('拉取节点列表出错：' + err.message);
           }
@@ -305,8 +305,8 @@
           this.isEdit = true;
           this.editingId = rule.id;
           this.formData = {
-            source_node_id: rule.source_node_id.toString(),
-            dist_node_id: rule.dist_node_id.toString(),
+            source_node_id: rule.source_node ? rule.source_node.id.toString() : '',
+            dist_node_id: rule.dist_node ? rule.dist_node.id.toString() : '0',
             dist_ip: rule.dist_ip || '',
             port: rule.port,
             priority: rule.priority
@@ -373,7 +373,8 @@
           }
         },
 
-        logout() {
+        async logout() {
+          try { await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
           localStorage.removeItem('spanel_jwt');
           localStorage.removeItem('spanel_user');
           window.location.replace('/auth/login.html');

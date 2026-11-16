@@ -1,0 +1,87 @@
+{
+  "windows": [
+    {
+      "name": "v2rayN",
+      "desc": "Windows 平台最流行的 v2ray 图形客户端，支持 VMess / VLESS / Trojan / Shadowsocks 等多种协议，订阅链接一键导入，推荐新手使用。",
+      "url": "https://github.com/2dust/v2rayN/releases"
+    },
+    {
+      "name": "Clash Verge Rev",
+      "desc": "基于 Clash Meta 内核的现代化图形客户端，界面美观，支持规则分流、TUN 模式与订阅自动更新。",
+      "url": "https://github.com/clash-verge-rev/clash-verge-rev/releases"
+    },
+    {
+      "name": "Nekoray",
+      "desc": "轻量级跨平台代理内核管理器，支持切换 Xray / sing-box 内核，配置灵活，适合进阶用户。",
+      "url": "https://github.com/MatsuriDayo/nekoray/releases"
+    }
+  ],
+  "macos": [
+    {
+      "name": "Clash Verge Rev",
+      "desc": "跨平台 Clash Meta 图形客户端，macOS 下体验优秀，支持 TUN 模式、规则分流与脚本增强。",
+      "url": "https://github.com/clash-verge-rev/clash-verge-rev/releases"
+    },
+    {
+      "name": "V2rayU",
+      "desc": "macOS 原生免费 v2ray 客户端，菜单栏快捷操作，支持订阅自动更新与 Pac 模式。",
+      "url": "https://github.com/yanue/V2rayU/releases"
+    },
+    {
+      "name": "Surge",
+      "desc": "macOS / iOS 平台顶级网络调试与代理工具，功能强大稳定，付费使用，适合专业用户。",
+      "url": "https://nssurge.com/"
+    }
+  ],
+  "ios": [
+    {
+      "name": "Shadowrocket",
+      "desc": "iOS 上最常用的付费代理客户端（小火箭），支持绝大多数主流协议，订阅链接一键导入。",
+      "url": "https://apps.apple.com/app/shadowrocket/id932747118"
+    },
+    {
+      "name": "Stash",
+      "desc": "基于 Clash 内核的 iOS 规则代理客户端，界面精美，完整支持规则分流与策略组。",
+      "url": "https://apps.apple.com/app/stash-rule-proxy/id1591596215"
+    },
+    {
+      "name": "sing-box",
+      "desc": "SagerNet 官方 iOS 客户端，支持 VLESS / Hysteria2 / TUIC 等新协议与通用订阅链接。",
+      "url": "https://apps.apple.com/app/sing-box/id6451272673"
+    }
+  ],
+  "android": [
+    {
+      "name": "v2rayNG",
+      "desc": "Android 平台广泛使用的 v2ray 客户端，支持多种协议、路由设置与订阅自动更新。",
+      "url": "https://github.com/2dust/v2rayNG/releases"
+    },
+    {
+      "name": "ClashMeta for Android",
+      "desc": "基于 Clash Meta 内核的 Android 客户端，完整支持规则分流、策略组与多种订阅格式。",
+      "url": "https://github.com/MetaCubeX/ClashMetaForAndroid/releases"
+    },
+    {
+      "name": "sing-box (SFA)",
+      "desc": "SagerNet 官方 Android 客户端，支持 VLESS / Hysteria2 / TUIC 等全部主流新协议。",
+      "url": "https://github.com/SagerNet/sing-box-for-android/releases"
+    }
+  ],
+  "linux": [
+    {
+      "name": "Nekoray",
+      "desc": "Linux 桌面下的图形化代理管理器，支持 Xray 与 sing-box 双内核切换，开箱即用。",
+      "url": "https://github.com/MatsuriDayo/nekoray/releases"
+    },
+    {
+      "name": "FlClash",
+      "desc": "基于 Clash Meta 内核的跨平台客户端，提供 Linux 原生界面，多语言支持，简洁易用。",
+      "url": "https://github.com/chen08209/FlClash/releases"
+    },
+    {
+      "name": "sing-box",
+      "desc": "通用代理内核官方程序，命令行方式运行，配置灵活，支持全部主流新协议，适合服务器使用。",
+      "url": "https://github.com/SagerNet/sing-box/releases"
+    }
+  ]
+}

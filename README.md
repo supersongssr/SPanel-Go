@@ -48,7 +48,7 @@ SPanel-Go/
 │   ├── user/  auth/  admin/  assets/   # 前端纯静态 HTML
 ├── config.yaml               # 全局默认配置 (进 git, 勿放隐私信息)
 ├── .config.yaml.example     # 隐私覆盖配置模板 (复制为 .config.yaml, 已 gitignore)
-└── run.sh                    # 构建/启动/停止/状态管理脚本
+└── run.sh                    # 菜单式构建/启停/接管 /api/ 管理脚本
 ```
 
 ---
@@ -56,13 +56,16 @@ SPanel-Go/
 ## 构建与运行
 
 ```bash
-./run.sh build            # 编译 spanel
-./run.sh start            # 启动
-./run.sh restart          # 重启
+./run.sh               # 无参数 → 交互菜单 (一键部署/编译/启停/接管/回滚)
+./run.sh build         # 编译 → .bin/spanel
+./run.sh start         # 启动 (默认端口 8090, 避开被占用的 8080)
+./run.sh restart       # 重启
 ./run.sh stop|status|logs # 停止 / 状态 / 日志
+./run.sh deploy        # nginx 接管 test-spanel.freessr.bid 的 /api/ → SPanel-Go
+./run.sh rollback      # /api/ 交还给 PHP 面板
 ```
 
-端口可通过 `-port` 参数覆盖：`./spanel -port 9000`。
+端口可通过 `-port` 参数覆盖：`.bin/spanel -port 9000`（run.sh 用 `APP_PORT` 环境变量覆盖）。
 
 ---
 
@@ -140,6 +143,42 @@ server {
 3. **admin 部分（最后）** —— 管理后台全部路由及 `public/admin` 静态页。状态：开发中。
 
 ---
+
+## 用户端登录态 (2026-11-16 定案, 方案 §4.0)
+
+**JWT + HttpOnly Cookie + token_version 吊销**：
+
+- 登录成功 → `Set-Cookie: spanel_token=<jwt>; HttpOnly; Secure; SameSite=Lax`（remember_me 两态 Max-Age 1d/32d）
+- JWT 载荷含 `tv`(user.token_version)；改密/重置/踢下线 → `tv+1` → 全端旧凭证即时 401
+- 凭据优先级：HttpOnly Cookie → `Authorization: Bearer`（调试兜底）→ `?token=`（iosconf 直链）
+- PoW 已移除（Go 高性能 + Redis 失败锁定 5 次/15min + 验证码 + IP 限频等价替代）
+- 旧 URL 兼容：`/auth/login`、`/auth/register?code=`、`/auth/password/token/{t}`、`/user/<旧路径>` 等 302 → 新 `.html` 页面（灰度期 302，稳定后切 301）
+
+## `/api/v1` 用户端路由表（auth 7 + user 59）
+
+### auth 组（公开）
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | /api/v1/auth/captcha | 图形验证码 (svg+id) |
+| POST | /api/v1/auth/login | 登录 (验证码+失败锁定+2FA TOTP+LoginIp 审计+Set-Cookie) |
+| POST | /api/v1/auth/register | 注册 (register_mode/EV 验证码/IP 限频/邀请返利 v5/自动登录) |
+| POST | /api/v1/auth/send-code | EV 验证码真实发送 (EmailVerify+SMTP, 限频+失败回滚) |
+| POST | /api/v1/auth/password/reset | 发起密码重置 (24h 一次, 邮件链接) |
+| POST | /api/v1/auth/password/token/:token | 执行重置 (关 2FA+tv+1+清订阅) |
+| POST | /api/v1/auth/logout | 登出 (过期 Cookie) |
+
+### user 组（Auth 中间件，cookie/Bearer/`?token=`）
+| 功能域 | 端点 |
+|---|---|
+| 只读数据 | GET profile / dashboard / node / node/unlock / node/:id/daily / shop / invite / announcements[/:id] / donate / lookingglass / cncdn+cfcdn looking / detect / detect/log / disable / trafficlog / code/history / code/check / bought / rss / iosconf(下载) / relay / ticket / ticket/open[/:id] |
+| edit 页动作 (16) | POST password / sspwd / method / port/reset / port/specify / wechat / ssr / theme / group / mail / sublimit / cncdn / cfcdn / hide / pacset / unblock |
+| 2FA | POST ga/check / ga/set / ga/disable(二次校验) / ga/reset / telegram/reset |
+| 账户 | POST checkin(原子防双签) / kill(W9 守卫+开关) / reactive / logout / back-to-admin(act_as_admin claim 还原) |
+| 交易 | POST code/activate(原子核销) / coupon/check / buy(防双花) / invite/buy / invite/custom / invite/reset / relevel / vip/apply / cncdn/apply(封号保护) / sync-clonepay；DELETE bought/:id |
+| 中转 CRUD | GET/POST relay；PUT/DELETE relay/:id (冲突检测) |
+| 工单 | GET/POST ticket；GET/PUT/DELETE ticket/:id（限频 3/h、10/h，sort+=class） |
+| 订阅管理 | POST rss/create / rss/delete / rss/reset |
+| 订阅下发 | GET /link/:token 与 /rss/:token 双轨（Clash YAML） |
 
 ## `/api/` 对外 API 路由表（30 条）
 

@@ -198,37 +198,22 @@
           }
         },
 
-        async fetchNodeDetails(nodeId) {
+        toggleNodeDetails(nodeId) {
+          // 节点在线状态详情 (心跳/解锁等由列表接口字段承载, 无独立测速端点)
           if (this.nodeDetails[nodeId]) {
-            // 重复点击则折叠
             delete this.nodeDetails[nodeId];
             return;
           }
-
-          // 占位
-          this.nodeDetails[nodeId] = { uptime_str: '正在测速...', load: '计算中...', online_users: 0 };
-          
-          try {
-            const res = await SPanelAPI.request(`/user/node/${nodeId}/ajax`);
-            const details = res.data;
-            
-            // 格式化 uptime 秒数
-            const seconds = details.uptime;
-            const days = Math.floor(seconds / (24 * 3600));
-            const hours = Math.floor((seconds % (24 * 3600)) / 3600);
-            const uptimeStr = days > 0 ? `${days}天 ${hours}小时` : `${hours}小时`;
-
-            this.nodeDetails[nodeId] = {
-              uptime_str: uptimeStr,
-              load: details.load,
-              online_users: details.online_users
-            };
-          } catch (err) {
-            this.nodeDetails[nodeId] = { uptime_str: '测速失败', load: '离线', online_users: 0 };
-          }
+          const n = (this.nodes || []).find(x => x.id === nodeId);
+          this.nodeDetails[nodeId] = {
+            heartbeat: n && n.node_heartbeat > 0 ? new Date(n.node_heartbeat * 1000).toLocaleString() : '—',
+            country: (n && n.country_code) || '—',
+            status: (n && n.status) || '—',
+          };
         },
 
-        logout() {
+        async logout() {
+          try { await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
           localStorage.removeItem('spanel_jwt');
           localStorage.removeItem('spanel_user');
           window.location.replace('/auth/login.html');

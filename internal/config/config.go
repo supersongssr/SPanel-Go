@@ -25,6 +25,17 @@ type Config struct {
 	SMTP       SMTPConfig       `yaml:"smtp"`
 	Radius     RadiusConfig     `yaml:"radius"`
 	Backup     BackupConfig     `yaml:"backup"`
+	User       UserConfig       `yaml:"user"` // 用户端业务开关 (对齐 PHP min_port/max_port/port_price*/enable_kill/enable_user_custom_group)
+}
+
+// UserConfig 用户端业务开关 (缺省值在 Usage 侧内联回退, 未配置时全部取 PHP 默认)
+type UserConfig struct {
+	MinPort               int     `yaml:"min_port"`                 // 端口池下限, 默认 11111
+	MaxPort               int     `yaml:"max_port"`                 // 端口池上限, 默认 55555
+	PortPrice             float64 `yaml:"port_price"`               // 随机重置端口价格, <0 关闭购买, 默认 0.1
+	PortPriceSpecify      float64 `yaml:"port_price_specify"`       // 钉定端口价格, <0 关闭, 默认 1
+	EnableKill            bool    `yaml:"enable_kill"`              // 允许用户注销账户, 默认 false
+	EnableUserCustomGroup bool    `yaml:"enable_user_custom_group"` // 自助换分组, 默认 false
 }
 
 // SMTPConfig 邮件发送配置 (对齐 PHP mailDriver=smtp 的 smtp_* 键; P2 mailer)
@@ -260,9 +271,12 @@ type AppConfig struct {
 }
 
 type SecurityConfig struct {
-	EnableRegCaptcha   bool `yaml:"enable_reg_captcha"`
-	EnableLoginCaptcha bool `yaml:"enable_login_captcha"`
-	EnableEmailVerify  bool `yaml:"enable_email_verify"`
+	EnableRegCaptcha   bool   `yaml:"enable_reg_captcha"`
+	EnableLoginCaptcha bool   `yaml:"enable_login_captcha"`
+	EnableEmailVerify  bool   `yaml:"enable_email_verify"`
+	RegisterMode       string `yaml:"register_mode"`      // open | invite | close (PHP 同名键, 默认 open)
+	EmailVerifyTTL     int    `yaml:"email_verify_ttl"`   // EV 验证码有效期秒, 默认 600
+	EmailVerifyIPLimit int    `yaml:"email_verify_iplimit"` // 同 IP 在途验证码上限, 默认 5
 }
 
 type DatabaseConfig struct {

@@ -1,5 +1,7 @@
-// SPanel-bun Global Unified AJAX Communication Core (M7.1)
-// Automates JWT token injection, handles 401 expiration redirects, and shields L7 security challenges.
+// SPanel Global Unified AJAX Communication Core
+// §4.0 方案 B: 凭据 = HttpOnly Cookie `spanel_token` (同源 fetch 自动携带, 无需手动注入)
+// Bearer 通道保留为调试兜底 (localStorage spanel_jwt 若存在则附加)。
+// 401 → 清残留态跳登录; 403 + data.redirect → 禁用页等定向跳转。
 
 (function () {
   const API_BASE = '/api/v1';
@@ -10,31 +12,31 @@
      */
     async request(endpoint, options = {}) {
       const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
-      
-      // 合并 headers 并自动注入 Bearer JWT Token
+
+      // 合并 headers; 调试兜底: localStorage 中的 token 仍以 Bearer 附加 (非主通道)
       const headers = {
         'Content-Type': 'application/json',
         ...options.headers,
       };
-      
-      const token = localStorage.getItem('spanel_jwt');
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      const dbgToken = localStorage.getItem('spanel_jwt');
+      if (dbgToken) {
+        headers['Authorization'] = `Bearer ${dbgToken}`;
       }
 
       const fetchOptions = {
         ...options,
         headers,
+        credentials: 'same-origin', // HttpOnly Cookie 同源自动携带
       };
 
       try {
         const response = await fetch(url, fetchOptions);
-        
+
         // 强力拦截 401 会话凭证失效错误，瞬间清除过期缓存并强制越权跳转
         if (response.status === 401) {
           localStorage.removeItem('spanel_jwt');
           localStorage.removeItem('spanel_user');
-          
+
           // 如果当前不是在登录页，强制跳转
           if (!window.location.pathname.includes('/auth/')) {
             window.location.replace('/auth/login.html');
@@ -43,7 +45,13 @@
         }
 
         const data = await response.json();
-        
+
+        // 403 + data.redirect (禁用页等定向跳转, §6.3)
+        if (response.status === 403 && data && data.data && data.data.redirect) {
+          window.location.replace(data.data.redirect);
+          throw new Error(data.msg || '访问受限');
+        }
+
         // Normalize Go backend format (ret/msg) to ElysiaJS/frontend expected format (status/message)
         if (typeof data.ret !== 'undefined') {
           data.status = data.ret === 1 ? 'success' : 'error';
@@ -62,54 +70,5 @@
         throw err;
       }
     },
-
-    /**
-     * 自动从后端拉取 POW 挑战，并在 Web Worker 后台计算出 Nonce (支持图形验证码和极验)
-     */
-    async getPowChallengeAndSolve(captchaIdOrParams, captchaCode) {
-      let bodyData = {};
-      if (typeof captchaIdOrParams === 'object' && captchaIdOrParams !== null) {
-        bodyData = captchaIdOrParams;
-      } else {
-        bodyData = {
-          captchaId: captchaIdOrParams,
-          captchaCode: captchaCode,
-        };
-      }
-
-      // 1. 发起验证并拉取 POW Salt 挑战
-      const challengeResponse = await this.request('/auth/pow-challenge', {
-        method: 'POST',
-        body: JSON.stringify(bodyData),
-      });
-
-      const { powSalt, difficulty } = challengeResponse.data;
-
-      // 2. 拉起 Worker 线程异步运算哈希碰撞，避免阻塞浏览器 UI 渲染
-      return new Promise((resolve, reject) => {
-        const worker = new Worker('/assets/js/pow-worker.js');
-        
-        worker.postMessage({ salt: powSalt, difficulty });
-        
-        worker.onmessage = function (e) {
-          const res = e.data;
-          worker.terminate(); // 计算完成，立即回收 Worker 释放浏览器内存
-
-          if (res.status === 'success') {
-            resolve({
-              powSalt,
-              powNonce: res.nonce,
-            });
-          } else {
-            reject(new Error(res.error || '算力碰撞引擎计算失败。'));
-          }
-        };
-
-        worker.onerror = function (err) {
-          worker.terminate();
-          reject(new Error('算力碰撞引擎运行异常：' + err.message));
-        };
-      });
-    }
   };
 })();

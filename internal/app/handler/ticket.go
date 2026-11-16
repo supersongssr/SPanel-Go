@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"time"
@@ -75,15 +76,25 @@ func (h *TicketHandler) CreateTicket(c *gin.Context) {
 		return
 	}
 
+	// PHP 同口径: VIP0 (class=0) 不可开工单 + Redis 限频 3 次/小时
+	if user.Class < 1 {
+		c.JSON(http.StatusForbidden, gin.H{"ret": 0, "msg": "当前等级无法提交工单，请先升级套餐"})
+		return
+	}
+	if !ticketRateAllow(context.Background(), "ticket_new:"+strconv.FormatInt(int64(user.ID), 10), 3) {
+		c.JSON(http.StatusTooManyRequests, gin.H{"ret": 0, "msg": "工单提交过于频繁 (每小时限 3 张)，请稍后再试"})
+		return
+	}
+
 	now := time.Now().Unix()
 	ticket := model.Ticket{
 		Title:    req.Title,
 		Content:  req.Content,
 		RootID:   0,
 		UserID:   int64(user.ID),
-		Sort:     0,
+		Sort:     user.Class, // PHP: sort += class, 等级优先队列
 		DateTime: now,
-		Status:   1, // 1 为 open (待处理)
+		Status:   1,          // 1 为 open (待处理)
 	}
 
 	if err := database.DB.Create(&ticket).Error; err != nil {
@@ -186,6 +197,12 @@ func (h *TicketHandler) ReplyTicket(c *gin.Context) {
 		return
 	}
 
+	// PHP 同口径: Redis 限频 10 次/小时
+	if !ticketRateAllow(context.Background(), "ticket_reply:"+strconv.FormatInt(int64(user.ID), 10), 10) {
+		c.JSON(http.StatusTooManyRequests, gin.H{"ret": 0, "msg": "回复过于频繁 (每小时限 10 次)，请稍后再试"})
+		return
+	}
+
 	var req ReplyTicketRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"ret": 0, "msg": "参数有误"})
@@ -221,5 +238,99 @@ func (h *TicketHandler) ReplyTicket(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"ret": 1,
 		"msg": "回复提交成功",
+	})
+}
+
+
+// CloseTicket 用户关闭自己的工单 (status=0)
+func (h *TicketHandler) CloseTicket(c *gin.Context) {
+	user := c.MustGet("user").(*model.User)
+
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"ret": 0, "msg": "工单ID无效"})
+		return
+	}
+
+	res := database.DB.Model(&model.Ticket{}).
+		Where("id = ? AND userid = ? AND rootid = 0 AND status = 1", id, user.ID).
+		Update("status", 0)
+	if res.Error != nil || res.RowsAffected == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"ret": 0, "msg": "工单不存在或已关闭"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"ret": 1, "msg": "工单已关闭"})
+}
+
+// OpenTickets 公开工单板块 (status=3 最多 3 页, 只展示管理员回复, 匿名化)
+func (h *TicketHandler) OpenTickets(c *gin.Context) {
+	page, size := parsePage(c)
+	if size > 10 {
+		size = 10
+	}
+	if page > 3 {
+		page = 3 // PHP: 公开工单最多翻 3 页
+	}
+
+	var total int64
+	database.DB.Model(&model.Ticket{}).Where("status = 3 AND rootid = 0").Count(&total)
+
+	var tickets []model.Ticket
+	database.DB.Where("status = 3 AND rootid = 0").
+		Order("id DESC").Offset((page - 1) * size).Limit(size).Find(&tickets)
+
+	formatted := make([]gin.H, 0, len(tickets))
+	for _, t := range tickets {
+		formatted = append(formatted, gin.H{
+			"id":       t.ID,
+			"title":    t.Title,
+			"datetime": time.Unix(t.DateTime, 0).Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"ret": 1, "msg": "获取成功",
+		"data": gin.H{"items": formatted, "total": total},
+	})
+}
+
+// OpenTicketDetail 公开工单详情 (主贴 + 管理员回复, 匿名化)
+func (h *TicketHandler) OpenTicketDetail(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"ret": 0, "msg": "工单ID无效"})
+		return
+	}
+
+	var parent model.Ticket
+	if err := database.DB.Where("id = ? AND rootid = 0 AND status = 3", id).First(&parent).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"ret": 0, "msg": "公开工单不存在"})
+		return
+	}
+
+	// 仅展示管理员回复 (子查询 is_admin=1), 用户提问匿名化
+	var flow []model.Ticket
+	database.DB.Where("(id = ?) OR (rootid = ? AND userid IN (SELECT id FROM user WHERE is_admin = 1))", id, id).
+		Order("datetime ASC").Limit(50).Find(&flow)
+
+	chatFlow := make([]gin.H, 0, len(flow))
+	for _, item := range flow {
+		role := "admin"
+		if item.ID == parent.ID {
+			role = "user"
+		}
+		chatFlow = append(chatFlow, gin.H{
+			"id":       item.ID,
+			"role":     role,
+			"datetime": time.Unix(item.DateTime, 0).Format("2006-01-02 15:04:05"),
+			"content":  item.Content,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"ret": 1, "msg": "获取成功",
+		"data": gin.H{"id": parent.ID, "title": parent.Title, "status": "open", "chat_flow": chatFlow},
 	})
 }

@@ -46,6 +46,16 @@ type User struct {
 	TelegramID      int64     `gorm:"column:telegram_id" json:"telegram_id"`             // Telegram 绑定 chat id
 	IMType          int32     `gorm:"column:im_type" json:"im_type"`                     // IM 类型 (4=telegram)
 	IMValue         string    `gorm:"column:im_value" json:"im_value"`                   // IM 账号名
+	// —— 登录态/安全 (§4.0 方案 B + PHP 对齐列) ——
+	TokenVersion    int32     `gorm:"column:token_version" json:"-"`                     // 登录态版本号: +1 即吊销全部旧 JWT (cookie)
+	GaEnable        int32     `gorm:"column:ga_enable" json:"ga_enable"`                 // 2FA 开关 (0关 1开; 与 PHP 共列)
+	IsEdu           string    `gorm:"column:is_edu" json:"is_edu"`                       // edu.cn 邮箱标记 (PHP 库列为 varchar)
+	Pac             string    `gorm:"column:pac" json:"-"`                               // 自定义 PAC 文本
+	IsHide          int32     `gorm:"column:is_hide" json:"is_hide"`                     // 捐赠匿名开关
+	Cncdn           string    `gorm:"column:cncdn" json:"cncdn"`                         // 中转加速线路 (areaid)
+	CncdnCount      int32     `gorm:"column:cncdn_count" json:"cncdn_count"`             // 中转线路使用计数 (实际库列为 int)
+	Cfcdn           string    `gorm:"column:cfcdn" json:"cfcdn"`                         // 优选 IP
+	CfcdnCount      int32     `gorm:"column:cfcdn_count" json:"cfcdn_count"`             // 优选 IP 使用计数 (实际库列为 int)
 	// —— 后台任务 (dailyjob/checkjob) 依赖的周期/统计列 ——
 	Score           int32  `gorm:"column:score" json:"score"`                         // 积分 (活跃+1/违规-1)
 	BanTimes        int32  `gorm:"column:ban_times" json:"ban_times"`                 // 违规计数

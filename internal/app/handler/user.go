@@ -18,6 +18,7 @@ import (
 	"spanel-go/internal/service"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type UserHandler struct{}
@@ -105,15 +106,9 @@ func (h *UserHandler) Profile(c *gin.Context) {
 		})
 	}
 
-	// 3. 2FA 状况判断
-	gaEnable := false
+	// 3. 2FA 状况 (ga_enable 真列; 未绑定时 ga_token 为空, 由前端走绑定流程取新密钥)
+	gaEnable := user.GaEnable == 1
 	gaToken := user.GaToken
-	if gaToken != "" {
-		gaEnable = true
-	} else {
-		// 现场生成 16 位的 Base32 编码做为绑定密钥
-		gaToken = generateLocalRandomStr(16)
-	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"ret": 1,
@@ -168,7 +163,8 @@ func (h *UserHandler) Nodes(c *gin.Context) {
 	}
 
 	var nodes []model.Node
-	query := database.DB.Where("type = 1") // 仅拉取可见节点
+	// PHP /user/node 同口径: type=1 可见 + id>9 + node_class<=10 + 分组匹配 (管理员免分组)
+	query := database.DB.Where("type = 1 AND id > 9 AND node_class <= 10")
 
 	if user.IsAdmin != 1 {
 		query = query.Where("(node_group = ? OR node_group = 0)", user.NodeGroup)
@@ -194,6 +190,8 @@ func (h *UserHandler) Nodes(c *gin.Context) {
 			"traffic_rate":   n.TrafficRate,
 			"node_bandwidth": n.NodeBandwidth,
 			"node_group":     n.NodeGroup,
+			"node_heartbeat": n.NodeHeartbeat,
+			"country_code":   n.CountryCode,
 		})
 	}
 
@@ -320,20 +318,29 @@ func (h *UserHandler) Checkin(c *gin.Context) {
 		}
 	}
 
-	// 2. 奖励 100MB - 500MB
+	// 2. 奖励 100MB - 500MB + 原子条件更新 (并发双签防护: 今日零点之前才允许覆盖)
 	randomMB := generateRandomNum(100, 500)
 	rewardBytes := int64(randomMB) * 1024 * 1024
-	nextTransfer := user.TransferEnable + rewardBytes
 	nowUnix := int32(time.Now().Unix())
+	todayStart := int32(time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.Local).Unix())
 
-	// 3. 执行更新
-	if err := database.DB.Model(user).Updates(map[string]interface{}{
-		"transfer_enable":    nextTransfer,
-		"last_check_in_time": nowUnix,
-	}).Error; err != nil {
+	res := database.DB.Model(&model.User{}).
+		Where("id = ? AND (last_check_in_time IS NULL OR last_check_in_time < ?)", user.ID, todayStart).
+		Updates(map[string]interface{}{
+			"transfer_enable":    gorm.Expr("transfer_enable + ?", rewardBytes),
+			"last_check_in_time": nowUnix,
+		})
+	if res.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"ret": 0,
 			"msg": "签到失败，数据库更新异常",
+		})
+		return
+	}
+	if res.RowsAffected == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"ret": 0,
+			"msg": "您今天已经签到过了，请明天再来。",
 		})
 		return
 	}
@@ -501,7 +508,11 @@ func (h *UserHandler) UpdateWebPassword(c *gin.Context) {
 	salt := config.GlobalConfig.App.Salt
 	newHash := service.DefaultAuthService.SHA256Hash(req.NewPassword, salt)
 
-	if err := database.DB.Model(user).Update("pass", newHash).Error; err != nil {
+	// §4.0: 改密即 tv+1, 全端旧凭证 (cookie/Bearer) 即时失效
+	if err := database.DB.Model(user).Updates(map[string]interface{}{
+		"pass":          newHash,
+		"token_version": user.TokenVersion + 1,
+	}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"ret": 0, "msg": "密码修改失败，请重试"})
 		return
 	}
@@ -509,53 +520,6 @@ func (h *UserHandler) UpdateWebPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"ret": 1,
 		"msg": "网页登录密码修改成功，请使用新密码重新登录！",
-	})
-}
-
-// Enable2FA 开启 2FA 双重身份验证保护
-func (h *UserHandler) Enable2FA(c *gin.Context) {
-	userVal, _ := c.Get("user")
-	user := userVal.(*model.User)
-
-	var req struct {
-		Secret string `json:"secret" binding:"required"`
-		Code   string `json:"code" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"ret": 0, "msg": "两步验证参数有误"})
-		return
-	}
-
-	if !verifyTOTP(req.Secret, req.Code) {
-		c.JSON(http.StatusBadRequest, gin.H{"ret": 0, "msg": "验证失败！6 位动态验证码错误，请确保时间已同步"})
-		return
-	}
-
-	// 验证成功，保存 2FA secret 到 user.ga_token
-	if err := database.DB.Model(user).Update("ga_token", req.Secret).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"ret": 0, "msg": "保存 2FA 配置失败"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"ret": 1,
-		"msg": "双重验证保护绑定成功！下一次登录系统将被激活安全屏障",
-	})
-}
-
-// Disable2FA 解绑并关闭 2FA 两步验证
-func (h *UserHandler) Disable2FA(c *gin.Context) {
-	userVal, _ := c.Get("user")
-	user := userVal.(*model.User)
-
-	if err := database.DB.Model(user).Update("ga_token", "").Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"ret": 0, "msg": "解绑 2FA 失败"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"ret": 1,
-		"msg": "两步验证已成功解除，请注意防范登录爆破风险",
 	})
 }
 
@@ -710,6 +674,18 @@ func (h *UserHandler) GetInvite(c *gin.Context) {
 
 	inviteURL := fmt.Sprintf("/auth/register.html?ref=%s", inviteCode.Code)
 
+	// 5. 邀请码列表 (多码并存) + 待达标口径 (v5 ref_rebate_status=1)
+	var codes []model.InviteCode
+	database.DB.Where("user_id = ?", user.ID).Order("id ASC").Find(&codes)
+	codeItems := make([]gin.H, 0, len(codes))
+	for _, ic := range codes {
+		codeItems = append(codeItems, gin.H{"id": ic.ID, "code": ic.Code})
+	}
+
+	var pending int64
+	database.DB.Model(&model.User{}).Where("ref_by = ? AND ref_rebate_status = 1", user.ID).Count(&pending)
+
+	// 注册返利口径: 邀请注册人数 (v5: 待达标)
 	c.JSON(http.StatusOK, gin.H{
 		"ret": 1,
 		"msg": "获取成功",
@@ -719,6 +695,8 @@ func (h *UserHandler) GetInvite(c *gin.Context) {
 			"invite_url":   inviteURL,
 			"downlines":    friendsList,
 			"rebates":      rebateList,
+			"codes":        codeItems,
+			"pending":      pending,
 		},
 	})
 }

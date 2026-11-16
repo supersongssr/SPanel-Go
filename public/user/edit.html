@@ -110,10 +110,10 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
     <div class="mb-8">
       <h2 class="text-2xl font-semibold font-outfit text-white">安全与连接设置</h2>
-      <p class="text-slate-400 text-sm mt-2">在这里，您可以个性化调整物理加速节点的 Shadowsocks 加密方法，或者在泄露时重置连接密码和监听端口。</p>
+      <p class="text-slate-400 text-sm mt-2">在这里，您可以调整节点连接密码、端口与加密方式，管理协议混淆、谷歌两步验证、通知偏好与个性化订阅设置。</p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
       
       <!-- 左栏：节点代理连接配置 -->
       <div class="space-y-6">
@@ -209,6 +209,270 @@
 
       </div>
 
+      <!-- 谷歌两步验证 (2FA) 绑定器 -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-user-lock text-indigo-400 mr-2"></i>谷歌两步验证 (2FA)</h3>
+
+        <template x-if="gaEnable">
+          <div class="space-y-4">
+            <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs flex items-center">
+              <i class="fa-solid fa-circle-check text-base mr-2 flex-shrink-0"></i>
+              <span>2FA 已开启，登录时需输入谷歌身份验证器动态码。</span>
+            </div>
+            <div>
+              <label class="block text-slate-300 text-xs font-semibold mb-2">输入密码或动态码以关闭</label>
+              <input type="password" x-model="gaDisableInput" placeholder="输入 Web 登录密码（或 6 位动态码）" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+            </div>
+            <button @click="disable2FA" :disabled="gaLoading" class="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+              <span x-show="!gaLoading"><i class="fa-solid fa-lock-open mr-1.5"></i>关闭 2FA 双重身份验证</span>
+              <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 处理中...</span>
+            </button>
+            <button @click="resetGaSecret" :disabled="gaLoading" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+              <span x-show="!gaLoading"><i class="fa-solid fa-rotate mr-1.5"></i>重置 2FA 密钥</span>
+              <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 重置中...</span>
+            </button>
+          </div>
+        </template>
+
+        <template x-if="!gaEnable">
+          <div class="space-y-4">
+            <p class="text-slate-400 text-xs leading-relaxed">使用谷歌身份验证器 (Google Authenticator) 扫描下方二维码或手动输入密钥，再输入 6 位动态码验证并开启。</p>
+
+            <div class="flex justify-center">
+              <img :src="qrUrl" alt="2FA 绑定二维码" class="w-[180px] h-[180px] rounded-xl bg-white p-1.5">
+            </div>
+
+            <div class="text-center font-mono text-[10px] text-slate-300 select-all p-2 bg-slate-950 border border-slate-800 rounded-lg break-all">
+              密钥: <span class="text-indigo-400 font-bold" x-text="gaToken || '加载中...'"></span>
+            </div>
+
+            <div class="space-y-2">
+              <input type="text" x-model="gaCode" maxlength="6" inputmode="numeric" placeholder="输入 App 产生的 6 位动态验证码" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+              <button @click="enable2FA" :disabled="gaLoading" class="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white rounded-xl py-2.5 text-xs font-semibold hover:brightness-110 transition disabled:opacity-50">
+                <span x-show="!gaLoading"><i class="fa-solid fa-circle-check mr-1.5"></i>验证并开启 2FA</span>
+                <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 验证绑定中...</span>
+              </button>
+              <button @click="resetGaSecret" :disabled="gaLoading" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+                <span x-show="!gaLoading"><i class="fa-solid fa-rotate mr-1.5"></i>重置 2FA 密钥</span>
+                <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 重置中...</span>
+              </button>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- 联络方式 -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-comment-dots text-indigo-400 mr-2"></i>联络方式</h3>
+        <p class="text-slate-400 text-xs mb-4">套餐到期、风控提醒或工单回复时，面板将通过该即时通讯账号联络您。</p>
+        <div class="space-y-3">
+          <select x-model="imtype" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+            <option value="0">QQ</option>
+            <option value="1">微信</option>
+            <option value="2">其他</option>
+          </select>
+          <input type="text" x-model="wechat" placeholder="输入对应的联络账号" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+          <button @click="updateWechat" :disabled="busy === 'wechat'" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+            <span x-show="busy !== 'wechat'"><i class="fa-solid fa-floppy-disk mr-1.5"></i>保存联络方式</span>
+            <span x-show="busy === 'wechat'"><i class="fa-solid fa-spinner animate-spin"></i> 保存中...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SSR 协议与混淆 -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-shuffle text-indigo-400 mr-2"></i>协议 / 混淆参数</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-slate-400 text-[10px] font-semibold mb-1.5">协议 (protocol)</label>
+            <select x-model="protocol" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+              <option value="origin">origin (无协议)</option>
+              <option value="auth_sha1_v4">auth_sha1_v4</option>
+              <option value="auth_aes128_md5">auth_aes128_md5</option>
+              <option value="auth_aes128_sha1">auth_aes128_sha1</option>
+              <option value="auth_chain_a">auth_chain_a</option>
+              <option value="auth_chain_b">auth_chain_b</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 text-[10px] font-semibold mb-1.5">混淆 (obfs)</label>
+            <select x-model="obfs" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+              <option value="plain">plain (无混淆)</option>
+              <option value="http_simple">http_simple</option>
+              <option value="http_post">http_post</option>
+              <option value="tls1.2_ticket_auth">tls1.2_ticket_auth</option>
+              <option value="tls1.2_ticket_fastauth">tls1.2_ticket_fastauth</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 text-[10px] font-semibold mb-1.5">混淆参数 (obfs_param)</label>
+            <input type="text" x-model="obfsParam" placeholder="例如 www.bing.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+          </div>
+          <button @click="updateSsr" :disabled="busy === 'ssr'" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+            <span x-show="busy !== 'ssr'"><i class="fa-solid fa-floppy-disk mr-1.5"></i>保存协议 / 混淆</span>
+            <span x-show="busy === 'ssr'"><i class="fa-solid fa-spinner animate-spin"></i> 保存中...</span>
+          </button>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-2">修改后请更新订阅方可生效；不兼容的协议 / 混淆组合可能导致无法连接。</p>
+      </div>
+
+      <!-- 钦定端口 -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-crosshairs text-indigo-400 mr-2"></i>钦定端口</h3>
+        <div class="space-y-3">
+          <input type="number" x-model="portSpecify" placeholder="输入 1 - 65535 之间的端口" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+          <button @click="updatePortSpecify" :disabled="busy === 'portSpecify'" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+            <span x-show="busy !== 'portSpecify'"><i class="fa-solid fa-crosshairs mr-1.5"></i>支付并钦定端口</span>
+            <span x-show="busy === 'portSpecify'"><i class="fa-solid fa-spinner animate-spin"></i> 提交中...</span>
+          </button>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-2">钦定端口为收费服务<span x-show="portPrice !== null">（价格 ¥<span x-text="portPrice"></span>）</span>，将从账户余额扣除，余额不足时会提示错误。生效后请更新订阅。</p>
+      </div>
+
+      <!-- 中转线路 -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-route text-indigo-400 mr-2"></i>中转线路</h3>
+        <p class="text-slate-400 text-xs mb-4">选择通往各机房的入口中转线路，保存后订阅中的中转入口将同步更新。</p>
+        <div class="space-y-3">
+          <select x-model="cncdn" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+            <option value="">请选择中转线路</option>
+            <template x-for="line in cncdnLines" :key="line.id">
+              <option :value="String(line.areaid)" x-text="cncdnLineLabel(line)"></option>
+            </template>
+          </select>
+          <p x-show="cncdnLines.length === 0 && !cncdnError" class="text-[10px] text-slate-500"><i class="fa-solid fa-spinner animate-spin mr-1"></i>正在加载可用线路...</p>
+          <p x-show="cncdnError" class="text-[10px] text-rose-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>线路加载失败：<span x-text="cncdnError"></span></p>
+          <button @click="updateCncdn" :disabled="busy === 'cncdn'" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+            <span x-show="busy !== 'cncdn'"><i class="fa-solid fa-floppy-disk mr-1.5"></i>保存中转线路</span>
+            <span x-show="busy === 'cncdn'"><i class="fa-solid fa-spinner animate-spin"></i> 保存中...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 优选 IP -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-wand-magic-sparkles text-indigo-400 mr-2"></i>优选 IP</h3>
+        <p class="text-slate-400 text-xs mb-4">为订阅中的 Cloudflare 类节点指定自定义优选 IP。</p>
+        <div class="space-y-3">
+          <input type="text" x-model="cfcdn" placeholder="例如 104.16.160.1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs font-mono text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+          <button @click="updateCfcdn" :disabled="busy === 'cfcdn'" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+            <span x-show="busy !== 'cfcdn'"><i class="fa-solid fa-floppy-disk mr-1.5"></i>保存优选 IP</span>
+            <span x-show="busy === 'cfcdn'"><i class="fa-solid fa-spinner animate-spin"></i> 保存中...</span>
+          </button>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-2">请输入合法的 IPv4 地址，保存后订阅中的相关节点将优先使用该 IP。</p>
+      </div>
+
+      <!-- 订阅节点上限 -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-list-ol text-indigo-400 mr-2"></i>订阅节点上限</h3>
+        <div class="space-y-3">
+          <input type="number" min="0" max="200" x-model="subLimit" placeholder="0 - 200" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+          <button @click="updateSubLimit" :disabled="busy === 'sublimit'" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+            <span x-show="busy !== 'sublimit'"><i class="fa-solid fa-floppy-disk mr-1.5"></i>保存上限设置</span>
+            <span x-show="busy === 'sublimit'"><i class="fa-solid fa-spinner animate-spin"></i> 保存中...</span>
+          </button>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-2">限制订阅中返回的节点数量，取值 0 - 200；0 表示不限制。</p>
+      </div>
+
+      <!-- 自定义 PAC -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-file-code text-indigo-400 mr-2"></i>自定义 PAC</h3>
+        <p class="text-slate-400 text-xs mb-4">自定义 PAC (代理自动配置) 脚本内容，保存后订阅中的 PAC 将使用该内容。</p>
+        <div class="space-y-3">
+          <textarea x-model="pac" rows="5" placeholder="function FindProxyForURL(url, host) { ... }" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-[11px] font-mono text-slate-100 focus:outline-none focus:border-indigo-500 transition resize-y"></textarea>
+          <button @click="updatePac" :disabled="busy === 'pac'" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+            <span x-show="busy !== 'pac'"><i class="fa-solid fa-floppy-disk mr-1.5"></i>保存 PAC 内容</span>
+            <span x-show="busy === 'pac'"><i class="fa-solid fa-spinner animate-spin"></i> 保存中...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 主题切换 -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-palette text-indigo-400 mr-2"></i>主题切换</h3>
+        <div class="space-y-3">
+          <select x-model="theme" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+            <option value="material">Material（默认）</option>
+            <option value="light">Light（明亮）</option>
+            <option value="dark">Dark（暗黑）</option>
+          </select>
+          <button @click="updateTheme" :disabled="busy === 'theme'" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+            <span x-show="busy !== 'theme'"><i class="fa-solid fa-floppy-disk mr-1.5"></i>保存主题</span>
+            <span x-show="busy === 'theme'"><i class="fa-solid fa-spinner animate-spin"></i> 保存中...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 分组切换 -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-layer-group text-indigo-400 mr-2"></i>分组切换</h3>
+        <p class="text-slate-400 text-xs mb-4">不同分组对应不同的节点与计费策略，部分分组未开放时提交会提示错误。</p>
+        <div class="space-y-3">
+          <select x-model="group" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+            <option value="1">分组 1</option>
+            <option value="2">分组 2</option>
+            <option value="3">分组 3</option>
+            <option value="4">分组 4</option>
+          </select>
+          <button @click="updateGroup" :disabled="busy === 'group'" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+            <span x-show="busy !== 'group'"><i class="fa-solid fa-right-left mr-1.5"></i>切换分组</span>
+            <span x-show="busy === 'group'"><i class="fa-solid fa-spinner animate-spin"></i> 切换中...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 每日报告邮件 -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-envelope-open-text text-indigo-400 mr-2"></i>每日报告邮件</h3>
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-300 font-semibold">每日用量报告</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">开启后每日接收账户流量用量统计邮件。</p>
+          </div>
+          <button @click="toggleMail" :disabled="busy === 'mail'" role="switch" :aria-checked="mail === 1 ? 'true' : 'false'" class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition disabled:opacity-50" :class="mail === 1 ? 'bg-indigo-500' : 'bg-slate-700'">
+            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition" :class="mail === 1 ? 'translate-x-6' : 'translate-x-1'"></span>
+          </button>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-3">当前状态：<span class="font-semibold" :class="mail === 1 ? 'text-emerald-400' : 'text-slate-400'" x-text="mail === 1 ? '已开启' : '已关闭'"></span></p>
+      </div>
+
+      <!-- 匿名开关 -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-user-secret text-indigo-400 mr-2"></i>匿名开关</h3>
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-300 font-semibold">榜单匿名</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">开启后您将在公开的用量 / 排行榜单中隐藏显示。</p>
+          </div>
+          <button @click="toggleHide" :disabled="busy === 'hide'" role="switch" :aria-checked="hide === 1 ? 'true' : 'false'" class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition disabled:opacity-50" :class="hide === 1 ? 'bg-indigo-500' : 'bg-slate-700'">
+            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition" :class="hide === 1 ? 'translate-x-6' : 'translate-x-1'"></span>
+          </button>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-3">当前状态：<span class="font-semibold" :class="hide === 1 ? 'text-emerald-400' : 'text-slate-400'" x-text="hide === 1 ? '已开启' : '已关闭'"></span></p>
+      </div>
+
+      <!-- 解封 IP -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-ban text-indigo-400 mr-2"></i>解封 IP</h3>
+        <p class="text-slate-400 text-xs mb-4">若当前出口 IP 因多次验证失败或风控被自动封锁，可在此一键解封。</p>
+        <button @click="unblockIP" :disabled="busy === 'unblock'" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+          <span x-show="busy !== 'unblock'"><i class="fa-solid fa-unlock mr-1.5"></i>解封当前 IP</span>
+          <span x-show="busy === 'unblock'"><i class="fa-solid fa-spinner animate-spin"></i> 解封中...</span>
+        </button>
+      </div>
+
+      <!-- 解绑 Telegram -->
+      <div class="glass-card p-6 rounded-2xl">
+        <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-brands fa-telegram text-indigo-400 mr-2"></i>解绑 Telegram</h3>
+        <p class="text-slate-400 text-xs mb-4">解除已绑定的 Telegram 账号，解绑后将无法通过 Bot 接收通知。</p>
+        <button @click="resetTelegram" :disabled="busy === 'telegram'" class="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+          <span x-show="busy !== 'telegram'"><i class="fa-solid fa-link-slash mr-1.5"></i>解绑 Telegram</span>
+          <span x-show="busy === 'telegram'"><i class="fa-solid fa-spinner animate-spin"></i> 解绑中...</span>
+        </button>
+      </div>
+
     </div>
   </main>
 
@@ -222,25 +486,118 @@
         oldPassword: '',
         newPassword: '',
         confirmPassword: '',
-        
+
+        profile: {},
+
+        gaEnable: false,
+        gaToken: '',
+        gaCode: '',
+        gaDisableInput: '',
+        gaLoading: false,
+
+        imtype: '1',
+        wechat: '',
+
+        protocol: 'origin',
+        obfs: 'plain',
+        obfsParam: '',
+
+        theme: 'material',
+        group: '1',
+        mail: 0,
+        hide: 0,
+
+        subLimit: '0',
+        cfcdn: '',
+        pac: '',
+        portSpecify: '',
+        portPrice: null,
+
+        cncdn: '',
+        cncdnLines: [],
+        cncdnError: '',
+
         portLoading: false,
         passwdLoading: false,
         methodLoading: false,
         webPwdLoading: false,
+        busy: '',
+
+        get qrUrl() {
+          const otpauth = 'otpauth://totp/SPanel:' + (this.profile.email || '') + '?secret=' + (this.gaToken || '');
+          return 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(otpauth);
+        },
 
         async init() {
           await this.fetchProfile();
+          await this.fetchCncdnLines();
         },
 
         async fetchProfile() {
           try {
             const res = await SPanelAPI.request('/user/profile');
-            const data = res.data;
+            const data = res.data || {};
+            this.profile = data;
             this.port = data.port;
             this.passwd = data.passwd;
             this.method = data.method;
+
+            this.gaEnable = !!data.ga_enable;
+            if (data.ga_token) this.gaToken = data.ga_token;
+
+            if (data.imtype !== undefined && data.imtype !== null) this.imtype = String(data.imtype);
+            this.wechat = data.wechat || '';
+            if (data.protocol) this.protocol = data.protocol;
+            if (data.obfs) this.obfs = data.obfs;
+            this.obfsParam = data.obfs_param || '';
+            if (data.theme) this.theme = data.theme;
+            if (data.group !== undefined && data.group !== null) this.group = String(data.group);
+            if (data.mail !== undefined && data.mail !== null) this.mail = Number(data.mail);
+            if (data.hide !== undefined && data.hide !== null) this.hide = Number(data.hide);
+            if (data.sub_limit !== undefined && data.sub_limit !== null) this.subLimit = String(data.sub_limit);
+            this.cfcdn = data.cfcdn || '';
+            if (data.pac) this.pac = data.pac;
+            if (data.cncdn !== undefined && data.cncdn !== null) this.cncdn = String(data.cncdn);
+            if (data.port_price_specify !== undefined && data.port_price_specify !== null) this.portPrice = data.port_price_specify;
           } catch(err) {
             alert('获取个人连接信息失败：' + err.message);
+          }
+        },
+
+        async fetchCncdnLines() {
+          try {
+            const res = await SPanelAPI.request('/user/cncdn/looking');
+            this.cncdnLines = (res.data && res.data.lines) || [];
+          } catch(err) {
+            this.cncdnError = err.message;
+          }
+        },
+
+        cncdnLineLabel(line) {
+          let label = line.area || ('中转线路 ' + line.id);
+          if (line.server) label += ' · ' + line.server;
+          if (line.status !== undefined && line.status !== null && String(line.status) !== '1') {
+            label += '（' + (typeof line.status === 'string' && line.status !== '' ? line.status : '维护中') + '）';
+          }
+          return label;
+        },
+
+        // 新增表单卡片通用提交: 成功后 alert(res.msg) 并刷新页面数据
+        async postForm(key, path, body, okMsg) {
+          this.busy = key;
+          try {
+            const res = await SPanelAPI.request(path, {
+              method: 'POST',
+              body: JSON.stringify(body)
+            });
+            alert(res.msg || res.message || okMsg);
+            await this.fetchProfile();
+            return true;
+          } catch(err) {
+            alert(err.message);
+            return false;
+          } finally {
+            this.busy = '';
           }
         },
 
@@ -249,7 +606,7 @@
           this.portLoading = true;
           try {
             const res = await SPanelAPI.request('/user/port/reset', { method: 'POST' });
-            alert(res.message || '端口重置成功！');
+            alert(res.msg || res.message || '端口重置成功！');
             await this.fetchProfile();
           } catch(err) {
             alert(err.message);
@@ -269,7 +626,7 @@
               method: 'POST',
               body: JSON.stringify({ passwd: this.passwd })
             });
-            alert(res.message || '节点密码重置成功！');
+            alert(res.msg || res.message || '节点密码重置成功！');
             await this.fetchProfile();
           } catch(err) {
             alert(err.message);
@@ -285,7 +642,7 @@
               method: 'POST',
               body: JSON.stringify({ method: this.method })
             });
-            alert(res.message || '加密方法更新成功！');
+            alert(res.msg || res.message || '加密方法更新成功！');
             await this.fetchProfile();
           } catch(err) {
             alert(err.message);
@@ -316,7 +673,7 @@
                 new_password: this.newPassword
               })
             });
-            alert(res.message || '密码修改成功，请使用新密码重新登录！');
+            alert(res.msg || res.message || '密码修改成功，请使用新密码重新登录！');
             
             // 清理本地 JWT，引导重新鉴权
             localStorage.removeItem('spanel_jwt');
@@ -329,7 +686,171 @@
           }
         },
 
-        logout() {
+        // ===== 2FA 谷歌两步验证 =====
+        async enable2FA() {
+          const code = this.gaCode.trim();
+          if (!/^\d{6}$/.test(code)) {
+            alert('请输入谷歌身份验证器 APP 产生的 6 位数字动态验证码。');
+            return;
+          }
+          if (!this.gaToken) {
+            alert('2FA 密钥尚未加载，请稍后重试。');
+            return;
+          }
+          this.gaLoading = true;
+          try {
+            // a) 先验证 6 位动态码
+            await SPanelAPI.request('/user/ga/check', {
+              method: 'POST',
+              body: JSON.stringify({ code })
+            });
+            // b) 验证通过后正式绑定开启
+            const res = await SPanelAPI.request('/user/ga/set', {
+              method: 'POST',
+              body: JSON.stringify({ secret: this.gaToken, code })
+            });
+            alert(res.msg || res.message || '2FA 双重验证开启成功！');
+            this.gaCode = '';
+            await this.fetchProfile();
+          } catch(err) {
+            alert(err.message);
+          } finally {
+            this.gaLoading = false;
+          }
+        },
+
+        async disable2FA() {
+          const val = this.gaDisableInput;
+          if (!val) {
+            alert('请输入 Web 登录密码（或 6 位动态验证码）以关闭 2FA。');
+            return;
+          }
+          if (!confirm('确定要关闭谷歌两步验证吗？关闭后账户安全性将降低。')) return;
+          this.gaLoading = true;
+          try {
+            const body = /^\d{6}$/.test(val) ? { code: val } : { password: val };
+            const res = await SPanelAPI.request('/user/ga/disable', {
+              method: 'POST',
+              body: JSON.stringify(body)
+            });
+            alert(res.msg || res.message || '2FA 已关闭。');
+            this.gaDisableInput = '';
+            await this.fetchProfile();
+          } catch(err) {
+            alert(err.message);
+          } finally {
+            this.gaLoading = false;
+          }
+        },
+
+        async resetGaSecret() {
+          if (!confirm('确定要重置 2FA 密钥吗？原密钥与二维码将立即失效，请使用新密钥重新绑定。')) return;
+          this.gaLoading = true;
+          try {
+            const res = await SPanelAPI.request('/user/ga/reset', { method: 'POST' });
+            this.gaToken = (res.data && res.data.ga_token) || '';
+            alert(res.msg || res.message || '2FA 密钥已重置。');
+            await this.fetchProfile();
+          } catch(err) {
+            alert(err.message);
+          } finally {
+            this.gaLoading = false;
+          }
+        },
+
+        // ===== 联络方式 / 协议混淆 / 主题 / 分组 =====
+        async updateWechat() {
+          if (!this.wechat.trim()) {
+            alert('请填写联络账号。');
+            return;
+          }
+          await this.postForm('wechat', '/user/wechat', {
+            imtype: Number(this.imtype),
+            wechat: this.wechat.trim()
+          }, '联络方式已保存。');
+        },
+
+        async updateSsr() {
+          await this.postForm('ssr', '/user/ssr', {
+            protocol: this.protocol,
+            obfs: this.obfs,
+            obfs_param: this.obfsParam.trim()
+          }, '协议 / 混淆参数已保存。');
+        },
+
+        async updateTheme() {
+          await this.postForm('theme', '/user/theme', { theme: this.theme }, '主题已保存。');
+        },
+
+        async updateGroup() {
+          await this.postForm('group', '/user/group', { group: Number(this.group) }, '分组已切换。');
+        },
+
+        // ===== 通知 / 匿名开关 =====
+        async toggleMail() {
+          await this.postForm('mail', '/user/mail', { mail: this.mail === 1 ? 0 : 1 }, '每日邮件设置已保存。');
+        },
+
+        async toggleHide() {
+          await this.postForm('hide', '/user/hide', { hide: this.hide === 1 ? 0 : 1 }, '匿名设置已保存。');
+        },
+
+        // ===== 订阅节点上限 / 优选 IP / 自定义 PAC =====
+        async updateSubLimit() {
+          const n = Number(this.subLimit);
+          if (!Number.isInteger(n) || n < 0 || n > 200) {
+            alert('订阅节点上限必须是 0 - 200 之间的整数（0 表示不限）。');
+            return;
+          }
+          await this.postForm('sublimit', '/user/sublimit', { sub_limit: n }, '订阅节点上限已保存。');
+        },
+
+        async updateCfcdn() {
+          const v = this.cfcdn.trim();
+          const okIpv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(v) && v.split('.').every(p => Number(p) <= 255);
+          if (!okIpv4) {
+            alert('请输入合法的 IPv4 地址，例如 104.16.160.1。');
+            return;
+          }
+          await this.postForm('cfcdn', '/user/cfcdn', { cfcdn: v }, '优选 IP 已保存。');
+        },
+
+        async updatePac() {
+          await this.postForm('pac', '/user/pacset', { pac: this.pac }, '自定义 PAC 已保存。');
+        },
+
+        // ===== 中转线路 =====
+        async updateCncdn() {
+          if (!this.cncdn) {
+            alert('请先选择一条中转线路。');
+            return;
+          }
+          await this.postForm('cncdn', '/user/cncdn', { cncdn: this.cncdn }, '中转线路已保存。');
+        },
+
+        // ===== 钦定端口 =====
+        async updatePortSpecify() {
+          const n = Number(this.portSpecify);
+          if (!Number.isInteger(n) || n < 1 || n > 65535) {
+            alert('钦定端口必须是 1 - 65535 之间的整数。');
+            return;
+          }
+          if (!confirm('钦定端口为收费服务' + (this.portPrice !== null ? '，将扣除 ¥' + this.portPrice : '') + '，确认继续？')) return;
+          await this.postForm('portSpecify', '/user/port/specify', { port: n }, '钦定端口已设置。');
+        },
+
+        // ===== 解封 IP / 解绑 Telegram =====
+        async unblockIP() {
+          await this.postForm('unblock', '/user/unblock', {}, '当前 IP 已解封。');
+        },
+
+        async resetTelegram() {
+          if (!confirm('确定要解绑已绑定的 Telegram 账号吗？解绑后将无法通过 Bot 接收通知。')) return;
+          await this.postForm('telegram', '/user/telegram/reset', {}, 'Telegram 已解绑。');
+        },
+
+        async logout() {
+          try { await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
           localStorage.removeItem('spanel_jwt');
           localStorage.removeItem('spanel_user');
           window.location.replace('/auth/login.html');

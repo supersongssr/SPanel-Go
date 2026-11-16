@@ -3,7 +3,7 @@ package model
 // Ticket 映射数据库 ticket 表 (用于支持工单处理系统)
 type Ticket struct {
 	ID       int64  `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	Title    string `gorm:"column:title?" json:"title"` // 数据库字段名称为 title?，需包含问号
+	Title    string `gorm:"column:title" json:"title"`
 	Content  string `gorm:"column:content" json:"content"`
 	RootID   int64  `gorm:"column:rootid" json:"rootid"`
 	UserID   int64  `gorm:"column:userid" json:"userid"`

@@ -166,10 +166,19 @@
                 <i class="fa-solid fa-circle-check text-base mr-2 flex-shrink-0"></i>
                 <span>您的账户已启用双重身份验证保护，正在保障您的账户安全。</span>
               </div>
-              <button @click="reset2FA" class="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-2.5 text-xs font-semibold transition" :disabled="gaLoading">
-                <span x-show="!gaLoading"><i class="fa-solid fa-lock-open mr-1.5"></i>解除 2FA 双重身份验证</span>
+              <div>
+                <label class="block text-slate-300 text-xs font-semibold mb-2">输入密码或动态码以关闭</label>
+                <input type="password" x-model="gaDisableInput" placeholder="输入 Web 登录密码（或 6 位动态码）" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+              </div>
+              <button @click="disable2FA" :disabled="gaLoading" class="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+                <span x-show="!gaLoading"><i class="fa-solid fa-lock-open mr-1.5"></i>关闭 2FA 双重身份验证</span>
                 <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 处理中...</span>
               </button>
+              <button @click="reset2FA" :disabled="gaLoading" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+                <span x-show="!gaLoading"><i class="fa-solid fa-rotate mr-1.5"></i>重置 2FA 密钥</span>
+                <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 重置中...</span>
+              </button>
+              <a href="/user/edit.html" class="block text-center text-[10px] text-slate-500 hover:text-indigo-400 transition">前往「安全设置」管理更多连接选项 →</a>
             </div>
           </template>
 
@@ -179,17 +188,24 @@
               
               <!-- 绑定二维码信息 -->
               <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3">
-                <div class="text-center font-mono text-[10px] text-slate-300 select-all p-2 bg-slate-950 border border-slate-850 rounded-lg">
-                  密钥: <span x-text="profile.ga_token" class="text-indigo-400 font-bold"></span>
+                <div class="flex justify-center">
+                  <img :src="qrUrl" alt="2FA 绑定二维码" class="w-[180px] h-[180px] rounded-xl bg-white p-1.5">
                 </div>
-                <p class="text-[10px] text-slate-500">请手动在谷歌验证器 App 中添加新账号，并填入上方密钥。</p>
+                <div class="text-center font-mono text-[10px] text-slate-300 select-all p-2 bg-slate-950 border border-slate-800 rounded-lg break-all">
+                  密钥: <span x-text="profile.ga_token || '加载中...'" class="text-indigo-400 font-bold"></span>
+                </div>
+                <p class="text-[10px] text-slate-500 text-center">使用谷歌验证器 App 扫描上方二维码，或手动添加新账号并填入该密钥。</p>
               </div>
 
               <div class="space-y-2">
                 <input type="text" x-model="gaCode" placeholder="输入 App 产生的 6 位动态验证码" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-                <button @click="enable2FA" class="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white rounded-xl py-2.5 text-xs font-semibold hover:brightness-110 transition" :disabled="gaLoading">
-                  <span x-show="!gaLoading"><i class="fa-solid fa-circle-check mr-1.5"></i>立即绑定激活 2FA</span>
-                  <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 绑定中...</span>
+                <button @click="enable2FA" class="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white rounded-xl py-2.5 text-xs font-semibold hover:brightness-110 transition disabled:opacity-50" :disabled="gaLoading">
+                  <span x-show="!gaLoading"><i class="fa-solid fa-circle-check mr-1.5"></i>验证并开启 2FA</span>
+                  <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 验证绑定中...</span>
+                </button>
+                <button @click="reset2FA" :disabled="gaLoading" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
+                  <span x-show="!gaLoading"><i class="fa-solid fa-rotate mr-1.5"></i>重置 2FA 密钥</span>
+                  <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 重置中...</span>
                 </button>
               </div>
             </div>
@@ -271,7 +287,13 @@
       return {
         profile: {},
         gaCode: '',
+        gaDisableInput: '',
         gaLoading: false,
+
+        get qrUrl() {
+          const otpauth = 'otpauth://totp/SPanel:' + (this.profile.email || '') + '?secret=' + (this.profile.ga_token || '');
+          return 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(otpauth);
+        },
 
         async init() {
           await this.fetchProfile();
@@ -287,20 +309,27 @@
         },
 
         async enable2FA() {
-          if (!this.gaCode.trim() || this.gaCode.length !== 6) {
-            alert('请输入谷歌身份验证器 APP 产生的 6 位数动态验证码。');
+          const code = this.gaCode.trim();
+          if (!/^\d{6}$/.test(code)) {
+            alert('请输入谷歌身份验证器 APP 产生的 6 位数字动态验证码。');
             return;
           }
           this.gaLoading = true;
           try {
+            // a) 先验证 6 位动态码
+            await SPanelAPI.request('/user/ga/check', {
+              method: 'POST',
+              body: JSON.stringify({ code })
+            });
+            // b) 验证通过后正式绑定开启
             const res = await SPanelAPI.request('/user/ga/set', {
               method: 'POST',
               body: JSON.stringify({
                 secret: this.profile.ga_token,
-                code: this.gaCode
+                code
               })
             });
-            alert(res.message || '双重验证保护开启成功！');
+            alert(res.msg || res.message || '双重验证保护开启成功！');
             this.gaCode = '';
             await this.fetchProfile();
           } catch(err) {
@@ -310,14 +339,22 @@
           }
         },
 
-        async reset2FA() {
-          if (!confirm('您确定要解绑并关闭该账户的 2FA 谷歌双重验证保护吗？这会降低您的账户安全性。')) return;
+        async disable2FA() {
+          const val = this.gaDisableInput;
+          if (!val) {
+            alert('请输入 Web 登录密码（或 6 位动态验证码）以关闭 2FA。');
+            return;
+          }
+          if (!confirm('您确定要关闭该账户的 2FA 谷歌双重验证保护吗？这会降低您的账户安全性。')) return;
           this.gaLoading = true;
           try {
-            const res = await SPanelAPI.request('/user/ga/reset', {
-              method: 'POST'
+            const body = /^\d{6}$/.test(val) ? { code: val } : { password: val };
+            const res = await SPanelAPI.request('/user/ga/disable', {
+              method: 'POST',
+              body: JSON.stringify(body)
             });
-            alert(res.message || '双重验证已解绑。');
+            alert(res.msg || res.message || '双重验证已关闭。');
+            this.gaDisableInput = '';
             await this.fetchProfile();
           } catch(err) {
             alert(err.message);
@@ -326,7 +363,25 @@
           }
         },
 
-        logout() {
+        async reset2FA() {
+          if (!confirm('您确定要重置 2FA 密钥吗？原密钥与二维码将立即失效，请使用新密钥重新绑定。')) return;
+          this.gaLoading = true;
+          try {
+            const res = await SPanelAPI.request('/user/ga/reset', {
+              method: 'POST'
+            });
+            if (res.data && res.data.ga_token) this.profile.ga_token = res.data.ga_token;
+            alert(res.msg || res.message || '2FA 密钥已重置。');
+            await this.fetchProfile();
+          } catch(err) {
+            alert(err.message);
+          } finally {
+            this.gaLoading = false;
+          }
+        },
+
+        async logout() {
+          try { await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
           localStorage.removeItem('spanel_jwt');
           localStorage.removeItem('spanel_user');
           window.location.replace('/auth/login.html');
