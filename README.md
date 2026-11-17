@@ -65,6 +65,16 @@ SPanel-Go/
 ./run.sh rollback      # /api/ 交还给 PHP 面板
 ```
 
+### 完整测试站 (推荐)
+
+`https://test-spanel-go.freessr.bid:8443/` —— 独立域名全站由 SPanel-Go 提供
+(静态页 + `/api/*` + `/mu` + `/link` + `/rss`), 不与 PHP 面板共享路由, 可完整测试:
+
+- DNS: Cloudflare `test-spanel-go` A → 151.245.106.151 (DNS only)
+- nginx: `/etc/nginx/conf.d/test-spanel-go.freessr.bid.conf` (80 → 301 → 8443 TLS → 127.0.0.1:8090)
+- 证书: `/etc/ssl/freessr.bid.pem` (Let's Encrypt 通配符 `*.freessr.bid`)
+- 入口示例: `/auth/login.html` · `/api/v1/auth/captcha` · `/api/v2/backend/healthz` · `/ping`
+
 端口可通过 `-port` 参数覆盖：`.bin/spanel -port 9000`（run.sh 用 `APP_PORT` 环境变量覆盖）。
 
 ---

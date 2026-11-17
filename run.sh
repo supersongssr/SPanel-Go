@@ -8,6 +8,8 @@
 #   * 一键接管 test-spanel.freessr.bid 的 /api/ 路由:
 #       nginx (8443) 注入 location ^~ /api/ → proxy_pass http://127.0.0.1:8090
 #       其余路由仍由原 PHP 面板 (/var/www/SPanel/public) 提供, 可随时回滚
+#   * 完整测试站 test-spanel-go.freessr.bid:8443 (独立 server 块, 全站 → 8090):
+#       /etc/nginx/conf.d/test-spanel-go.freessr.bid.conf (静态页+api+mu+link 全由 Go 提供)
 #
 # 用法:
 #   ./run.sh               # 无参数 → 交互菜单
@@ -40,6 +42,8 @@ SYSTEMD_OK=""
 
 NGINX_CONF="/etc/nginx/conf.d/test-spanel.freessr.bid.conf"
 NGINX_SITE="https://test-spanel.freessr.bid:8443"
+NGINX_GO_CONF="/etc/nginx/conf.d/test-spanel-go.freessr.bid.conf"
+GO_SITE="https://test-spanel-go.freessr.bid:8443"
 MARK_BEGIN="# >>> spanel-go /api (managed by run.sh) >>>"
 MARK_END="# <<< spanel-go /api <<<"
 
@@ -227,6 +231,11 @@ do_status() {
     say "nginx /api/ 接管状态 ($NGINX_CONF)"
     hr
     api_status
+    if [ -f "$NGINX_GO_CONF" ]; then
+        say "🟢 完整测试站: $GO_SITE (全站 → 127.0.0.1:$APP_PORT, 配置 $NGINX_GO_CONF)"
+    else
+        say "⚪ 完整测试站未部署 (缺 $NGINX_GO_CONF)"
+    fi
     if have_systemd; then
         say "守护: systemd $SYSTEMD_UNIT ($(systemctl is-enabled "$SYSTEMD_UNIT" 2>/dev/null || echo unknown), "\
 "累计自动重启: $(systemctl show -p NRestarts --value "$SYSTEMD_UNIT" 2>/dev/null))"
@@ -475,6 +484,9 @@ usage() {
   logs      查看日志
   deploy    nginx 接管 test-spanel.freessr.bid 的 /api/ → SPanel-Go
   rollback  /api/ 交还给 PHP 面板
+
+完整测试站: https://test-spanel-go.freessr.bid:8443/ (全站由 SPanel-Go 提供,
+           配置: $NGINX_GO_CONF)
 EOF
 }
 
