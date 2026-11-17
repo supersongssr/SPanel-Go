@@ -61,6 +61,7 @@ SPanel-Go/
 ./run.sh start         # 启动 (默认端口 8090, 避开被占用的 8080)
 ./run.sh restart       # 重启
 ./run.sh stop|status|logs # 停止 / 状态 / 日志
+./test.sync            # 一键同步 test 环境: 编译 → 重启 spanel-go → 健康检查
 ./run.sh deploy        # nginx 接管 test-spanel.freessr.bid 的 /api/ → SPanel-Go
 ./run.sh rollback      # /api/ 交还给 PHP 面板
 ```

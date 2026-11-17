@@ -1,0 +1,102 @@
+#!/bin/sh
+#
+# test.sync — SPanel-Go 测试环境一键同步 (/bin/sh)
+#
+#   运行即: 编译 → 部署 test 环境 (test-spanel-go.freessr.bid) → 重启 spanel-go → 健康检查
+#
+#   nginx (test-spanel-go.freessr.bid.conf :8443) 静态代理到 127.0.0.1:8090,
+#   因此 "部署" = 产出新二进制 + 重启 systemd 服务; public/ 静态页磁盘直读,
+#   无需重编译的改动由重启后的进程一并对外提供。
+#
+# 用法:
+#   ./test.sync            # 编译 + 部署 + 重启 + 健康检查
+#
+# 行为细节:
+#   * 编译失败 → 保留旧二进制、不重启, 退出码 1 (测试环境不受影响)
+#   * 二进制无变化且服务健康 → 跳过重启 (仅静态页/文档改动), 退出码 0
+#   * 服务未运行时即使二进制未变也会被拉起
+#   * 日志: .bin/test-sync.log (gitignored)
+#
+set -u
+
+# ---------- 路径与常量 ----------
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+cd "$SCRIPT_DIR"
+
+BIN=".bin/spanel"
+UNIT="spanel-go.service"
+PORT="${APP_PORT:-8090}"
+SITE="https://test-spanel-go.freessr.bid:8443"
+LOG=".bin/test-sync.log"
+LOCK=".bin/test-sync.lock"
+
+GO_BIN="/usr/local/go/bin/go"
+command -v go >/dev/null 2>&1 && GO_BIN=$(command -v go)
+
+say()  { printf '%s\n' "$*"; }
+ok()   { printf '✅ %s\n' "$*"; }
+warn() { printf '⚠️  %s\n' "$*"; }
+err()  { printf '❌ %s\n' "$*" >&2; }
+log()  { printf '[%s] %s\n' "$(date '+%F %T')" "$*" >> "$LOG"; }
+
+mkdir -p .bin
+
+# ---------- flock 串行化 (防并发运行) ----------
+exec 9>"$LOCK" || { err "无法创建锁文件 $LOCK"; exit 1; }
+if ! flock -w 120 9; then
+    err "另一实例正在同步 (等待锁超时), 请稍后重试"
+    exit 1
+fi
+
+log "── test.sync 开始  HEAD=$(git rev-parse --short HEAD 2>/dev/null || echo '-')"
+
+# ---------- 1. 编译 ----------
+OLD_SHA=$(sha256sum "$BIN" 2>/dev/null | cut -d' ' -f1)
+
+say "🔨 编译 ./cmd/spanel → $BIN"
+if ! "$GO_BIN" build -trimpath -ldflags "-s -w" -o "$BIN" ./cmd/spanel >>"$LOG" 2>&1; then
+    err "编译失败, 保留旧二进制, 服务未重启 (编译日志: $LOG)"
+    log "编译失败, 保留旧二进制"
+    exit 1
+fi
+ok "编译成功 ($(du -h "$BIN" | cut -f1), HEAD: $(git rev-parse --short HEAD 2>/dev/null || echo '-'))"
+
+# ---------- 2. 判断是否需要重启 ----------
+NEW_SHA=$(sha256sum "$BIN" 2>/dev/null | cut -d' ' -f1)
+SVC_ACTIVE=$(systemctl is-active --quiet "$UNIT" 2>/dev/null && echo yes || echo no)
+
+if [ "$OLD_SHA" = "$NEW_SHA" ] && [ -n "$OLD_SHA" ] && [ "$SVC_ACTIVE" = "yes" ]; then
+    ok "二进制无变化且服务健康, 跳过重启 (静态页改动已即时生效)"
+    log "二进制无变化, 跳过重启"
+    exit 0
+fi
+
+# ---------- 3. 重启服务 ----------
+if ! systemctl restart "$UNIT" 2>>"$LOG"; then
+    err "systemctl restart $UNIT 失败: journalctl -u $UNIT -n 20"
+    log "重启失败"
+    exit 2
+fi
+sleep 1
+if ! systemctl is-active --quiet "$UNIT"; then
+    err "服务重启后未处于 active 状态: journalctl -u $UNIT -n 20"
+    log "重启后服务异常"
+    exit 2
+fi
+ok "服务已重启 (PID $(systemctl show -p MainPID --value "$UNIT"))"
+
+# ---------- 4. 健康检查 (本地 + 公网) ----------
+if curl -fsS --max-time 3 "http://127.0.0.1:$PORT/ping" >/dev/null 2>&1; then
+    ok "本地健康检查: 127.0.0.1:$PORT/ping → pong"
+else
+    warn "本地 /ping 未通过 (MySQL/Redis 可能仍在初始化, 稍后自愈)"
+fi
+if command -v curl >/dev/null 2>&1 && curl -fsS --max-time 5 "$SITE/ping" >/dev/null 2>&1; then
+    ok "公网验证: $SITE/ping → pong"
+else
+    warn "公网 $SITE/ping 未通过 (DNS 未指向本机可忽略)"
+fi
+
+log "部署完成 (PID $(systemctl show -p MainPID --value "$UNIT"))"
+ok "已生效: $SITE"
+exit 0
