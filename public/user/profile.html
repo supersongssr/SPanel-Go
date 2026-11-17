@@ -1,287 +1,191 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="h-full bg-slate-950 text-slate-100">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>个人中心 - SPanel</title>
+  <title>我的账户 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            outfit: ['Outfit', 'sans-serif'],
-            inter: ['Inter', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .glass-card {
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-  </style>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body class="min-h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-100 pb-12" x-data="profilePage()">
-  
-    <!-- 顶部导航栏 -->
-  <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50" x-data="{ mobileMenuOpen: false, open: false }">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <!-- Logo 区域 -->
-        <div class="flex items-center space-x-3">
-          <a href="/user/dashboard.html" class="font-outfit text-2xl font-bold bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">SPanel</a>
-          <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20">Member</span>
-        </div>
+<body data-sp-area="user" data-sp-page="profile">
+  <main class="sp-content" x-data="profilePage()">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">我的账户</h1></div>
+    </div>
 
-        <!-- 桌面端导航链接 (md 级别以上显示) -->
-        <div class="hidden md:flex items-center space-x-6 text-sm">
-          <a href="/user/dashboard.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('dashboard') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-chart-line mr-1.5"></i>控制台</a>
-          <a href="/user/nodes.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('nodes') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-server mr-1.5"></i>节点列表</a>
-          <a href="/user/relay.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('relay') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-route mr-1.5"></i>中转规则</a>
-          <a href="/user/shop.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('shop') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-store mr-1.5"></i>套餐商店</a>
-          <a href="/user/code.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('code.html') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-credit-card mr-1.5"></i>卡密充值</a>
-          <a href="/user/invite.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('invite') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-gift mr-1.5"></i>推广联盟</a>
-          <a href="/user/tickets.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('ticket') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-ticket mr-1.5"></i>工单支持</a>
-          
-          <!-- 用户下拉子菜单 -->
-          <div class="relative" @click.away="open = false">
-            <button @click="open = !open" class="transition font-medium whitespace-nowrap focus:outline-none flex items-center" :class="(window.location.pathname.includes('profile') || window.location.pathname.includes('edit')) ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'">
-              <i class="fa-solid fa-user-gear mr-1.5"></i>我的账户<i class="fa-solid fa-chevron-down text-[10px] ml-1 transition" :class="open ? 'rotate-180' : ''"></i>
-            </button>
-            <div class="absolute right-0 mt-2 w-40 rounded-xl bg-slate-900 border border-slate-800 shadow-xl py-1 z-50" x-show="open" x-transition>
-              <template x-if="typeof isAdmin !== 'undefined' ? isAdmin : (localStorage.getItem('spanel_user') && (JSON.parse(localStorage.getItem('spanel_user')).isAdmin || JSON.parse(localStorage.getItem('spanel_user')).is_admin === 1))">
-                <a href="/admin/dashboard.html" class="block px-4 py-2 text-xs text-indigo-400 hover:bg-indigo-950/30 hover:text-indigo-300 transition font-semibold"><i class="fa-solid fa-gauge mr-2"></i>管理后台</a>
-              </template>
-              <template x-if="typeof isAdmin !== 'undefined' ? isAdmin : (localStorage.getItem('spanel_user') && (JSON.parse(localStorage.getItem('spanel_user')).isAdmin || JSON.parse(localStorage.getItem('spanel_user')).is_admin === 1))">
-                <hr class="border-slate-800 my-1">
-              </template>
-              <a href="/user/profile.html" class="block px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-user mr-2"></i>个人中心</a>
-              <a href="/user/edit.html" class="block px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-shield-halved mr-2"></i>安全设置</a>
-              <hr class="border-slate-800 my-1">
-              <button @click="logout" class="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-rose-950/20 transition"><i class="fa-solid fa-right-from-bracket mr-2"></i>退出登录</button>
+    <div class="sp-content-inner">
+      <div class="sp-grid">
+
+        <!-- ═══ 左栏: 我的帐号卡 + 2FA ═══ -->
+        <div class="sp-col-4">
+
+          <!-- 我的帐号 (复刻旧版 profile 首卡: dl 信息 + 注销账号入口) -->
+          <div class="sp-card">
+            <div class="sp-card-title">
+              <i class="mi">account_box</i>我的帐号
+              <span class="sp-extra">
+                <a href="/user/kill.html" class="sp-btn sp-btn-flat sp-btn-sm"><i class="mi">not_interested</i>注销账号</a>
+              </span>
             </div>
-          </div>
-        </div>
-
-        <!-- 移动端汉堡包按钮 (md 以下显示) -->
-        <div class="flex items-center md:hidden">
-          <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-slate-400 hover:text-indigo-400 transition focus:outline-none">
-            <i class="fa-solid text-xl" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 移动端下拉面板 (md 以下显示) -->
-    <div class="md:hidden bg-slate-950/95 border-b border-slate-800" x-show="mobileMenuOpen" x-transition>
-      <div class="px-4 pt-2 pb-4 space-y-1">
-        <a href="/user/dashboard.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('dashboard') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-chart-line mr-2"></i>控制台</a>
-        <a href="/user/nodes.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('nodes') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-server mr-2"></i>节点列表</a>
-        <a href="/user/relay.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('relay') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-route mr-2"></i>中转规则</a>
-        <a href="/user/shop.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('shop') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-store mr-2"></i>套餐商店</a>
-        <a href="/user/code.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('code.html') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-credit-card mr-2"></i>卡密充值</a>
-        <a href="/user/invite.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('invite') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-gift mr-2"></i>推广联盟</a>
-        <a href="/user/tickets.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('ticket') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-ticket mr-2"></i>工单支持</a>
-        
-        <hr class="border-slate-800 my-2">
-        
-        <div class="px-3 py-1 text-xs font-semibold text-slate-500 uppercase">我的账户</div>
-        <template x-if="localStorage.getItem('spanel_user') && (JSON.parse(localStorage.getItem('spanel_user')).isAdmin || JSON.parse(localStorage.getItem('spanel_user')).is_admin === 1)">
-          <a href="/admin/dashboard.html" class="block px-3 py-2 rounded-xl text-sm font-medium text-indigo-400 hover:bg-slate-900 transition"><i class="fa-solid fa-gauge mr-2"></i>管理后台</a>
-        </template>
-        <a href="/user/profile.html" class="block px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-indigo-400 transition" :class="window.location.pathname.includes('profile') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-user mr-2"></i>个人中心</a>
-        <a href="/user/edit.html" class="block px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-indigo-400 transition" :class="window.location.pathname.includes('edit') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-shield-halved mr-2"></i>安全设置</a>
-        <button @click="logout" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-rose-400 hover:bg-rose-950/20 transition"><i class="fa-solid fa-right-from-bracket mr-2"></i>退出登录</button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- 主体内容 -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
-    <div class="mb-8 flex justify-between items-center">
-      <div>
-        <h2 class="text-2xl font-semibold font-outfit text-white">个人中心</h2>
-        <p class="text-slate-400 text-sm mt-2">在这里，您可以查看个人基本信息，并审计登录历史与活跃 IP 安全足迹，保障您的订阅资产安全。</p>
-      </div>
-      <a href="/user/edit.html" class="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-xl text-xs font-semibold transition">
-        <i class="fa-solid fa-user-pen mr-1.5"></i>修改连接设置
-      </a>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      
-      <!-- 左栏：个人卡片 -->
-      <div class="space-y-6">
-        <!-- 会员信息概览 -->
-        <div class="glass-card p-6 rounded-2xl relative overflow-hidden">
-          <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-indigo-500/5 blur-[50px] rounded-full"></div>
-          
-          <div class="flex items-center space-x-4 mb-6">
-            <div class="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-              <i class="fa-solid fa-user-shield text-xl"></i>
+            <div class="sp-form-row" style="display:flex;justify-content:space-between;">
+              <span class="sp-text-muted">用户名</span>
+              <b x-text="profile.user_name || '加载中...'"></b>
             </div>
-            <div>
-              <h3 class="font-semibold text-white text-base" x-text="profile.user_name || '会员加载中...'"></h3>
-              <p class="text-xs text-slate-400 mt-0.5" x-text="profile.email"></p>
+            <div class="sp-form-row" style="display:flex;justify-content:space-between;">
+              <span class="sp-text-muted">邮箱</span>
+              <span class="sp-break-all" x-text="profile.email"></span>
+            </div>
+            <div class="sp-form-row" style="display:flex;justify-content:space-between;">
+              <span class="sp-text-muted">会员等级</span>
+              <span class="sp-tag sp-tag-blue" x-text="'VIP ' + profile.class">VIP 0</span>
+            </div>
+            <div class="sp-form-row" style="display:flex;justify-content:space-between;">
+              <span class="sp-text-muted">等级到期时间</span>
+              <span x-text="profile.class_expire || '永久有效'"></span>
+            </div>
+            <div class="sp-form-row" style="display:flex;justify-content:space-between;">
+              <span class="sp-text-muted">连接端口</span>
+              <b x-text="profile.port || '未分配'"></b>
+            </div>
+            <div class="sp-form-row" style="display:flex;justify-content:space-between;margin-bottom:0;">
+              <span class="sp-text-muted">注册时间</span>
+              <span class="sp-text-muted" x-text="profile.reg_date"></span>
+            </div>
+            <div class="sp-mt-4" style="text-align:center;">
+              <a href="/user/edit.html" class="sp-btn sp-btn-brand"><i class="mi">edit</i>修改资料 / 连接设置</a>
             </div>
           </div>
 
-          <div class="space-y-4">
-            <div class="flex justify-between py-2 border-b border-slate-800/50 text-xs">
-              <span class="text-slate-500">会员等级</span>
-              <span class="text-indigo-400 font-bold font-outfit" x-text="'VIP ' + profile.class"></span>
-            </div>
-            <div class="flex justify-between py-2 border-b border-slate-800/50 text-xs">
-              <span class="text-slate-500">等级到期时间</span>
-              <span class="text-slate-300" x-text="profile.class_expire || '永久有效'"></span>
-            </div>
-            <div class="flex justify-between py-2 border-b border-slate-800/50 text-xs">
-              <span class="text-slate-500">连接端口</span>
-              <span class="text-indigo-400 font-bold font-outfit" x-text="profile.port || '未分配'"></span>
-            </div>
-            <div class="flex justify-between py-2 border-b border-slate-800/50 text-xs">
-              <span class="text-slate-500">注册时间</span>
-              <span class="text-slate-400" x-text="profile.reg_date"></span>
-            </div>
-          </div>
-        </div>
+          <!-- 谷歌两步验证 (2FA) -->
+          <div class="sp-card sp-mt-6">
+            <div class="sp-card-title"><i class="mi">vpn_key</i>谷歌两步验证 (2FA)</div>
 
-        <!-- 谷歌两步验证 (2FA) 绑定器 -->
-        <div class="glass-card p-6 rounded-2xl">
-          <h3 class="text-lg font-medium text-white mb-4 flex items-center"><i class="fa-solid fa-key text-indigo-400 mr-2"></i>谷歌两步验证 (2FA)</h3>
-          
-          <template x-if="profile.ga_enable">
-            <div class="space-y-4">
-              <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs flex items-center">
-                <i class="fa-solid fa-circle-check text-base mr-2 flex-shrink-0"></i>
-                <span>您的账户已启用双重身份验证保护，正在保障您的账户安全。</span>
-              </div>
+            <!-- 已开启 -->
+            <template x-if="profile.ga_enable">
               <div>
-                <label class="block text-slate-300 text-xs font-semibold mb-2">输入密码或动态码以关闭</label>
-                <input type="password" x-model="gaDisableInput" placeholder="输入 Web 登录密码（或 6 位动态码）" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-              </div>
-              <button @click="disable2FA" :disabled="gaLoading" class="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
-                <span x-show="!gaLoading"><i class="fa-solid fa-lock-open mr-1.5"></i>关闭 2FA 双重身份验证</span>
-                <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 处理中...</span>
-              </button>
-              <button @click="reset2FA" :disabled="gaLoading" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
-                <span x-show="!gaLoading"><i class="fa-solid fa-rotate mr-1.5"></i>重置 2FA 密钥</span>
-                <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 重置中...</span>
-              </button>
-              <a href="/user/edit.html" class="block text-center text-[10px] text-slate-500 hover:text-indigo-400 transition">前往「安全设置」管理更多连接选项 →</a>
-            </div>
-          </template>
-
-          <template x-if="!profile.ga_enable">
-            <div class="space-y-4">
-              <p class="text-slate-400 text-xs leading-relaxed">双重验证为您的登录提供二次保护。开启后登录需要输入谷歌身份验证器 (Google Authenticator) 动态令牌。</p>
-              
-              <!-- 绑定二维码信息 -->
-              <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3">
-                <div class="flex justify-center">
-                  <img :src="qrUrl" alt="2FA 绑定二维码" class="w-[180px] h-[180px] rounded-xl bg-white p-1.5">
+                <div class="sp-alert sp-alert-success">
+                  <i class="mi">check_circle</i>
+                  <span>您的账户已启用双重身份验证保护，正在保障您的账户安全。</span>
                 </div>
-                <div class="text-center font-mono text-[10px] text-slate-300 select-all p-2 bg-slate-950 border border-slate-800 rounded-lg break-all">
-                  密钥: <span x-text="profile.ga_token || '加载中...'" class="text-indigo-400 font-bold"></span>
+                <div class="sp-form-row">
+                  <label class="sp-form-label" for="ga-disable">输入密码或动态码以关闭</label>
+                  <input class="sp-input" id="ga-disable" type="password" x-model="gaDisableInput" placeholder="输入 Web 登录密码（或 6 位动态码）">
                 </div>
-                <p class="text-[10px] text-slate-500 text-center">使用谷歌验证器 App 扫描上方二维码，或手动添加新账号并填入该密钥。</p>
-              </div>
-
-              <div class="space-y-2">
-                <input type="text" x-model="gaCode" placeholder="输入 App 产生的 6 位动态验证码" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-                <button @click="enable2FA" class="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white rounded-xl py-2.5 text-xs font-semibold hover:brightness-110 transition disabled:opacity-50" :disabled="gaLoading">
-                  <span x-show="!gaLoading"><i class="fa-solid fa-circle-check mr-1.5"></i>验证并开启 2FA</span>
-                  <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 验证绑定中...</span>
+                <button class="sp-btn sp-btn-danger sp-btn-block" @click="disable2FA" :disabled="gaLoading">
+                  <span x-show="!gaLoading"><i class="mi">lock_open</i>关闭 2FA 双重身份验证</span>
+                  <span x-show="gaLoading" x-cloak><i class="mi">refresh</i>处理中...</span>
                 </button>
-                <button @click="reset2FA" :disabled="gaLoading" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl py-2.5 text-xs font-semibold transition disabled:opacity-50">
-                  <span x-show="!gaLoading"><i class="fa-solid fa-rotate mr-1.5"></i>重置 2FA 密钥</span>
-                  <span x-show="gaLoading"><i class="fa-solid fa-spinner animate-spin"></i> 重置中...</span>
+                <button class="sp-btn sp-btn-block sp-mt-2" @click="reset2FA" :disabled="gaLoading">
+                  <span x-show="!gaLoading"><i class="mi">autorenew</i>重置 2FA 密钥</span>
+                  <span x-show="gaLoading" x-cloak><i class="mi">refresh</i>重置中...</span>
                 </button>
               </div>
-            </div>
-          </template>
-        </div>
-      </div>
+            </template>
 
-      <!-- 右栏：审计足迹 & 登录日志 -->
-      <div class="lg:col-span-2 space-y-6">
-        
-        <!-- 活跃中转与在线审计日志 (最近 5 分钟) -->
-        <div class="glass-card p-6 rounded-2xl">
-          <h3 class="text-lg font-medium text-white mb-2 flex items-center"><i class="fa-solid fa-wifi text-indigo-400 mr-2"></i>最近 5 分钟活跃在线连接 (IP 足迹)</h3>
-          <p class="text-slate-400 text-xs mb-6">展示您在最近 5 分钟内通过各个物理节点传输流量的 IP 地址。若发现不属于您本人的陌生 IP，请及时在“连接设置”中重置连接密码与加密方法。</p>
+            <!-- 未开启 -->
+            <template x-if="!profile.ga_enable">
+              <div>
+                <p class="sp-text-muted" style="font-size:13px;">双重验证为您的登录提供二次保护。开启后登录需要输入谷歌身份验证器 (Google Authenticator) 动态令牌。</p>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead>
-                <tr class="border-b border-slate-800 text-slate-500 font-semibold">
-                  <th class="py-3">在线 IP 归属</th>
-                  <th class="py-3 text-right">检测时间</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-800/40">
-                <template x-for="alive in profile.alive_ips" :key="alive.ip">
-                  <tr>
-                    <td class="py-3.5 font-mono text-slate-200" x-text="alive.ip"></td>
-                    <td class="py-3.5 font-mono text-slate-400 text-right" x-text="alive.datetime"></td>
-                  </tr>
-                </template>
-                <template x-if="!profile.alive_ips || profile.alive_ips.length === 0">
-                  <tr>
-                    <td colspan="2" class="py-8 text-center text-slate-600 text-xs">最近 5 分钟无任何代理节点连接足迹记录。</td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
+                <div style="text-align:center;">
+                  <img :src="qrUrl" alt="2FA 绑定二维码" style="width:180px;height:180px;">
+                  <div class="sp-text-hint sp-break-all" style="font-size:12px;margin-top:8px;">
+                    密钥: <b x-text="profile.ga_token || '加载中...'"></b>
+                  </div>
+                  <p class="sp-text-hint" style="font-size:12px;">使用谷歌验证器 App 扫描上方二维码，或手动添加新账号并填入该密钥。</p>
+                </div>
+
+                <div class="sp-form-row">
+                  <input class="sp-input" type="text" x-model="gaCode" placeholder="输入 App 产生的 6 位动态验证码">
+                </div>
+                <button class="sp-btn sp-btn-brand sp-btn-block" @click="enable2FA" :disabled="gaLoading">
+                  <span x-show="!gaLoading"><i class="mi">check_circle</i>验证并开启 2FA</span>
+                  <span x-show="gaLoading" x-cloak><i class="mi">refresh</i>验证绑定中...</span>
+                </button>
+                <button class="sp-btn sp-btn-block sp-mt-2" @click="reset2FA" :disabled="gaLoading">
+                  <span x-show="!gaLoading"><i class="mi">autorenew</i>重置 2FA 密钥</span>
+                  <span x-show="gaLoading" x-cloak><i class="mi">refresh</i>重置中...</span>
+                </button>
+              </div>
+            </template>
           </div>
         </div>
 
-        <!-- 历史登录日志 (最近 10 次) -->
-        <div class="glass-card p-6 rounded-2xl">
-          <h3 class="text-lg font-medium text-white mb-2 flex items-center"><i class="fa-solid fa-circle-info text-indigo-400 mr-2"></i>最近 10 次网页端登录历史</h3>
-          <p class="text-slate-400 text-xs mb-6">展示您近期在 Web 浏览器控制台的安全登录记录。</p>
+        <!-- ═══ 右栏: IP 审计足迹 ═══ -->
+        <div class="sp-col-8">
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead>
-                <tr class="border-b border-slate-800 text-slate-500 font-semibold">
-                  <th class="py-3">登录 IP 终端</th>
-                  <th class="py-3 text-right">登录具体时刻</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-800/40">
-                <template x-for="log in profile.login_ips" :key="log.datetime">
+          <!-- 活跃在线连接 (最近 5 分钟) -->
+          <div class="sp-card">
+            <div class="sp-card-title"><i class="mi">wifi</i>最近 5 分钟活跃在线连接 (IP 足迹)</div>
+            <p class="sp-text-muted" style="font-size:13px;">展示您在最近 5 分钟内通过各个物理节点传输流量的 IP 地址。若发现不属于您本人的陌生 IP，请及时在“连接设置”中重置连接密码与加密方法。</p>
+            <div class="sp-table-wrap">
+              <table class="sp-table">
+                <thead>
                   <tr>
-                    <td class="py-3.5 font-mono text-slate-200" x-text="log.ip"></td>
-                    <td class="py-3.5 font-mono text-slate-400 text-right" x-text="log.datetime"></td>
+                    <th>在线 IP 归属</th>
+                    <th style="text-align:right;">检测时间</th>
                   </tr>
-                </template>
-                <template x-if="!profile.login_ips || profile.login_ips.length === 0">
-                  <tr>
-                    <td colspan="2" class="py-8 text-center text-slate-600 text-xs">暂无任何历史登录足迹记录。</td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  <template x-for="alive in profile.alive_ips" :key="alive.ip">
+                    <tr>
+                      <td x-text="alive.ip"></td>
+                      <td style="text-align:right;" x-text="alive.datetime"></td>
+                    </tr>
+                  </template>
+                  <template x-if="!profile.alive_ips || profile.alive_ips.length === 0">
+                    <tr>
+                      <td colspan="2">
+                        <div class="sp-empty"><i class="mi">inbox</i>最近 5 分钟无任何代理节点连接足迹记录。</div>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
           </div>
+
+          <!-- 历史登录日志 (最近 10 次) -->
+          <div class="sp-card sp-mt-6">
+            <div class="sp-card-title"><i class="mi">info</i>最近 10 次网页端登录历史</div>
+            <p class="sp-text-muted" style="font-size:13px;">展示您近期在 Web 浏览器控制台的安全登录记录。</p>
+            <div class="sp-table-wrap">
+              <table class="sp-table">
+                <thead>
+                  <tr>
+                    <th>登录 IP 终端</th>
+                    <th style="text-align:right;">登录具体时刻</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="log in profile.login_ips" :key="log.datetime">
+                    <tr>
+                      <td x-text="log.ip"></td>
+                      <td style="text-align:right;" x-text="log.datetime"></td>
+                    </tr>
+                  </template>
+                  <template x-if="!profile.login_ips || profile.login_ips.length === 0">
+                    <tr>
+                      <td colspan="2">
+                        <div class="sp-empty"><i class="mi">inbox</i>暂无任何历史登录足迹记录。</div>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
-
       </div>
-
     </div>
   </main>
 
   <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
   <script>
     function profilePage() {
       return {
@@ -304,14 +208,14 @@
             const res = await SPanelAPI.request('/user/profile');
             this.profile = res.data;
           } catch(err) {
-            alert('获取个人中心资料失败：' + err.message);
+            SPUI.msg('获取个人中心资料失败：' + err.message);
           }
         },
 
         async enable2FA() {
           const code = this.gaCode.trim();
           if (!/^\d{6}$/.test(code)) {
-            alert('请输入谷歌身份验证器 APP 产生的 6 位数字动态验证码。');
+            SPUI.msg('请输入谷歌身份验证器 APP 产生的 6 位数字动态验证码。');
             return;
           }
           this.gaLoading = true;
@@ -329,11 +233,11 @@
                 code
               })
             });
-            alert(res.msg || res.message || '双重验证保护开启成功！');
+            SPUI.msg(res.msg || res.message || '双重验证保护开启成功！');
             this.gaCode = '';
             await this.fetchProfile();
           } catch(err) {
-            alert(err.message || '2FA 验证失败，请确认您在 APP 中配置的密钥完全正确。');
+            SPUI.msg(err.message || '2FA 验证失败，请确认您在 APP 中配置的密钥完全正确。');
           } finally {
             this.gaLoading = false;
           }
@@ -342,42 +246,44 @@
         async disable2FA() {
           const val = this.gaDisableInput;
           if (!val) {
-            alert('请输入 Web 登录密码（或 6 位动态验证码）以关闭 2FA。');
+            SPUI.msg('请输入 Web 登录密码（或 6 位动态验证码）以关闭 2FA。');
             return;
           }
-          if (!confirm('您确定要关闭该账户的 2FA 谷歌双重验证保护吗？这会降低您的账户安全性。')) return;
-          this.gaLoading = true;
-          try {
-            const body = /^\d{6}$/.test(val) ? { code: val } : { password: val };
-            const res = await SPanelAPI.request('/user/ga/disable', {
-              method: 'POST',
-              body: JSON.stringify(body)
-            });
-            alert(res.msg || res.message || '双重验证已关闭。');
-            this.gaDisableInput = '';
-            await this.fetchProfile();
-          } catch(err) {
-            alert(err.message);
-          } finally {
-            this.gaLoading = false;
-          }
+          SPUI.confirm('您确定要关闭该账户的 2FA 谷歌双重验证保护吗？这会降低您的账户安全性。', async () => {
+            this.gaLoading = true;
+            try {
+              const body = /^\d{6}$/.test(val) ? { code: val } : { password: val };
+              const res = await SPanelAPI.request('/user/ga/disable', {
+                method: 'POST',
+                body: JSON.stringify(body)
+              });
+              SPUI.msg(res.msg || res.message || '双重验证已关闭。');
+              this.gaDisableInput = '';
+              await this.fetchProfile();
+            } catch(err) {
+              SPUI.msg(err.message);
+            } finally {
+              this.gaLoading = false;
+            }
+          });
         },
 
         async reset2FA() {
-          if (!confirm('您确定要重置 2FA 密钥吗？原密钥与二维码将立即失效，请使用新密钥重新绑定。')) return;
-          this.gaLoading = true;
-          try {
-            const res = await SPanelAPI.request('/user/ga/reset', {
-              method: 'POST'
-            });
-            if (res.data && res.data.ga_token) this.profile.ga_token = res.data.ga_token;
-            alert(res.msg || res.message || '2FA 密钥已重置。');
-            await this.fetchProfile();
-          } catch(err) {
-            alert(err.message);
-          } finally {
-            this.gaLoading = false;
-          }
+          SPUI.confirm('您确定要重置 2FA 密钥吗？原密钥与二维码将立即失效，请使用新密钥重新绑定。', async () => {
+            this.gaLoading = true;
+            try {
+              const res = await SPanelAPI.request('/user/ga/reset', {
+                method: 'POST'
+              });
+              if (res.data && res.data.ga_token) this.profile.ga_token = res.data.ga_token;
+              SPUI.msg(res.msg || res.message || '2FA 密钥已重置。');
+              await this.fetchProfile();
+            } catch(err) {
+              SPUI.msg(err.message);
+            } finally {
+              this.gaLoading = false;
+            }
+          });
         },
 
         async logout() {

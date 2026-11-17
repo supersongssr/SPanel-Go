@@ -1,0 +1,32 @@
+/* SPanel Design System — Material Icons (本地字体, 与旧版 /var/www/SPanel 同源同渲染)
+   用法: <i class="mi">menu</i>  (连字 ligature, 与旧版 <span class="icon">menu</span> 等价) */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/fonts/MaterialIcons-Regular.woff2') format('woff2'),
+       url('/assets/fonts/MaterialIcons-Regular.woff') format('woff'),
+       url('/assets/fonts/MaterialIcons-Regular.ttf') format('truetype');
+}
+
+.mi {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-smoothing: antialiased;
+  vertical-align: middle;
+  user-select: none;
+}
+
+.mi.mi-lg { font-size: 24px; }
+.mi.mi-md { font-size: 20px; }

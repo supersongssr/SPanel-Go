@@ -1,353 +1,257 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="h-full bg-slate-950 text-slate-100">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>会员中心 - SPanel</title>
+  <title>用户中心 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            outfit: ['Outfit', 'sans-serif'],
-            inter: ['Inter', 'sans-serif'],
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="user" data-sp-page="dashboard">
+  <main class="sp-content" x-data="dashboardPage()">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">用户中心 ★</h1></div>
+    </div>
+
+    <div class="sp-content-inner">
+
+      <!-- ═══ ① 用户状态四卡 (复刻旧版 user-info 卡) ═══ -->
+      <div class="sp-grid">
+        <div class="sp-col-3">
+          <div class="sp-card sp-stat">
+            <div class="sp-stat-head">
+              <div class="sp-stat-name">帐号等级</div>
+              <a href="/user/shop.html" class="sp-tag sp-tag-orange">升级</a>
+            </div>
+            <div class="sp-stat-value" x-text="userClass != 0 ? ('VIP ' + userClass) : '普通用户'">普通用户</div>
+            <div class="sp-stat-foot"><span><i class="mi">add_circle</i>&nbsp;<span x-text="userClass != 0 ? '邀请好友使用' : '升级解锁VIP节点'">升级解锁VIP节点</span></span></div>
+          </div>
+        </div>
+        <div class="sp-col-3">
+          <div class="sp-card sp-stat">
+            <div class="sp-stat-head">
+              <div class="sp-stat-name">余额</div>
+              <a href="/user/code.html" class="sp-tag sp-tag-green">充值</a>
+            </div>
+            <div class="sp-stat-value"><span x-text="userMoney">0.00</span> <small>$</small></div>
+            <div class="sp-stat-foot"><span><i class="mi">attach_money</i>&nbsp;账户内可用余额</span></div>
+          </div>
+        </div>
+        <div class="sp-col-3">
+          <div class="sp-card sp-stat">
+            <div class="sp-stat-head">
+              <div class="sp-stat-name">到期时间</div>
+            </div>
+            <div class="sp-stat-value" x-text="classExpire">永久有效</div>
+            <div class="sp-stat-foot"><span><i class="mi">event</i>&nbsp;帐号等级有效期</span></div>
+          </div>
+        </div>
+        <div class="sp-col-3">
+          <div class="sp-card sp-stat">
+            <div class="sp-stat-head">
+              <div class="sp-stat-name">流量使用</div>
+            </div>
+            <div class="sp-stat-value"><span x-text="usagePercentage + '%'">0%</span></div>
+            <div class="sp-stat-foot"><span><i class="mi">data_usage</i>&nbsp;<span x-text="'上行 ' + uploadStr + ' / 下行 ' + downloadStr">0 B</span></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ② 签到 + 流量统计 ═══ -->
+      <div class="sp-grid sp-mt-6">
+        <div class="sp-col-4">
+          <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="sp-card-title"><i class="mi">card_giftcard</i>每日签到奖励</div>
+              <p class="sp-text-muted" style="font-size:13px;">每日均可免费签到一次，随机赠送 100MB - 500MB 高速流量。</p>
+            </div>
+            <div class="sp-mt-4">
+              <button class="sp-btn sp-btn-brand sp-btn-block" @click="doCheckin" :disabled="checkedIn || checkinLoading">
+                <span x-show="!checkinLoading" x-text="checkedIn ? '今日已签到' : '立即签到'">立即签到</span>
+                <span x-show="checkinLoading" x-cloak><i class="mi">refresh</i>正在处理...</span>
+              </button>
+              <p class="sp-text-hint" style="font-size:12px;text-align:center;margin-top:8px;" x-text="'上次签到时间: ' + lastCheckinTime">从未签到</p>
+            </div>
+          </div>
+        </div>
+        <div class="sp-col-8">
+          <div class="sp-card">
+            <div class="sp-card-title"><i class="mi">donut_large</i>流量消耗统计</div>
+            <div class="sp-mb-6">
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--sp-text-2nd);margin-bottom:8px;">
+                <span>已用流量占比</span>
+                <span x-text="usagePercentage + '%'">0%</span>
+              </div>
+              <div class="sp-progress sp-progress-orange"><i :style="'width:' + usagePercentage + '%'"></i></div>
+            </div>
+            <div class="sp-grid" style="gap:16px;">
+              <div class="sp-col-4" style="text-align:center;border-right:1px solid var(--sp-divider);">
+                <div class="sp-text-hint" style="font-size:12px;">已用上行</div>
+                <div style="font-weight:500;margin-top:4px;" x-text="uploadStr">0 B</div>
+              </div>
+              <div class="sp-col-4" style="text-align:center;border-right:1px solid var(--sp-divider);">
+                <div class="sp-text-hint" style="font-size:12px;">已用下行</div>
+                <div style="font-weight:500;margin-top:4px;" x-text="downloadStr">0 B</div>
+              </div>
+              <div class="sp-col-4" style="text-align:center;">
+                <div class="sp-text-hint" style="font-size:12px;">总授信配额</div>
+                <div style="font-weight:500;margin-top:4px;color:var(--sp-primary);" x-text="totalStr">0 B</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ③ 快捷订阅 + 公告 ═══ -->
+      <div class="sp-grid sp-mt-6">
+        <div class="sp-col-4">
+          <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="sp-card-title"><i class="mi">playlist_add</i>快捷节点导入</div>
+              <p class="sp-text-muted" style="font-size:13px;">一键生成您的个性化通用客户端配置订阅。支持 Clash、Surge、Loon、sing-box 及基础 base64 协议自适应解析。</p>
+            </div>
+            <div class="sp-mt-4">
+              <button class="sp-btn sp-btn-block" @click="copySubLink"><i class="mi">content_copy</i>复制通用订阅链接</button>
+              <p class="sp-text-hint" style="font-size:12px;text-align:center;margin-top:8px;">为保护您的网络安全，切勿将该订阅外泄。</p>
+            </div>
+          </div>
+        </div>
+        <div class="sp-col-8">
+          <div class="sp-card">
+            <div class="sp-card-title"><i class="mi">announcement</i>系统最新公告</div>
+            <template x-for="ann in announcements" :key="ann.id">
+              <div style="border-bottom:1px solid var(--sp-divider);padding-bottom:16px;margin-bottom:16px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <span class="sp-text-muted" style="font-size:12px;" x-text="ann.date"></span>
+                  <span class="sp-tag sp-tag-orange">重要公告</span>
+                </div>
+                <!-- 富文本 HTML 呈现 -->
+                <div style="margin-top:10px;line-height:1.7;font-size:13px;" x-html="ann.content"></div>
+              </div>
+            </template>
+            <template x-if="announcements.length === 0">
+              <div class="sp-empty"><i class="mi">inbox</i>暂无任何系统公告。</div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ④ 客户端快捷配置与订阅教程 ═══ -->
+      <div class="sp-card sp-mt-6" x-data="{
+        activePlatform: 'windows',
+        activeClient: 'v2rayn',
+        setPlatform(p, c) {
+          this.activePlatform = p;
+          this.activeClient = c;
+        },
+        async copyText(text, successMsg) {
+          try {
+            await navigator.clipboard.writeText(text);
+            SPUI.toast(successMsg || '复制成功！', 'success');
+          } catch (e) {
+            SPUI.msg('复制失败，请手动选择复制！');
           }
         }
-      }
-    }
-  </script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .glass-card {
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-  </style>
-</head>
-<body class="min-h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-100 pb-12" x-data="dashboardPage()">
-  
-    <!-- 顶部导航栏 -->
-  <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50" x-data="{ mobileMenuOpen: false, open: false }">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <!-- Logo 区域 -->
-        <div class="flex items-center space-x-3">
-          <a href="/user/dashboard.html" class="font-outfit text-2xl font-bold bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">SPanel</a>
-          <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20">Member</span>
+      }">
+        <div class="sp-card-title" style="margin-bottom:12px;">
+          <i class="mi">get_app</i>客户端快捷配置与连接订阅教程
+          <span class="sp-extra sp-text-hint">不同客户端代理工具支持不同的订阅参数，选择平台一键导入</span>
         </div>
 
-        <!-- 桌面端导航链接 (md 级别以上显示) -->
-        <div class="hidden md:flex items-center space-x-6 text-sm">
-          <a href="/user/dashboard.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('dashboard') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-chart-line mr-1.5"></i>控制台</a>
-          <a href="/user/nodes.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('nodes') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-server mr-1.5"></i>节点列表</a>
-          <a href="/user/relay.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('relay') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-route mr-1.5"></i>中转规则</a>
-          <a href="/user/shop.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('shop') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-store mr-1.5"></i>套餐商店</a>
-          <a href="/user/code.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('code.html') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-credit-card mr-1.5"></i>卡密充值</a>
-          <a href="/user/invite.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('invite') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-gift mr-1.5"></i>推广联盟</a>
-          <a href="/user/tickets.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('ticket') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-ticket mr-1.5"></i>工单支持</a>
-          
-          <!-- 用户下拉子菜单 -->
-          <div class="relative" @click.away="open = false">
-            <button @click="open = !open" class="transition font-medium whitespace-nowrap focus:outline-none flex items-center" :class="(window.location.pathname.includes('profile') || window.location.pathname.includes('edit')) ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'">
-              <i class="fa-solid fa-user-gear mr-1.5"></i>我的账户<i class="fa-solid fa-chevron-down text-[10px] ml-1 transition" :class="open ? 'rotate-180' : ''"></i>
-            </button>
-            <div class="absolute right-0 mt-2 w-40 rounded-xl bg-slate-900 border border-slate-800 shadow-xl py-1 z-50" x-show="open" x-transition>
-              <template x-if="typeof isAdmin !== 'undefined' ? isAdmin : (localStorage.getItem('spanel_user') && (JSON.parse(localStorage.getItem('spanel_user')).isAdmin || JSON.parse(localStorage.getItem('spanel_user')).is_admin === 1))">
-                <a href="/admin/dashboard.html" class="block px-4 py-2 text-xs text-indigo-400 hover:bg-indigo-950/30 hover:text-indigo-300 transition font-semibold"><i class="fa-solid fa-gauge mr-2"></i>管理后台</a>
-              </template>
-              <template x-if="typeof isAdmin !== 'undefined' ? isAdmin : (localStorage.getItem('spanel_user') && (JSON.parse(localStorage.getItem('spanel_user')).isAdmin || JSON.parse(localStorage.getItem('spanel_user')).is_admin === 1))">
-                <hr class="border-slate-800 my-1">
-              </template>
-              <a href="/user/profile.html" class="block px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-user mr-2"></i>个人中心</a>
-              <a href="/user/edit.html" class="block px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-shield-halved mr-2"></i>安全设置</a>
-              <hr class="border-slate-800 my-1">
-              <button @click="logout" class="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-rose-950/20 transition"><i class="fa-solid fa-right-from-bracket mr-2"></i>退出登录</button>
+        <!-- 平台快速导航 -->
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+          <button class="sp-chip" :class="activePlatform === 'windows' && 'active'" @click="setPlatform('windows', 'v2rayn')"><i class="mi">desktop_windows</i>Windows</button>
+          <button class="sp-chip" :class="activePlatform === 'android' && 'active'" @click="setPlatform('android', 'v2rayng')"><i class="mi">android</i>Android</button>
+          <button class="sp-chip" :class="activePlatform === 'ios' && 'active'" @click="setPlatform('ios', 'singbox')"><i class="mi">phone_iphone</i>iOS (苹果手机)</button>
+          <button class="sp-chip" :class="activePlatform === 'mac' && 'active'" @click="setPlatform('mac', 'v2rayn')"><i class="mi">laptop_mac</i>macOS</button>
+          <button class="sp-chip" :class="activePlatform === 'linux' && 'active'" @click="setPlatform('linux', 'v2rayn_ubuntu')"><i class="mi">dns</i>Linux</button>
+          <button class="sp-chip" :class="activePlatform === 'router' && 'active'" @click="setPlatform('router', 'v2raya_router')"><i class="mi">router</i>路由器 (Router)</button>
+          <button class="sp-chip" :class="activePlatform === 'conversion' && 'active'" @click="setPlatform('conversion', 'singbox_conv')"><i class="mi">sync_alt</i>订阅手动转换</button>
+        </div>
+
+        <!-- 客户端子菜单 -->
+        <div class="sp-tabs sp-mb-6">
+          <template x-if="activePlatform === 'windows'">
+            <div style="display:contents;">
+              <button class="sp-tab" :class="activeClient === 'v2rayn' && 'active'" @click="activeClient = 'v2rayn'">v2rayN (推荐)</button>
+              <button class="sp-tab" :class="activeClient === 'clash' && 'active'" @click="activeClient = 'clash'">Clash Verge (rev/mihomo)</button>
             </div>
-          </div>
-        </div>
-
-        <!-- 移动端汉堡包按钮 (md 以下显示) -->
-        <div class="flex items-center md:hidden">
-          <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-slate-400 hover:text-indigo-400 transition focus:outline-none">
-            <i class="fa-solid text-xl" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 移动端下拉面板 (md 以下显示) -->
-    <div class="md:hidden bg-slate-950/95 border-b border-slate-800" x-show="mobileMenuOpen" x-transition>
-      <div class="px-4 pt-2 pb-4 space-y-1">
-        <a href="/user/dashboard.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('dashboard') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-chart-line mr-2"></i>控制台</a>
-        <a href="/user/nodes.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('nodes') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-server mr-2"></i>节点列表</a>
-        <a href="/user/relay.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('relay') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-route mr-2"></i>中转规则</a>
-        <a href="/user/shop.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('shop') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-store mr-2"></i>套餐商店</a>
-        <a href="/user/code.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('code.html') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-credit-card mr-2"></i>卡密充值</a>
-        <a href="/user/invite.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('invite') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-gift mr-2"></i>推广联盟</a>
-        <a href="/user/tickets.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('ticket') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-ticket mr-2"></i>工单支持</a>
-        
-        <hr class="border-slate-800 my-2">
-        
-        <div class="px-3 py-1 text-xs font-semibold text-slate-500 uppercase">我的账户</div>
-        <template x-if="localStorage.getItem('spanel_user') && (JSON.parse(localStorage.getItem('spanel_user')).isAdmin || JSON.parse(localStorage.getItem('spanel_user')).is_admin === 1)">
-          <a href="/admin/dashboard.html" class="block px-3 py-2 rounded-xl text-sm font-medium text-indigo-400 hover:bg-slate-900 transition"><i class="fa-solid fa-gauge mr-2"></i>管理后台</a>
-        </template>
-        <a href="/user/profile.html" class="block px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-indigo-400 transition" :class="window.location.pathname.includes('profile') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-user mr-2"></i>个人中心</a>
-        <a href="/user/edit.html" class="block px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-indigo-400 transition" :class="window.location.pathname.includes('edit') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-shield-halved mr-2"></i>安全设置</a>
-        <button @click="logout" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-rose-400 hover:bg-rose-950/20 transition"><i class="fa-solid fa-right-from-bracket mr-2"></i>退出登录</button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- 主体内容 -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
-    
-    <!-- 欢迎与签到状态 -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="glass-card p-6 rounded-2xl md:col-span-2 flex flex-col justify-between">
-        <div>
-          <h2 class="text-2xl font-semibold font-outfit text-white">欢迎回来, <span class="text-indigo-400" x-text="userEmail">加载中...</span></h2>
-          <p class="text-slate-400 text-sm mt-2">在这里，您可以方便地查看个人订阅状况，或是快速连接到我们在全球的高速安全物理节点。</p>
-        </div>
-        <div class="mt-6 flex items-center space-x-4">
-          <div class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-            <span class="text-slate-500">当前等级: </span>
-            <span class="text-indigo-400 font-semibold font-outfit" x-text="'VIP ' + userClass">0</span>
-          </div>
-          <div class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-            <span class="text-slate-500">到期时间: </span>
-            <span class="text-indigo-400 font-semibold" x-text="classExpire">1989-06-04</span>
-          </div>
-          <div class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-            <span class="text-slate-500">钱包余额: </span>
-            <span class="text-emerald-400 font-semibold font-outfit" x-text="'￥' + userMoney">0.00</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 每日签到卡片 -->
-      <div class="glass-card p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden">
-        <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-indigo-500/5 blur-[50px] rounded-full"></div>
-        <div>
-          <h3 class="text-lg font-medium text-white flex items-center"><i class="fa-solid fa-gift text-indigo-400 mr-2"></i>每日签到奖励</h3>
-          <p class="text-slate-400 text-xs mt-2">每日均可免费签到一次，随机赠送 100MB - 500MB 高速流量。</p>
-        </div>
-        <div class="mt-6">
-          <button @click="doCheckin" :disabled="checkedIn || checkinLoading" class="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-xl py-3 text-sm font-semibold hover:brightness-110 active:scale-[0.98] transition disabled:opacity-50 disabled:pointer-events-none">
-            <span x-show="!checkinLoading" x-text="checkedIn ? '今日已签到' : '立即签到'">立即签到</span>
-            <span x-show="checkinLoading"><i class="fa-solid fa-spinner animate-spin mr-1"></i>正在处理...</span>
-          </button>
-          <p class="text-[10px] text-center text-slate-500 mt-2" x-text="'上次签到时间: ' + lastCheckinTime">从未签到</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- 流量进度环 -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="glass-card p-6 rounded-2xl md:col-span-2">
-        <h3 class="text-lg font-medium text-white mb-6 flex items-center"><i class="fa-solid fa-chart-pie text-indigo-400 mr-2"></i>流量消耗统计</h3>
-        <div class="space-y-6">
-          <div>
-            <div class="flex justify-between text-xs text-slate-400 mb-2">
-              <span>可用带宽占比</span>
-              <span class="font-outfit" x-text="usagePercentage + '%'">0%</span>
+          </template>
+          <template x-if="activePlatform === 'android'">
+            <button class="sp-tab" :class="activeClient === 'v2rayng' && 'active'" @click="activeClient = 'v2rayng'">v2rayNG (推荐)</button>
+          </template>
+          <template x-if="activePlatform === 'ios'">
+            <div style="display:contents;">
+              <button class="sp-tab" :class="activeClient === 'singbox' && 'active'" @click="activeClient = 'singbox'">Sing-Box (免费/首推)</button>
+              <button class="sp-tab" :class="activeClient === 'shadowrocket' && 'active'" @click="activeClient = 'shadowrocket'">Shadowrocket (小火箭)</button>
+              <button class="sp-tab" :class="activeClient === 'loon' && 'active'" @click="activeClient = 'loon'">Loon</button>
+              <button class="sp-tab" :class="activeClient === 'quanx' && 'active'" @click="activeClient = 'quanx'">Quantumult X</button>
             </div>
-            <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800 p-0.5">
-              <div class="bg-gradient-to-r from-indigo-500 to-pink-500 h-full rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(99,102,241,0.5)]" :style="'width: ' + usagePercentage + '%'"></div>
+          </template>
+          <template x-if="activePlatform === 'mac'">
+            <div style="display:contents;">
+              <button class="sp-tab" :class="activeClient === 'v2rayn' && 'active'" @click="activeClient = 'v2rayn'">v2rayN macOS (推荐)</button>
+              <button class="sp-tab" :class="activeClient === 'v2rayu' && 'active'" @click="activeClient = 'v2rayu'">V2rayU</button>
+              <button class="sp-tab" :class="activeClient === 'v2raya' && 'active'" @click="activeClient = 'v2raya'">V2rayA (Web)</button>
             </div>
-          </div>
-          <div class="grid grid-cols-3 gap-4 text-center">
-            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/50">
-              <span class="block text-slate-500 text-[10px] uppercase font-semibold">已用上行</span>
-              <span class="block text-slate-300 font-outfit text-sm mt-1" x-text="uploadStr">0 B</span>
+          </template>
+          <template x-if="activePlatform === 'linux'">
+            <div style="display:contents;">
+              <button class="sp-tab" :class="activeClient === 'v2rayn_ubuntu' && 'active'" @click="activeClient = 'v2rayn_ubuntu'">v2rayN (Ubuntu/Debian)</button>
+              <button class="sp-tab" :class="activeClient === 'v2raya_debian' && 'active'" @click="activeClient = 'v2raya_debian'">V2rayA (Debian)</button>
+              <button class="sp-tab" :class="activeClient === 'v2raya_centos' && 'active'" @click="activeClient = 'v2raya_centos'">V2rayA (CentOS)</button>
             </div>
-            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/50">
-              <span class="block text-slate-500 text-[10px] uppercase font-semibold">已用下行</span>
-              <span class="block text-slate-300 font-outfit text-sm mt-1" x-text="downloadStr">0 B</span>
+          </template>
+          <template x-if="activePlatform === 'router'">
+            <button class="sp-tab" :class="activeClient === 'v2raya_router' && 'active'" @click="activeClient = 'v2raya_router'">V2rayA OpenWRT (首推)</button>
+          </template>
+          <template x-if="activePlatform === 'conversion'">
+            <div style="display:contents;">
+              <button class="sp-tab" :class="activeClient === 'singbox_conv' && 'active'" @click="activeClient = 'singbox_conv'">Sing-Box 订阅格式</button>
+              <button class="sp-tab" :class="activeClient === 'clash_conv' && 'active'" @click="activeClient = 'clash_conv'">Clash / Clash Verge 格式</button>
             </div>
-            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/50">
-              <span class="block text-slate-500 text-[10px] uppercase font-semibold">总授信配额</span>
-              <span class="block text-indigo-400 font-outfit text-sm mt-1" x-text="totalStr">0 B</span>
-            </div>
-          </div>
+          </template>
         </div>
-      </div>
 
-      <!-- 快捷节点导入链接 -->
-      <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
-        <div>
-          <h3 class="text-lg font-medium text-white flex items-center mb-4"><i class="fa-solid fa-link text-indigo-400 mr-2"></i>快捷节点导入</h3>
-          <p class="text-slate-400 text-xs leading-relaxed">一键生成您的个性化通用客户端配置订阅。系统防御体系支持 Clash, Surge, Loon, sing-box 及基础 base64 协议自适应解析。</p>
-        </div>
-        <div class="mt-6 space-y-2">
-          <button @click="copySubLink" class="w-full bg-slate-900 border border-slate-800 text-slate-300 hover:border-indigo-500/50 hover:text-white rounded-xl py-2.5 text-xs font-medium transition flex items-center justify-center">
-            <i class="fa-regular fa-copy mr-2"></i>复制通用订阅链接
-          </button>
-          <div class="text-[10px] text-center text-slate-500">为保护您的网络安全，切勿将该订阅外泄。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 客户端安装与订阅配置教程 (Premium Glassmorphism Card) -->
-    <div class="glass-card p-8 rounded-3xl mb-8 relative overflow-hidden" x-data="{ 
-      activePlatform: 'windows',
-      activeClient: 'v2rayn',
-      setPlatform(p, c) {
-        this.activePlatform = p;
-        this.activeClient = c;
-      },
-      async copyText(text, successMsg) {
-        try {
-          await navigator.clipboard.writeText(text);
-          alert(successMsg || '复制成功！');
-        } catch (e) {
-          alert('复制失败，请手动选择复制！');
-        }
-      }
-    }">
-      <div class="absolute -right-20 -top-20 w-48 h-48 bg-indigo-500/5 blur-[80px] rounded-full"></div>
-      
-      <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-6 mb-6">
-        <div>
-          <h3 class="text-xl font-semibold text-white font-outfit flex items-center">
-            <i class="fa-solid fa-download text-indigo-400 mr-2.5"></i>客户端快捷配置与连接订阅教程
-          </h3>
-          <p class="text-slate-400 text-xs mt-1.5 leading-relaxed">
-            不同客户端代理工具支持不同的订阅参数。请在此选择您的平台与目标客户端，一键导入并配置网络。
-          </p>
-        </div>
-      </div>
-
-      <!-- 平台快速导航栏 (Win, Android, iOS, Mac, Linux, Router, 订阅转换) -->
-      <div class="flex flex-wrap gap-2 mb-6 border-b border-slate-800/50 pb-4">
-        <button @click="setPlatform('windows', 'v2rayn')" :class="activePlatform === 'windows' ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20' : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200'" class="flex items-center space-x-2 border px-4 py-2.5 rounded-xl text-xs font-semibold transition duration-300">
-          <i class="fa-brands fa-windows text-sm"></i><span>Windows</span>
-        </button>
-        <button @click="setPlatform('android', 'v2rayng')" :class="activePlatform === 'android' ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20' : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200'" class="flex items-center space-x-2 border px-4 py-2.5 rounded-xl text-xs font-semibold transition duration-300">
-          <i class="fa-brands fa-android text-sm"></i><span>Android</span>
-        </button>
-        <button @click="setPlatform('ios', 'singbox')" :class="activePlatform === 'ios' ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20' : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200'" class="flex items-center space-x-2 border px-4 py-2.5 rounded-xl text-xs font-semibold transition duration-300">
-          <i class="fa-brands fa-apple text-sm"></i><span>iOS (苹果手机)</span>
-        </button>
-        <button @click="setPlatform('mac', 'v2rayn')" :class="activePlatform === 'mac' ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20' : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200'" class="flex items-center space-x-2 border px-4 py-2.5 rounded-xl text-xs font-semibold transition duration-300">
-          <i class="fa-solid fa-laptop text-sm"></i><span>macOS</span>
-        </button>
-        <button @click="setPlatform('linux', 'v2rayn_ubuntu')" :class="activePlatform === 'linux' ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20' : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200'" class="flex items-center space-x-2 border px-4 py-2.5 rounded-xl text-xs font-semibold transition duration-300">
-          <i class="fa-brands fa-linux text-sm"></i><span>Linux</span>
-        </button>
-        <button @click="setPlatform('router', 'v2raya_router')" :class="activePlatform === 'router' ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20' : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200'" class="flex items-center space-x-2 border px-4 py-2.5 rounded-xl text-xs font-semibold transition duration-300">
-          <i class="fa-solid fa-router text-sm"></i><span>路由器 (Router)</span>
-        </button>
-        <button @click="setPlatform('conversion', 'singbox_conv')" :class="activePlatform === 'conversion' ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20' : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200'" class="flex items-center space-x-2 border px-4 py-2.5 rounded-xl text-xs font-semibold transition duration-300">
-          <i class="fa-solid fa-arrows-rotate text-sm"></i><span>订阅手动转换</span>
-        </button>
-      </div>
-
-      <!-- 客户端子菜单选择器 -->
-      <div class="flex flex-wrap gap-2 mb-6 bg-slate-950/40 p-2 rounded-2xl border border-slate-850 w-fit">
-        <!-- Windows 客户端子选项 -->
-        <template x-if="activePlatform === 'windows'">
-          <div class="flex space-x-2">
-            <button @click="activeClient = 'v2rayn'" :class="activeClient === 'v2rayn' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'v2rayn'"></i>v2rayN (推荐)</button>
-            <button @click="activeClient = 'clash'" :class="activeClient === 'clash' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'clash'"></i>Clash Verge (rev/mihomo)</button>
-          </div>
-        </template>
-        <!-- Android 客户端子选项 -->
-        <template x-if="activePlatform === 'android'">
-          <div class="flex space-x-2">
-            <button @click="activeClient = 'v2rayng'" :class="activeClient === 'v2rayng' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'v2rayng'"></i>v2rayNG (推荐)</button>
-          </div>
-        </template>
-        <!-- iOS 客户端子选项 -->
-        <template x-if="activePlatform === 'ios'">
-          <div class="flex flex-wrap gap-2">
-            <button @click="activeClient = 'singbox'" :class="activeClient === 'singbox' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'singbox'"></i>Sing-Box (免费/首推)</button>
-            <button @click="activeClient = 'shadowrocket'" :class="activeClient === 'shadowrocket' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'shadowrocket'"></i>Shadowrocket (小火箭)</button>
-            <button @click="activeClient = 'loon'" :class="activeClient === 'loon' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'loon'"></i>Loon</button>
-            <button @click="activeClient = 'quanx'" :class="activeClient === 'quanx' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'quanx'"></i>Quantumult X</button>
-          </div>
-        </template>
-        <!-- Mac 客户端子选项 -->
-        <template x-if="activePlatform === 'mac'">
-          <div class="flex space-x-2">
-            <button @click="activeClient = 'v2rayn'" :class="activeClient === 'v2rayn' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'v2rayn'"></i>v2rayN macOS (推荐)</button>
-            <button @click="activeClient = 'v2rayu'" :class="activeClient === 'v2rayu' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'v2rayu'"></i>V2rayU</button>
-            <button @click="activeClient = 'v2raya'" :class="activeClient === 'v2raya' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'v2raya'"></i>V2rayA (Web)</button>
-          </div>
-        </template>
-        <!-- Linux 客户端子选项 -->
-        <template x-if="activePlatform === 'linux'">
-          <div class="flex flex-wrap gap-2">
-            <button @click="activeClient = 'v2rayn_ubuntu'" :class="activeClient === 'v2rayn_ubuntu' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'v2rayn_ubuntu'"></i>v2rayN (Ubuntu/Debian)</button>
-            <button @click="activeClient = 'v2raya_debian'" :class="activeClient === 'v2raya_debian' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'v2raya_debian'"></i>v2rayA (Debian)</button>
-            <button @click="activeClient = 'v2raya_centos'" :class="activeClient === 'v2raya_centos' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'v2raya_centos'"></i>v2rayA (CentOS)</button>
-          </div>
-        </template>
-        <!-- Router 客户端子选项 -->
-        <template x-if="activePlatform === 'router'">
-          <div class="flex space-x-2">
-            <button @click="activeClient = 'v2raya_router'" :class="activeClient === 'v2raya_router' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'v2raya_router'"></i>v2rayA OpenWRT (首推)</button>
-          </div>
-        </template>
-        <!-- 订阅转换 客户端子选项 -->
-        <template x-if="activePlatform === 'conversion'">
-          <div class="flex space-x-2">
-            <button @click="activeClient = 'singbox_conv'" :class="activeClient === 'singbox_conv' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'singbox_conv'"></i>Sing-Box 订阅格式</button>
-            <button @click="activeClient = 'clash_conv'" :class="activeClient === 'clash_conv' ? 'bg-slate-900 text-indigo-400 font-semibold border-slate-800' : 'text-slate-500 hover:text-slate-300 border-transparent'" class="px-4 py-1.5 rounded-xl text-xs font-medium transition border flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1.5" x-show="activeClient === 'clash_conv'"></i>Clash / Clash Verge 格式</button>
-          </div>
-        </template>
-      </div>
-
-      <!-- 动态显示各个客户端配置区域 -->
-      <div class="bg-slate-950/60 p-6 rounded-2xl border border-slate-800/80">
-        <!-- 订阅地址展示区域 -->
-        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/40 p-4 rounded-xl border border-slate-800">
-          <div class="flex-1 overflow-hidden">
-            <span class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">专属客户端配置订阅链接</span>
-            <span class="block font-mono text-xs text-indigo-400 truncate select-all" x-text="`${window.location.origin}/link/${subToken}` + (
-              activeClient === 'clash' || activeClient === 'clash_conv' ? '?mu=clash' : 
-              activeClient === 'singbox' || activeClient === 'singbox_conv' ? '?mu=singbox' : 
-              activeClient === 'loon' ? '?mu=loon' : 
-              activeClient === 'quanx' ? '?mu=quanx' : '?mu=2'
-            )"></span>
-          </div>
-          <button @click="copyText(`${window.location.origin}/link/${subToken}` + (
-            activeClient === 'clash' || activeClient === 'clash_conv' ? '?mu=clash' : 
-            activeClient === 'singbox' || activeClient === 'singbox_conv' ? '?mu=singbox' : 
-            activeClient === 'loon' ? '?mu=loon' : 
+        <!-- 专属订阅链接 -->
+        <div class="sp-alert sp-alert-info" style="align-items:center;">
+          <i class="mi">link</i>
+          <span class="sp-break-all" style="flex:1;" x-text="`${window.location.origin}/link/${subToken}` + (
+            activeClient === 'clash' || activeClient === 'clash_conv' ? '?mu=clash' :
+            activeClient === 'singbox' || activeClient === 'singbox_conv' ? '?mu=singbox' :
+            activeClient === 'loon' ? '?mu=loon' :
             activeClient === 'quanx' ? '?mu=quanx' : '?mu=2'
-          ), '订阅链接已完美复制至剪贴板！')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-xs font-semibold transition active:scale-[0.98] whitespace-nowrap shadow-md shadow-indigo-600/10">
-            <i class="fa-regular fa-copy mr-1.5"></i>复制专属订阅
-          </button>
+          )"></span>
+          <button class="sp-btn sp-btn-brand sp-btn-sm" @click="copyText(`${window.location.origin}/link/${subToken}` + (
+            activeClient === 'clash' || activeClient === 'clash_conv' ? '?mu=clash' :
+            activeClient === 'singbox' || activeClient === 'singbox_conv' ? '?mu=singbox' :
+            activeClient === 'loon' ? '?mu=loon' :
+            activeClient === 'quanx' ? '?mu=quanx' : '?mu=2'
+          ), '订阅链接已复制至剪贴板！')"><i class="mi">content_copy</i>复制专属订阅</button>
         </div>
 
-        <!-- 详细内容区域 -->
-        <div class="space-y-4 text-xs text-slate-300 leading-relaxed font-light">
+        <!-- 各客户端使用步骤 -->
+        <div class="sp-mt-6" style="font-size:13px;line-height:1.8;color:var(--sp-text);">
           <!-- Windows - V2rayN -->
           <div x-show="activePlatform === 'windows' && activeClient === 'v2rayn'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>Windows v2rayN 使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
-              <li>点击下载软件：<a href="/download/v2rayN-windows-64-desktop.zip" class="text-indigo-400 hover:underline font-bold"><i class="fa-solid fa-download mr-1"></i>v2rayN 电脑正式版</a>。下载后解压缩，运行其中的 <code>V2rayN.exe</code>。</li>
-              <li>在软件顶部点击 <b>“订阅分组”</b> -> <b>“订阅分组设置”</b> -> 点击 <b>“添加”</b>。</li>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">Windows v2rayN 使用步骤：</div>
+            <ol class="sp-steps">
+              <li>点击下载软件：<a href="/download/v2rayN-windows-64-desktop.zip"><b>v2rayN 电脑正式版</b></a>。下载后解压缩，运行其中的 <code>V2rayN.exe</code>。</li>
+              <li>在软件顶部点击 <b>“订阅分组”</b> -&gt; <b>“订阅分组设置”</b> -&gt; 点击 <b>“添加”</b>。</li>
               <li>在配置窗内填写：别名随意(例如：SPanel)，可选地址<b>填入上面的专属订阅链接</b>，勾选<b>“启用订阅”</b>，保存关闭。</li>
-              <li>再次点击顶部 <b>“订阅分组”</b> -> <b>“更新订阅(不通过代理)”</b>，稍等片刻，主界面将展示所有的全球加速节点。</li>
-              <li>任意选择一个物理节点，右键点击 -> 设为<b>活动服务器</b>。</li>
-              <li>在 Windows 桌面任务栏右下角找到 v2rayN 蓝色小图标，右键 -> <b>“系统代理”</b> -> 设为 <b>“自动配置系统代理”</b>，并在 <b>“路由”</b> 中设为 <b>“绕过大陆”</b>。即可完美上网。</li>
+              <li>再次点击顶部 <b>“订阅分组”</b> -&gt; <b>“更新订阅(不通过代理)”</b>，稍等片刻，主界面将展示所有的全球加速节点。</li>
+              <li>任意选择一个物理节点，右键点击 -&gt; 设为<b>活动服务器</b>。</li>
+              <li>在 Windows 桌面任务栏右下角找到 v2rayN 蓝色小图标，右键 -&gt; <b>“系统代理”</b> -&gt; 设为 <b>“自动配置系统代理”</b>，并在 <b>“路由”</b> 中设为 <b>“绕过大陆”</b>。即可完美上网。</li>
             </ol>
           </div>
 
           <!-- Windows - Clash -->
-          <div x-show="activePlatform === 'windows' && activeClient === 'clash'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>Windows Clash Verge 使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
-              <li>点击下载软件：<a href="/download/Clash.Verge_x64-setup.exe" class="text-indigo-400 hover:underline font-bold"><i class="fa-solid fa-download mr-1"></i>Clash Verge 电脑安装包</a>。安装并运行 <code>Clash Verge</code>。</li>
+          <div x-show="activePlatform === 'windows' && activeClient === 'clash'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">Windows Clash Verge 使用步骤：</div>
+            <ol class="sp-steps">
+              <li>点击下载软件：<a href="/download/Clash.Verge_x64-setup.exe"><b>Clash Verge 电脑安装包</b></a>。安装并运行 <code>Clash Verge</code>。</li>
               <li>在软件左侧菜单选择 <b>“Profiles”</b>，在输入框中<b>贴入上面的专属订阅链接</b>，点击 <b>“Download”</b>。</li>
               <li>下载完成后，单击选中刚刚生成的 Profile 使其亮起激活。</li>
               <li>在左侧菜单栏选择 <b>“Proxies”</b>，在这里您可以为不同的地理组自由勾选加速线路。</li>
@@ -356,10 +260,10 @@
           </div>
 
           <!-- Android - v2rayNG -->
-          <div x-show="activePlatform === 'android' && activeClient === 'v2rayng'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>Android v2rayNG 手机客户端使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
-              <li>点击下载软件安装包：<a href="/download/v2rayNG_arm64-v8a.apk" class="text-indigo-400 hover:underline font-bold"><i class="fa-solid fa-download mr-1"></i>v2rayNG 安卓安装包</a>，下载后完成在手机上的安装。</li>
+          <div x-show="activePlatform === 'android' && activeClient === 'v2rayng'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">Android v2rayNG 手机客户端使用步骤：</div>
+            <ol class="sp-steps">
+              <li>点击下载软件安装包：<a href="/download/v2rayNG_arm64-v8a.apk"><b>v2rayNG 安卓安装包</b></a>，下载后完成在手机上的安装。</li>
               <li>打开 v2rayNG 客户端，点击左上角三横杠菜单，进入 <b>“订阅设置”</b>，点击右上角 <b>“+”</b> 按钮。</li>
               <li>输入备注 (如：SPanel)，并在地址一栏<b>贴入上面的专属订阅链接</b>，点击右上角对勾保存。</li>
               <li>返回主界面，点击右上角三个点，选择 <b>“更新订阅”</b>。全球节点列表将瞬间同步完成。</li>
@@ -369,25 +273,21 @@
           </div>
 
           <!-- iOS - Sing-Box -->
-          <div x-show="activePlatform === 'ios' && activeClient === 'singbox'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>iOS Sing-Box-VT 客户端使用步骤 (免费强推)：</p>
-            <ol class="list-decimal pl-5 space-y-2">
-              <li>打开苹果 AppStore 搜索并下载 <b>“Sing-Box-VT”</b>，或者直接 <a href="https://apps.apple.com/us/app/sing-box-vt/id6673731168" target="_blank" class="text-indigo-400 hover:underline font-bold"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>点此跳转 AppStore 安装</a>（本软件不限国区，完全免费）。</li>
+          <div x-show="activePlatform === 'ios' && activeClient === 'singbox'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">iOS Sing-Box-VT 客户端使用步骤 (免费强推)：</div>
+            <ol class="sp-steps">
+              <li>打开苹果 AppStore 搜索并下载 <b>“Sing-Box-VT”</b>，或者直接 <a href="https://apps.apple.com/us/app/sing-box-vt/id6673731168" target="_blank"><b>点此跳转 AppStore 安装</b></a>（本软件不限国区，完全免费）。</li>
               <li>打开 Sing-Box App，在下方导航选择 <b>“Profiles”</b>，点击 <b>“New Profile”</b>。</li>
-              <li>填写配置：
-                <br>· Name: <code>SPanel</code>
-                <br>· Type: 选中 <code>Remote</code>
-                <br>· URL: <b>填入上面的专属订阅链接</b>。
-              </li>
+              <li>填写配置：<br>· Name: <code>SPanel</code><br>· Type: 选中 <code>Remote</code><br>· URL: <b>填入上面的专属订阅链接</b>。</li>
               <li>点击右上角的 <b>“Create”</b>。然后点击刚刚生成的配置文件进行连接更新。</li>
               <li>返回 App 主页面 <b>“Dashboard”</b>，将最上方的 <b>“Enable”</b> 开关打开即可！</li>
             </ol>
           </div>
 
           <!-- iOS - Shadowrocket -->
-          <div x-show="activePlatform === 'ios' && activeClient === 'shadowrocket'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>iOS Shadowrocket (小火箭) 客户端使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
+          <div x-show="activePlatform === 'ios' && activeClient === 'shadowrocket'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">iOS Shadowrocket (小火箭) 客户端使用步骤：</div>
+            <ol class="sp-steps">
               <li>小火箭属于付费软件（$2.99），请使用<b>非国区（美区/港区等）Apple ID</b> 在 AppStore 搜索并下载购买。</li>
               <li>打开小火箭，点击右上角 <b>“+”</b> 号添加配置。</li>
               <li>类型选择 <b>“Subscribe”</b> (订阅)，在 URL 栏中<b>贴入上面的专属订阅链接</b>。备注写 <code>SPanel</code>。</li>
@@ -397,62 +297,56 @@
           </div>
 
           <!-- iOS - Loon -->
-          <div x-show="activePlatform === 'ios' && activeClient === 'loon'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>iOS Loon 客户端使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
+          <div x-show="activePlatform === 'ios' && activeClient === 'loon'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">iOS Loon 客户端使用步骤：</div>
+            <ol class="sp-steps">
               <li>在非国区 AppStore 搜索 Loon 购买下载 ($7.99)。</li>
-              <li>打开 Loon 软件，进入底部菜单 <b>“配置”</b> (Configuration) -> 选择 <b>“订阅管理”</b>。</li>
+              <li>打开 Loon 软件，进入底部菜单 <b>“配置”</b> (Configuration) -&gt; 选择 <b>“订阅管理”</b>。</li>
               <li>点击右上角添加订阅，将<b>上面的专属订阅链接</b>粘贴进去并保存更新。</li>
               <li>切换回 Loon 仪表盘首页，选中合适的代理节点，开启代理服务主开关即可。</li>
             </ol>
           </div>
 
           <!-- iOS - Quantumult X -->
-          <div x-show="activePlatform === 'ios' && activeClient === 'quanx'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>iOS Quantumult X 使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
+          <div x-show="activePlatform === 'ios' && activeClient === 'quanx'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">iOS Quantumult X 使用步骤：</div>
+            <ol class="sp-steps">
               <li>在非国区 AppStore 搜索 Quantumult X 购买并安装。</li>
-              <li>打开软件，点击右下角风车菜单按钮 -> 往下滑找到 <b>“节点”</b> -> <b>“引用 (订阅)”</b>。</li>
+              <li>打开软件，点击右下角风车菜单按钮 -&gt; 往下滑找到 <b>“节点”</b> -&gt; <b>“引用 (订阅)”</b>。</li>
               <li>点击右上角 <b>“添加”</b>，名称写 <code>SPanel</code>，URL 处<b>粘贴上面专属的 Quantumult X 订阅链接</b>。</li>
               <li>保存并左滑该订阅卡片，选择 <b>“下载”</b> (或更新)，全球高速节点即可同步完毕。</li>
               <li>在首页长按底部风车图标，可以灵活切换不同的代理分流模式。</li>
-              <li>使用教程请查看：<a href="/user/tutorial_quanx" target="_blank" class="text-indigo-400 hover:underline">Quantumult X 图文教程</a></li>
+              <li>使用教程请查看：<a href="/user/tutorial.html" target="_blank">Quantumult X 图文教程</a></li>
             </ol>
           </div>
 
           <!-- macOS - v2rayN -->
-          <div x-show="activePlatform === 'mac' && activeClient === 'v2rayn'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>macOS v2rayN 使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
-              <li>根据您的 Mac 处理器芯片类型下载安装包：
-                <br>· <a href="/download/v2rayN-macos-64.dmg" class="text-indigo-400 hover:underline font-bold">Intel 芯片版</a> 
-                <br>· <a href="/download/v2rayN-macos-arm64.dmg" class="text-indigo-400 hover:underline font-bold">Apple M 芯片版 (M1/M2/M3)</a>
-              </li>
+          <div x-show="activePlatform === 'mac' && activeClient === 'v2rayn'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">macOS v2rayN 使用步骤：</div>
+            <ol class="sp-steps">
+              <li>根据您的 Mac 处理器芯片类型下载安装包：<br>· <a href="/download/v2rayN-macos-64.dmg"><b>Intel 芯片版</b></a><br>· <a href="/download/v2rayN-macos-arm64.dmg"><b>Apple M 芯片版 (M1/M2/M3)</b></a></li>
               <li>由于是本站自编译包，安装后若提示应用已损坏，需要在 Terminal (终端) 执行授权指令：<code>xattr -cr /Applications/v2rayN.app</code></li>
-              <li>打开 v2rayN，选择 <b>“配置文件”</b> -> <b>“从剪贴板导入配置文件”</b> (先复制上面专属订阅链接)。</li>
+              <li>打开 v2rayN，选择 <b>“配置文件”</b> -&gt; <b>“从剪贴板导入配置文件”</b> (先复制上面专属订阅链接)。</li>
               <li>在 <b>“订阅分组”</b> 菜单点击 <b>“更新当前订阅”</b>，载入节点列表。</li>
               <li>选中节点右键设为活动服务器，在下方代理选择 <b>“自动配置系统代理”</b>，即可畅游网络。</li>
             </ol>
           </div>
 
           <!-- macOS - V2rayU -->
-          <div x-show="activePlatform === 'mac' && activeClient === 'v2rayu'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>macOS V2rayU 使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
-              <li>根据您的 Mac 处理器类型下载：
-                <br>· <a href="/download/V2rayU-64.dmg" class="text-indigo-400 hover:underline font-bold">Intel 芯片版</a>
-                <br>· <a href="/download/V2rayU-arm64.dmg" class="text-indigo-400 hover:underline font-bold">Apple M 芯片版</a>
-              </li>
-              <li>安装后运行，在顶部菜单状态栏找到 V2rayU 图标，右键 -> <b>“订阅设置”</b> (Subscribe)。</li>
+          <div x-show="activePlatform === 'mac' && activeClient === 'v2rayu'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">macOS V2rayU 使用步骤：</div>
+            <ol class="sp-steps">
+              <li>根据您的 Mac 处理器类型下载：<br>· <a href="/download/V2rayU-64.dmg"><b>Intel 芯片版</b></a><br>· <a href="/download/V2rayU-arm64.dmg"><b>Apple M 芯片版</b></a></li>
+              <li>安装后运行，在顶部菜单状态栏找到 V2rayU 图标，右键 -&gt; <b>“订阅设置”</b> (Subscribe)。</li>
               <li>填入<b>上面的专属订阅链接</b>，备注命名为 <code>SPanel</code>，点击 <b>“Add”</b>，随后点击 <b>“Update Servers”</b> 载入物理节点。</li>
               <li>在服务列表中选择节点，在菜单中开启 <b>“Global Mode”</b> 并将 <b>“Turn V2ray-Core”</b> 切换至 <b>“On”</b> 状态。</li>
             </ol>
           </div>
 
           <!-- macOS - V2rayA -->
-          <div x-show="activePlatform === 'mac' && activeClient === 'v2raya'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>macOS V2rayA 网页端控制代理使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
+          <div x-show="activePlatform === 'mac' && activeClient === 'v2raya'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">macOS V2rayA 网页端控制代理使用步骤：</div>
+            <ol class="sp-steps">
               <li>V2rayA 在 macOS 环境下支持在命令行后台稳定常驻，并通过网页端进行节点的可视化管理调度。</li>
               <li>使用 Homebrew 安装：<code>brew install v2raya/v2raya/v2raya</code>，然后启动服务 <code>brew services start v2raya</code>。</li>
               <li>打开 Safari 或 Chrome 浏览器访问控制后台 <code>http://127.0.0.1:2017</code>。</li>
@@ -461,24 +355,20 @@
           </div>
 
           <!-- Linux - Ubuntu (v2rayN) -->
-          <div x-show="activePlatform === 'linux' && activeClient === 'v2rayn_ubuntu'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>Linux Debian/Ubuntu v2rayN 图形界面使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
-              <li>点击下载 Linux .deb 安装包：<a href="/download/v2rayN-linux-64.deb" class="text-indigo-400 hover:underline font-bold"><i class="fa-solid fa-download mr-1"></i>v2rayN Linux 安装包</a>。</li>
-              <li>在 Shell 执行本地安装命令：<code>sudo dpkg -i v2rayN-linux-64.deb && sudo apt-get install -f</code>。</li>
+          <div x-show="activePlatform === 'linux' && activeClient === 'v2rayn_ubuntu'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">Linux Debian/Ubuntu v2rayN 图形界面使用步骤：</div>
+            <ol class="sp-steps">
+              <li>点击下载 Linux .deb 安装包：<a href="/download/v2rayN-linux-64.deb"><b>v2rayN Linux 安装包</b></a>。</li>
+              <li>在 Shell 执行本地安装命令：<code>sudo dpkg -i v2rayN-linux-64.deb &amp;&amp; sudo apt-get install -f</code>。</li>
               <li>打开 v2rayN 界面，点击订阅分组配置，<b>填入上面的专属订阅链接</b>并更新，即可选择节点开启系统代理分流。</li>
             </ol>
           </div>
 
           <!-- Linux - Debian (v2rayA) -->
-          <div x-show="activePlatform === 'linux' && activeClient === 'v2raya_debian'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>Linux Debian v2rayA 开源服务使用步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
-              <li>安装并配置 v2rayA 系统守护服务：
-                <br><code>wget -qO - https://apt.v2raya.mzz.pub/key/public-key.asc | sudo apt-key add -</code>
-                <br><code>echo "deb https://apt.v2raya.mzz.pub/ v2raya main" | sudo tee /etc/apt/sources.list.d/v2raya.list</code>
-                <br><code>sudo apt update && sudo apt install v2raya -y</code>
-              </li>
+          <div x-show="activePlatform === 'linux' && activeClient === 'v2raya_debian'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">Linux Debian v2rayA 开源服务使用步骤：</div>
+            <ol class="sp-steps">
+              <li>安装并配置 v2rayA 系统守护服务：<br><code>wget -qO - https://apt.v2raya.mzz.pub/key/public-key.asc | sudo apt-key add -</code><br><code>echo "deb https://apt.v2raya.mzz.pub/ v2raya main" | sudo tee /etc/apt/sources.list.d/v2raya.list</code><br><code>sudo apt update &amp;&amp; sudo apt install v2raya -y</code></li>
               <li>启动 v2rayA 后台并设为自启动：<code>sudo systemctl enable v2raya --now</code></li>
               <li>打开本机浏览器控制台：<code>http://localhost:2017</code>。</li>
               <li>在界面点击 <b>“Import”</b>，将<b>上面的专属订阅链接</b>导入并保存更新。在列表中选择物理加速节点并启动服务即可！</li>
@@ -486,65 +376,44 @@
           </div>
 
           <!-- Linux - CentOS (v2rayA) -->
-          <div x-show="activePlatform === 'linux' && activeClient === 'v2raya_centos'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>Linux CentOS v2rayA 命令行与服务运行步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
-              <li>下载并安装 CentOS RPM 包：
-                <br><code>sudo yum install -y https://github.com/v2rayA/v2rayA/releases/download/v1.5.6.2/installer_redhat_x64_1.5.6.2.rpm</code>
-              </li>
+          <div x-show="activePlatform === 'linux' && activeClient === 'v2raya_centos'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">Linux CentOS v2rayA 命令行与服务运行步骤：</div>
+            <ol class="sp-steps">
+              <li>下载并安装 CentOS RPM 包：<br><code>sudo yum install -y https://github.com/v2rayA/v2rayA/releases/download/v1.5.6.2/installer_redhat_x64_1.5.6.2.rpm</code></li>
               <li>启动服务系统进程：<code>sudo systemctl enable v2raya --now</code>。</li>
               <li>打开本机控制网页：<code>http://127.0.0.1:2017</code>，选择 <b>“Import”</b> 导入上面的专属订阅链接即可！</li>
             </ol>
           </div>
 
           <!-- Router - v2rayA -->
-          <div x-show="activePlatform === 'router' && activeClient === 'v2raya_router'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-rocket mr-2 text-indigo-400"></i>OpenWRT / 智能路由器 v2rayA 硬件级科学分流配置步骤：</p>
-            <ol class="list-decimal pl-5 space-y-2">
+          <div x-show="activePlatform === 'router' && activeClient === 'v2raya_router'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">OpenWRT / 智能路由器 v2rayA 硬件级科学分流配置步骤：</div>
+            <ol class="sp-steps">
               <li>本站提供的高速节点完美兼容 OpenWRT 路由器。请确保您的路由器已刷好固件且已安装 <code>luci-app-v2raya</code> 或 <code>v2raya</code> 相关依赖核心组件。</li>
-              <li>登录您的智能路由器控制后台，导航到 <b>“服务”</b> (Services) -> <b>“v2rayA”</b>。</li>
+              <li>登录您的智能路由器控制后台，导航到 <b>“服务”</b> (Services) -&gt; <b>“v2rayA”</b>。</li>
               <li>在配置面板点击 <b>“导入 (Import)”</b>，将<b>上面的专属订阅链接</b>粘贴并点击确定，随后保存并应用。</li>
               <li>在节点列表中勾选想要加速的节点，点击 <b>“启动 (Start)”</b>，路由器下的所有手机、iPad、电脑设备都将自动获得透明代理加速！</li>
             </ol>
           </div>
 
-          <!-- Sub Conversion - Sing-Box / Clash Manual -->
-          <div x-show="activePlatform === 'conversion'">
-            <p class="text-sm font-semibold text-white mb-2"><i class="fa-solid fa-gears mr-2 text-indigo-400"></i>手动订阅转换配置说明：</p>
-            <p class="text-slate-400 mb-2">如果您使用的第三方开源代理软件（如小猫咪/Clash Meta等）需要精准的专属格式进行解析，可以直接拷贝上述对应的转换后直连 URL 地址。系统安全网关已将该地址适配到了最高级别的协议转换核心，免去了您必须依靠第三方公共转换网站引起的隐私泄露隐患。</p>
-            <ul class="list-disc pl-5 space-y-1">
-              <li><b>Sing-Box 格式</b>：自动包含 DNS 分流、Outbounds 控制链以及完整的直连/分流路由策略组，专为 `Sing-Box` 核心打造。</li>
-              <li><b>Clash 格式</b>：全自动转换生成符合 Clash 规范的 `.yaml` 格式配置字典，自适应整合大陆分流与全球优质代理，即开即用！</li>
+          <!-- Sub Conversion -->
+          <div x-show="activePlatform === 'conversion'" x-cloak>
+            <div class="sp-content-sub-heading sp-mb-6" style="font-size:16px;">手动订阅转换配置说明：</div>
+            <p class="sp-text-muted">如果您使用的第三方开源代理软件（如小猫咪/Clash Meta等）需要精准的专属格式进行解析，可以直接拷贝上述对应的转换后直连 URL 地址。系统安全网关已将该地址适配到了最高级别的协议转换核心，免去了您必须依靠第三方公共转换网站引起的隐私泄露隐患。</p>
+            <ul style="padding-left:22px;">
+              <li><b>Sing-Box 格式</b>：自动包含 DNS 分流、Outbounds 控制链以及完整的直连/分流路由策略组，专为 Sing-Box 核心打造。</li>
+              <li><b>Clash 格式</b>：全自动转换生成符合 Clash 规范的 <code>.yaml</code> 格式配置字典，自适应整合大陆分流与全球优质代理，即开即用！</li>
             </ul>
           </div>
-
         </div>
       </div>
-    </div>
 
-    <!-- 公告看板 -->
-    <div class="glass-card p-6 rounded-2xl">
-      <h3 class="text-lg font-medium text-white mb-6 flex items-center"><i class="fa-solid fa-bullhorn text-indigo-400 mr-2"></i>系统最新公告</h3>
-      <div class="space-y-6">
-        <template x-for="ann in announcements" :key="ann.id">
-          <div class="border-b border-slate-800/50 pb-6 last:border-0 last:pb-0">
-            <div class="flex items-center justify-between">
-              <span class="text-xs text-indigo-400 font-semibold" x-text="ann.date"></span>
-              <span class="text-[10px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20 font-medium">重要公告</span>
-            </div>
-            <!-- 富文本 HTML 呈现 -->
-            <div class="text-sm text-slate-300 mt-3 leading-relaxed" x-html="ann.content"></div>
-          </div>
-        </template>
-        <template x-if="announcements.length === 0">
-          <div class="text-center py-8 text-slate-500 text-xs">暂无任何系统公告。</div>
-        </template>
-      </div>
     </div>
-
   </main>
 
   <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
   <script>
     function dashboardPage() {
       return {
@@ -612,10 +481,10 @@
           this.checkinLoading = true;
           try {
             const res = await SPanelAPI.request('/user/checkin', { method: 'POST' });
-            alert(`签到成功！随机奖励了 ${this.formatBytes(BigInt(res.data.traffic))} 流量。`);
+            SPUI.msg(`签到成功！随机奖励了 ${this.formatBytes(BigInt(res.data.traffic))} 流量。`);
             await this.fetchDashboardData();
           } catch (err) {
-            alert(err.message || '签到失败，请稍后再试。');
+            SPUI.msg(err.message || '签到失败，请稍后再试。');
           } finally {
             this.checkinLoading = false;
           }
@@ -624,15 +493,15 @@
         async copySubLink() {
           // 订阅 Token 通用获取 (对齐 link 表 type=11)
           if (!this.subToken) {
-            alert('未能获取到订阅凭证！');
+            SPUI.msg('未能获取到订阅凭证！');
             return;
           }
           const subLink = `${window.location.origin}/link/${this.subToken}`;
           try {
             await navigator.clipboard.writeText(subLink);
-            alert('通用订阅链接已复制到您的剪贴板，快去客户端导入吧！');
+            SPUI.toast('通用订阅链接已复制到您的剪贴板，快去客户端导入吧！', 'success');
           } catch(e) {
-            alert('复制失败，请手动选择复制！');
+            SPUI.msg('复制失败，请手动选择复制！');
           }
         },
 
@@ -650,10 +519,7 @@
         },
 
         async logout() {
-          try { await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
-          localStorage.removeItem('spanel_jwt');
-          localStorage.removeItem('spanel_user');
-          window.location.replace('/auth/login.html');
+          SP.logout();
         }
       }
     }

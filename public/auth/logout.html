@@ -1,21 +1,40 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="h-full bg-slate-950 text-slate-100">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>退出登录 - SPanel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>body{font-family:'Inter',sans-serif}</style>
+  <!-- M7.2: 防闪现拦截守卫 - 必须在 head 顶部同步执行 -->
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body class="min-h-full bg-slate-950 text-slate-100 flex items-center justify-center px-4">
-  <div class="text-center space-y-4">
-    <i class="fa-solid fa-circle-check text-5xl text-emerald-400 hidden"></i>
-    <i id="spinner" class="fa-solid fa-spinner animate-spin text-4xl text-indigo-400"></i>
-    <p id="msg" class="text-sm text-slate-400">正在安全退出...</p>
-    <a id="link" href="/auth/login.html" class="hidden text-indigo-400 text-sm font-semibold hover:text-indigo-300 transition">若未自动跳转，点此前往登录页</a>
+<body data-sp-area="auth" class="sp-auth-body">
+
+  <div class="sp-authpage">
+    <div style="width:100%;display:flex;justify-content:center;">
+      <div class="sp-auth-main">
+        <div class="sp-auth-top">
+          <a class="sp-board-btn sp-left" href="/"><div>首 页</div></a>
+          <div class="sp-auth-logo">
+            <img src="/images/authlogo.jpg" alt="">
+          </div>
+          <a href="/auth/login.html" class="sp-board-btn sp-right"><div>登 录</div></a>
+        </div>
+
+        <div class="sp-auth-body" style="text-align:center;padding-top:32px;">
+          <i id="spinner" class="mi" style="font-size:36px;display:inline-block;margin-bottom:12px;">autorenew</i>
+          <p id="msg" class="sp-text-muted" style="margin:0 0 8px;">正在安全退出...</p>
+          <a id="link" href="/auth/login.html" style="display:none;">若未自动跳转，点此前往登录页</a>
+        </div>
+      </div>
+    </div>
   </div>
+
   <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
   <script>
     (async function () {
       const msg = document.getElementById('msg');
@@ -26,7 +45,7 @@
       localStorage.removeItem('spanel_jwt');
       localStorage.removeItem('spanel_user');
       msg.textContent = '已安全退出，正在前往登录页...';
-      document.getElementById('spinner').classList.add('hidden');
+      document.getElementById('spinner').style.display = 'none';
       setTimeout(() => { window.location.replace('/auth/login.html'); }, 800);
     })();
   </script>

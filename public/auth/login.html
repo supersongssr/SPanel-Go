@@ -1,142 +1,78 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="h-full bg-slate-950 text-slate-100">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>系统登录 - SPanel</title>
   <!-- M7.2: 防闪现拦截守卫 - 必须在 head 顶部同步执行 -->
   <script src="/assets/js/auth-guard.js"></script>
-  <!-- CSS CDN / Tailwind & FontAwesome & Google Fonts -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <!-- Alpine.js & Geetest v4 -->
-  <script src="https://static.geetest.com/v4/gt4.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <!-- Tailwind Config for Premium Theme -->
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            outfit: ['Outfit', 'sans-serif'],
-            inter: ['Inter', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    [x-cloak] { display: none !important; }
-    .neon-border::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 1.5rem;
-      padding: 2px;
-      background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
-    }
-  </style>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body class="h-full flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black overflow-hidden relative">
-  <!-- 背景艺术发光环 -->
-  <div class="absolute w-96 h-96 rounded-full bg-indigo-600/10 blur-[120px] top-1/4 left-1/4 animate-pulse"></div>
-  <div class="absolute w-96 h-96 rounded-full bg-purple-600/10 blur-[120px] bottom-1/4 right-1/4 animate-pulse delay-700"></div>
+<body data-sp-area="auth" class="sp-auth-body" x-data="loginForm()">
 
-  <!-- 登录卡片区 -->
-  <div x-data="loginForm()" class="w-full max-w-md p-0.5 relative z-10 mx-4">
-    <div class="relative bg-slate-900/60 backdrop-blur-2xl p-8 rounded-[1.5rem] shadow-2xl neon-border border border-white/5">
-      <div class="text-center mb-8">
-        <h1 class="font-outfit text-4xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">SPanel</h1>
-        <p class="text-slate-400 text-sm mt-2 font-light">安全连接 · 高能算力 CC 防御体系</p>
-      </div>
-
-      <!-- 表单输入 -->
-      <form @submit.prevent="submitLogin" class="space-y-5">
-        <!-- 邮箱 -->
-        <div>
-          <label class="block text-slate-300 text-xs font-semibold uppercase tracking-wider mb-2">电子邮箱</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-regular fa-envelope"></i></span>
-            <input type="email" required autocomplete="username" x-model="email" @blur="validateEmail()" :class="{ '!border-rose-500': emailError, '!focus:border-rose-500': emailError, '!focus:ring-rose-500': emailError }" placeholder="name@domain.com" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-300">
+  <div class="sp-authpage">
+    <form action="javascript:void(0);" method="POST" style="width:100%;display:flex;justify-content:center;">
+      <div class="sp-auth-main">
+        <div class="sp-auth-top">
+          <a class="sp-board-btn sp-left" href="/"><div>首 页</div></a>
+          <div class="sp-auth-logo">
+            <img src="/images/authlogo.jpg" alt="">
           </div>
-          <!-- M: 强制邮箱格式校验提示 -->
-          <p x-show="emailError" x-cloak class="mt-2 text-xs text-rose-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-circle-exclamation"></i>
-            <span>登录账号必须是有效的邮箱地址，例如 name@domain.com</span>
-          </p>
+          <a href="/auth/register.html" class="sp-board-btn sp-right"><div>注 册</div></a>
         </div>
 
-        <!-- 密码 -->
-        <div>
-          <label class="block text-slate-300 text-xs font-semibold uppercase tracking-wider mb-2">登录密码</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-lock"></i></span>
-            <input type="password" required x-model="password" placeholder="••••••••" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-300">
+        <div class="sp-auth-body">
+          <div class="sp-field">
+            <input class="maxwidth-auth" id="email" type="text" name="Email" placeholder=" " autocomplete="username"
+                   x-model="email" @blur="validateEmail()">
+            <label class="floating-label" for="email">邮箱</label>
           </div>
-        </div>
-
-        <!-- 图形验证码 (captchaProvider === 'graphic') -->
-        <div x-show="captchaProvider === 'graphic'">
-          <label class="block text-slate-300 text-xs font-semibold uppercase tracking-wider mb-2">图形验证码</label>
-          <div class="flex space-x-3">
-            <div class="relative flex-1">
-              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-shield-halved"></i></span>
-              <input type="text" :required="captchaProvider === 'graphic'" x-model="captchaCode" placeholder="验证码" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-300">
-            </div>
-            <!-- 验证码 SVG 卡片 -->
-            <div @click="refreshCaptcha" class="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden cursor-pointer h-12 w-28 flex items-center justify-center transition hover:border-indigo-500" x-html="captchaSvg" title="点击刷新">
-              <span class="text-slate-600 text-xs animate-pulse">加载中...</span>
-            </div>
+          <div class="sp-field">
+            <input class="maxwidth-auth" id="passwd" type="password" name="Password" placeholder=" " autocomplete="current-password" x-model="password">
+            <label class="floating-label" for="passwd">密码</label>
           </div>
-        </div>
-
-        <!-- 两步验证码 (ga_enable 用户必填, 其他用户留空) -->
-        <div>
-          <label class="block text-slate-300 text-xs font-semibold uppercase tracking-wider mb-2">两步验证码 <span class="text-slate-600 font-normal normal-case">(未开启可留空)</span></label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-key"></i></span>
-            <input type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" x-model="gaCode" placeholder="6 位动态验证码" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-300 tracking-widest">
+          <div class="sp-field">
+            <input class="maxwidth-auth" id="code" type="text" name="Code" placeholder=" " maxlength="6" inputmode="numeric" autocomplete="one-time-code" x-model="gaCode">
+            <label class="floating-label" for="code">两步验证码（未设置请忽略）</label>
           </div>
-        </div>
 
-        <!-- 记住我 (32 天免登录) -->
-        <label class="flex items-center space-x-2.5 cursor-pointer select-none">
-          <input type="checkbox" x-model="rememberMe" class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-indigo-500 focus:ring-indigo-500/40">
-          <span class="text-xs text-slate-400">记住我 (32 天内免登录)</span>
-        </label>
-
-        <!-- 提交按钮与状态展示 -->
-        <div class="pt-2">
-          <button type="submit" :disabled="loading" class="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-xl py-3.5 px-4 text-sm font-semibold tracking-wide shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/35 hover:brightness-110 active:scale-[0.98] transition duration-300 flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none">
-            <template x-if="!loading">
-              <span>立即登入</span>
-            </template>
-            <template x-if="loading">
-              <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-spinner animate-spin"></i>
-                <span x-text="statusText">正在验证算力...</span>
+          <!-- 图形验证码 (captchaProvider === 'graphic') -->
+          <template x-if="captchaProvider === 'graphic'">
+            <div class="sp-field">
+              <div class="sp-auth-captcha">
+                <div class="sp-field" style="flex:1">
+                  <input id="captcha" type="text" placeholder=" " x-model="captchaCode">
+                  <label for="captcha">图形验证码</label>
+                </div>
+                <div @click="refreshCaptcha" title="点击刷新验证码" x-html="captchaSvg"></div>
               </div>
-            </template>
-          </button>
-        </div>
-      </form>
+            </div>
+          </template>
 
-      <!-- 友情跳转 -->
-      <div class="mt-8 text-center text-xs text-slate-500 font-light flex items-center justify-between">
-        <a href="/auth/reset.html" class="hover:text-indigo-400 transition">忘记密码？</a>
-        <span>还没有账户？<a href="/auth/register.html" class="text-indigo-400 font-semibold hover:text-indigo-300 transition">立即注册</a></span>
+          <div class="sp-auth-btn">
+            <button id="login" type="submit" class="sp-btn sp-btn-brand sp-btn-block" :disabled="loading">
+              <span x-show="!loading">确认登录</span>
+              <span x-show="loading" x-cloak><i class="mi">refresh</i>正在提交...</span>
+            </button>
+          </div>
+
+          <div class="sp-auth-help">
+            <label class="sp-check">
+              <input type="checkbox" id="remember_me" x-model="rememberMe">记住我
+            </label>
+            <a href="/auth/reset.html">忘记密码？</a>
+          </div>
+        </div>
       </div>
-    </div>
+    </form>
   </div>
 
   <!-- API Communication Core -->
   <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
   <script>
     function loginForm() {
       return {
@@ -151,11 +87,7 @@
         captchaProvider: 'graphic',
         gaCode: '',
         rememberMe: false,
-        geetestId: '',
-        geetestValidate: null,
-        geetestCaptchaObj: null,
         loading: false,
-        statusText: '正在提交...',
 
         async init() {
           await this.loadCaptcha();
@@ -185,7 +117,7 @@
             this.captchaSvg = res.svg;
             this.captchaCode = '';
           } catch (err) {
-            alert('图形验证码拉取失败，请检查网络。');
+            SPUI.msg('图形验证码拉取失败，请检查网络。');
           }
         },
 
@@ -201,13 +133,11 @@
           this.email = this.email.trim();
           if (!this.emailRegex.test(this.email)) {
             this.emailError = true;
-            this.loading = false;
-            alert('登录账号必须是有效的邮箱地址，例如 name@domain.com');
+            SPUI.msg('登录账号必须是有效的邮箱地址，例如 name@domain.com');
             return;
           }
           this.emailError = false;
           this.loading = true;
-          this.statusText = '正在验证账户...';
 
           try {
             const loginResult = await SPanelAPI.request('/auth/login', {
@@ -226,7 +156,7 @@
             localStorage.removeItem('spanel_jwt');
             localStorage.setItem('spanel_user', JSON.stringify(loginResult.data.user));
 
-            this.statusText = '登录成功，正在进入工作台...';
+            SPUI.msg('登录成功，正在进入用户中心...');
             setTimeout(() => {
               const u = loginResult.data.user;
               if (u.isAdmin === true || u.isAdmin === 1 || u.is_admin === 1) {
@@ -234,10 +164,10 @@
               } else {
                 window.location.replace('/user/dashboard.html');
               }
-            }, 500);
+            }, 800);
 
           } catch (err) {
-            alert(err.message || '登录异常，请重试。');
+            SPUI.msg(err.message || '登录异常，请重试。');
             this.refreshCaptcha();
             this.loading = false;
           }

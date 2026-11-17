@@ -1,150 +1,64 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="h-full bg-slate-950 text-slate-100">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>提交工单 - SPanel</title>
+  <title>创建工单 - 精确描述您的问题 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            outfit: ['Outfit', 'sans-serif'],
-            inter: ['Inter', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .glass-card {
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-  </style>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body class="min-h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-100 pb-12" x-data="createTicketPage()">
-  
-    <!-- 顶部导航栏 -->
-  <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50" x-data="{ mobileMenuOpen: false, open: false }">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <!-- Logo 区域 -->
-        <div class="flex items-center space-x-3">
-          <a href="/user/dashboard.html" class="font-outfit text-2xl font-bold bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">SPanel</a>
-          <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20">Member</span>
-        </div>
+<body data-sp-area="user" data-sp-page="tickets" data-sp-active="tickets">
+  <main class="sp-content" x-data="createTicketPage()">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">创建工单 - 精确描述您的问题</h1></div>
+    </div>
 
-        <!-- 桌面端导航链接 (md 级别以上显示) -->
-        <div class="hidden md:flex items-center space-x-6 text-sm">
-          <a href="/user/dashboard.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('dashboard') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-chart-line mr-1.5"></i>控制台</a>
-          <a href="/user/nodes.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('nodes') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-server mr-1.5"></i>节点列表</a>
-          <a href="/user/relay.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('relay') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-route mr-1.5"></i>中转规则</a>
-          <a href="/user/shop.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('shop') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-store mr-1.5"></i>套餐商店</a>
-          <a href="/user/code.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('code.html') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-credit-card mr-1.5"></i>卡密充值</a>
-          <a href="/user/invite.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('invite') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-gift mr-1.5"></i>推广联盟</a>
-          <a href="/user/tickets.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('ticket') ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'"><i class="fa-solid fa-ticket mr-1.5"></i>工单支持</a>
-          
-          <!-- 用户下拉子菜单 -->
-          <div class="relative" @click.away="open = false">
-            <button @click="open = !open" class="transition font-medium whitespace-nowrap focus:outline-none flex items-center" :class="(window.location.pathname.includes('profile') || window.location.pathname.includes('edit')) ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-indigo-400'">
-              <i class="fa-solid fa-user-gear mr-1.5"></i>我的账户<i class="fa-solid fa-chevron-down text-[10px] ml-1 transition" :class="open ? 'rotate-180' : ''"></i>
-            </button>
-            <div class="absolute right-0 mt-2 w-40 rounded-xl bg-slate-900 border border-slate-800 shadow-xl py-1 z-50" x-show="open" x-transition>
-              <template x-if="typeof isAdmin !== 'undefined' ? isAdmin : (localStorage.getItem('spanel_user') && (JSON.parse(localStorage.getItem('spanel_user')).isAdmin || JSON.parse(localStorage.getItem('spanel_user')).is_admin === 1))">
-                <a href="/admin/dashboard.html" class="block px-4 py-2 text-xs text-indigo-400 hover:bg-indigo-950/30 hover:text-indigo-300 transition font-semibold"><i class="fa-solid fa-gauge mr-2"></i>管理后台</a>
-              </template>
-              <template x-if="typeof isAdmin !== 'undefined' ? isAdmin : (localStorage.getItem('spanel_user') && (JSON.parse(localStorage.getItem('spanel_user')).isAdmin || JSON.parse(localStorage.getItem('spanel_user')).is_admin === 1))">
-                <hr class="border-slate-800 my-1">
-              </template>
-              <a href="/user/profile.html" class="block px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-user mr-2"></i>个人中心</a>
-              <a href="/user/edit.html" class="block px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-shield-halved mr-2"></i>安全设置</a>
-              <hr class="border-slate-800 my-1">
-              <button @click="logout" class="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-rose-950/20 transition"><i class="fa-solid fa-right-from-bracket mr-2"></i>退出登录</button>
+    <div class="sp-content-inner">
+      <div class="sp-grid">
+        <div class="sp-col-8">
+
+          <div class="sp-card">
+            <div class="sp-card-title">
+              <i class="mi">confirmation_number</i>提交新客服工单
+              <span class="sp-extra"><a href="/user/tickets.html" class="sp-text-hint" style="font-size:13px;"><i class="mi" style="font-size:14px;">arrow_back</i>返回工单支持中心</a></span>
+            </div>
+            <p class="sp-text-muted" style="font-size:13px;">当您在订阅激活、加速网络延迟排查或财务账单方面遇到疑问时，可在下方描述您遇到的障碍，我们的专员会尽快回复您。</p>
+
+            <div class="sp-field">
+              <input id="title" type="text" placeholder=" " x-model="title">
+              <label for="title">工单标题 (简述您遇到的核心问题)</label>
+              <div class="sp-field-hint">例如: 港澳高速节点连接超时 / 套餐余额充值未到账等</div>
+            </div>
+
+            <div class="sp-field">
+              <textarea id="content" rows="12" placeholder=" " x-model="content"></textarea>
+              <label for="content">详细问题描述</label>
+            </div>
+
+            <div class="sp-alert sp-alert-info">
+              <i class="mi">warning</i>
+              <span><b>提示:</b> 为了让网络工程师能更迅速、精准地为您分析解决障碍，请尽量提供您所使用的操作系统、代理软件全名以及对应的详细节点延迟和报错日志信息。</span>
+            </div>
+
+            <div class="sp-mt-4" style="display:flex;gap:12px;">
+              <a href="/user/tickets.html" class="sp-btn" style="flex:1;">取消</a>
+              <button class="sp-btn sp-btn-brand" style="flex:1;" @click="submitTicket" :disabled="loading">
+                <span x-show="!loading"><i class="mi">send</i>提交工单</span>
+                <span x-show="loading" x-cloak><i class="mi">refresh</i>正在安全提交中...</span>
+              </button>
             </div>
           </div>
-        </div>
 
-        <!-- 移动端汉堡包按钮 (md 以下显示) -->
-        <div class="flex items-center md:hidden">
-          <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-slate-400 hover:text-indigo-400 transition focus:outline-none">
-            <i class="fa-solid text-xl" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
-          </button>
         </div>
       </div>
-    </div>
-
-    <!-- 移动端下拉面板 (md 以下显示) -->
-    <div class="md:hidden bg-slate-950/95 border-b border-slate-800" x-show="mobileMenuOpen" x-transition>
-      <div class="px-4 pt-2 pb-4 space-y-1">
-        <a href="/user/dashboard.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('dashboard') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-chart-line mr-2"></i>控制台</a>
-        <a href="/user/nodes.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('nodes') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-server mr-2"></i>节点列表</a>
-        <a href="/user/relay.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('relay') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-route mr-2"></i>中转规则</a>
-        <a href="/user/shop.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('shop') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-store mr-2"></i>套餐商店</a>
-        <a href="/user/code.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('code.html') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-credit-card mr-2"></i>卡密充值</a>
-        <a href="/user/invite.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('invite') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-gift mr-2"></i>推广联盟</a>
-        <a href="/user/tickets.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('ticket') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-ticket mr-2"></i>工单支持</a>
-        
-        <hr class="border-slate-800 my-2">
-        
-        <div class="px-3 py-1 text-xs font-semibold text-slate-500 uppercase">我的账户</div>
-        <template x-if="localStorage.getItem('spanel_user') && (JSON.parse(localStorage.getItem('spanel_user')).isAdmin || JSON.parse(localStorage.getItem('spanel_user')).is_admin === 1)">
-          <a href="/admin/dashboard.html" class="block px-3 py-2 rounded-xl text-sm font-medium text-indigo-400 hover:bg-slate-900 transition"><i class="fa-solid fa-gauge mr-2"></i>管理后台</a>
-        </template>
-        <a href="/user/profile.html" class="block px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-indigo-400 transition" :class="window.location.pathname.includes('profile') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-user mr-2"></i>个人中心</a>
-        <a href="/user/edit.html" class="block px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-indigo-400 transition" :class="window.location.pathname.includes('edit') ? 'bg-slate-900 text-indigo-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-indigo-400'"><i class="fa-solid fa-shield-halved mr-2"></i>安全设置</a>
-        <button @click="logout" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-rose-400 hover:bg-rose-950/20 transition"><i class="fa-solid fa-right-from-bracket mr-2"></i>退出登录</button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- 主体内容 -->
-  <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
-    <div class="mb-8">
-      <a href="/user/tickets.html" class="text-xs text-indigo-400 hover:text-indigo-300 transition font-medium"><i class="fa-solid fa-arrow-left-long mr-1.5"></i>返回工单支持中心</a>
-      <h2 class="text-2xl font-semibold font-outfit text-white mt-4">提交新客服工单</h2>
-      <p class="text-slate-400 text-sm mt-2">当您在订阅激活、加速网络延迟排查或财务账单方面遇到疑问时，可在下方描述您遇到的障碍，我们的专员会尽快回复您。</p>
-    </div>
-
-    <!-- 创建表单卡片 -->
-    <div class="glass-card p-8 rounded-2xl space-y-6">
-      
-      <div>
-        <label class="block text-slate-300 text-xs font-semibold mb-2">工单标题 (简述您遇到的核心问题)</label>
-        <input type="text" x-model="title" placeholder="例如: 港澳高速节点连接超时 / 套餐余额充值未到账等" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-      </div>
-
-      <div>
-        <label class="block text-slate-300 text-xs font-semibold mb-2">详细问题描述</label>
-        <textarea x-model="content" rows="12" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition font-mono leading-relaxed"></textarea>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-[10px] text-slate-500 leading-relaxed">
-        <i class="fa-solid fa-triangle-exclamation text-indigo-400 mr-1.5"></i> <strong>提示:</strong> 为了让网络工程师能更迅速、精准地为您分析解决障碍，请尽量提供您所使用的操作系统、代理软件全名以及对应的详细节点延迟和报错日志信息。
-      </div>
-
-      <div class="pt-4 flex space-x-3">
-        <a href="/user/tickets.html" class="flex-1 bg-slate-950 border border-slate-800 hover:border-rose-500/30 text-slate-400 rounded-xl py-3 text-xs font-semibold text-center transition">
-          取消
-        </a>
-        <button @click="submitTicket" :disabled="loading" class="flex-1 bg-gradient-to-r from-indigo-500 to-pink-500 text-white rounded-xl py-3 text-xs font-semibold hover:brightness-110 transition active:scale-[0.98]">
-          <span x-show="!loading"><i class="fa-solid fa-paper-plane mr-1.5"></i>提交工单</span>
-          <span x-show="loading"><i class="fa-solid fa-spinner animate-spin"></i> 正在安全提交中...</span>
-        </button>
-      </div>
-
     </div>
   </main>
 
   <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
   <script>
     function createTicketPage() {
       return {
@@ -163,11 +77,11 @@
 
         async submitTicket() {
           if (!this.title.trim()) {
-            alert('请输入工单标题！');
+            SPUI.msg('请输入工单标题！');
             return;
           }
           if (!this.content.trim()) {
-            alert('请提供具体的工单内容描述！');
+            SPUI.msg('请提供具体的工单内容描述！');
             return;
           }
           this.loading = true;
@@ -179,10 +93,11 @@
                 content: this.content.trim()
               })
             });
-            alert(res.message || '工单已提交成功，客服会尽快处理您的诉求。');
-            window.location.replace('/user/tickets.html');
+            SPUI.msg(res.message || '工单已提交成功，客服会尽快处理您的诉求。', () => {
+              window.location.replace('/user/tickets.html');
+            });
           } catch(err) {
-            alert(err.message || '工单提交失败，请稍后再试。');
+            SPUI.msg(err.message || '工单提交失败，请稍后再试。');
           } finally {
             this.loading = false;
           }

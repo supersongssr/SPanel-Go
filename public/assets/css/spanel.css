@@ -1,0 +1,488 @@
+/* ============================================================================
+ * SPanel Design System  —  方案 C "熟悉的骨架, 干净的皮肤"
+ * ----------------------------------------------------------------------------
+ * 视觉基线: 旧版 /var/www/SPanel Material 主题 (浅色 / 橙色顶栏 / 左抽屉 / 白卡片)
+ * 全站唯一样式来源。页面内禁止私写样式/内联色彩, 新需求一律扩充本文件。
+ * 图标: 配套 material-icons.css (<i class="mi">icon_name</i> 连字)
+ * ========================================================================== */
+
+/* ---------- 1. Tokens (换肤/暗色模式未来只改这里) ---------- */
+:root {
+  /* 品牌色: 沿用旧版 —— 用户区强调橙, 主按钮靛蓝 (与旧 btn-brand 一致) */
+  --sp-primary: #ff9800;          /* 用户区: 顶栏 / 标题带 / 菜单激活 */
+  --sp-primary-dark: rgba(0, 0, 0, 0.87); /* 橙底上的文字色 (旧版同) */
+  --sp-brand: #3f51b5;            /* 主按钮 / 链接 / 表单聚焦 (旧 indigo 500) */
+  --sp-brand-dark: #303f9f;
+  --sp-auth-bg: #3f51b5;          /* /auth 页底色 (旧 page-brand) */
+
+  --sp-bg: #f5f5f5;               /* 页面底 */
+  --sp-surface: #ffffff;          /* 卡片面 */
+  --sp-text: #212121;
+  --sp-text-2nd: #727272;
+  --sp-hint: rgba(0, 0, 0, 0.38);
+  --sp-border: #dadada;
+  --sp-divider: #e5e5e5;
+
+  --sp-success: #4caf50;  --sp-danger: #f44336;  --sp-warn: #ff9800;  --sp-info: #2196f3;
+
+  /* 圆角: 全站卡片 4px / 按钮 2px (Material 比例), 杜绝多档并存 */
+  --sp-radius: 4px;
+  --sp-radius-btn: 2px;
+
+  /* 间距阶 (4 的倍数) */
+  --sp-gap-1: 4px;  --sp-gap-2: 8px;  --sp-gap-3: 12px;  --sp-gap-4: 16px;
+  --sp-gap-5: 20px; --sp-gap-6: 24px; --sp-gap-8: 32px; --sp-gap-10: 40px;
+
+  /* 阴影 (旧版 card 阴影复刻) */
+  --sp-shadow-1: 0 -1px 0 #e5e5e5, 0 0 2px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.24);
+  --sp-shadow-2: 0 1px 30px rgba(0, 0, 0, 0.5);          /* modal */
+  --sp-shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+
+  --sp-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC",
+             "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --sp-mono: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+
+  --sp-header-h: 56px;            /* 顶栏高 (旧版 56px) */
+  --sp-drawer-w: 240px;           /* 左抽屉宽 (旧 nav-drawer-md) */
+}
+
+/* ---------- 2. Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--sp-font);
+  font-size: 14px;
+  line-height: 1.5715;
+  color: var(--sp-text);
+  background: var(--sp-bg);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--sp-brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: 400; }
+p { margin: 0 0 var(--sp-gap-3); }
+ul, ol { margin: 0; padding: 0; }
+img { max-width: 100%; border: 0; }
+button { font-family: inherit; }
+code, kbd { font-family: var(--sp-mono); font-size: 12px; background: #eceff1; padding: 2px 6px; border-radius: 3px; }
+pre { background: #eceff1; padding: var(--sp-gap-3); border-radius: var(--sp-radius); overflow: auto; }
+pre code { background: none; padding: 0; }
+[x-cloak] { display: none !important; }
+
+.sp-container { max-width: 1280px; margin: 0 auto; padding: 0 var(--sp-gap-4); }
+.sp-text-muted { color: var(--sp-text-2nd); }
+.sp-text-hint { color: var(--sp-hint); }
+.sp-text-danger { color: var(--sp-danger); }
+.sp-text-success { color: var(--sp-success); }
+.sp-mt-2 { margin-top: var(--sp-gap-2); } .sp-mt-4 { margin-top: var(--sp-gap-4); }
+.sp-mt-6 { margin-top: var(--sp-gap-6); } .sp-mb-6 { margin-bottom: var(--sp-gap-6); }
+.sp-pull-right { float: right; }
+.sp-break-all { word-break: break-all; }
+
+/* ---------- 3. 顶栏 (橙色, 复刻旧 header-orange) ---------- */
+.sp-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+  height: var(--sp-header-h);
+  background: var(--sp-primary);
+  color: var(--sp-primary-dark);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+.sp-header-inner {
+  max-width: 1280px; margin: 0 auto; height: 100%;
+  padding: 0 var(--sp-gap-4);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sp-header-left { display: flex; align-items: center; min-width: 0; }
+.sp-header-menu-btn {
+  color: inherit; background: none; border: 0; cursor: pointer;
+  padding: var(--sp-gap-2); margin-left: calc(var(--sp-gap-2) * -1);
+  display: none; /* 移动端才显示 */
+}
+.sp-header-menu-btn .mi { font-size: 24px; }
+.sp-header-logo {
+  color: inherit; font-size: 20px; font-weight: 300;
+  display: flex; align-items: center; gap: var(--sp-gap-2);
+  text-decoration: none !important; white-space: nowrap;
+}
+.sp-header-logo .mi { font-size: 22px; }
+
+/* 右侧用户下拉 (复刻旧 account_circle dropdown) */
+.sp-header-user { position: relative; }
+.sp-header-user-toggle {
+  background: none; border: 0; cursor: pointer; color: inherit;
+  display: flex; align-items: center; gap: var(--sp-gap-2);
+  font-size: 14px; padding: var(--sp-gap-2) var(--sp-gap-3);
+  border-radius: var(--sp-radius-btn);
+}
+.sp-header-user-toggle:hover { background: rgba(0, 0, 0, 0.08); }
+.sp-header-user-toggle .mi { font-size: 24px; }
+.sp-header-user-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-dropdown {
+  position: absolute; right: 0; top: calc(100% + 6px); min-width: 168px;
+  background: var(--sp-surface); color: var(--sp-text);
+  border-radius: var(--sp-radius); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  padding: var(--sp-gap-2) 0; display: none; z-index: 50;
+}
+.sp-dropdown.open { display: block; }
+.sp-dropdown a, .sp-dropdown button {
+  display: flex; align-items: center; gap: var(--sp-gap-3);
+  width: 100%; text-align: left; padding: var(--sp-gap-3) var(--sp-gap-4);
+  color: var(--sp-text); background: none; border: 0; cursor: pointer;
+  font-size: 14px; text-decoration: none !important;
+}
+.sp-dropdown a:hover, .sp-dropdown button:hover { background: var(--sp-bg); }
+.sp-dropdown .mi { font-size: 20px; color: var(--sp-text-2nd); }
+.sp-dropdown .sp-dd-danger { color: var(--sp-danger); }
+.sp-dropdown .sp-dd-danger .mi { color: var(--sp-danger); }
+
+/* ---------- 4. 左侧抽屉 (复刻旧 nav-drawer-md + menu-collapse) ---------- */
+.sp-drawer {
+  position: fixed; top: var(--sp-header-h); left: 0; bottom: 0;
+  width: var(--sp-drawer-w); z-index: 35;
+  background: var(--sp-surface);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.28);
+  overflow-y: auto; overscroll-behavior: contain;
+  transition: transform 0.25s ease;
+}
+.sp-drawer-mask {
+  position: fixed; inset: 0; z-index: 34; background: rgba(0, 0, 0, 0.44);
+  display: none;
+}
+.sp-drawer-logo {
+  display: flex; align-items: center; gap: var(--sp-gap-2);
+  padding: var(--sp-gap-4); font-size: 20px; font-weight: 300;
+  color: var(--sp-text); border-bottom: 1px solid var(--sp-border);
+  text-decoration: none !important;
+}
+.sp-drawer-logo .mi { font-size: 22px; }
+.sp-drawer-nav { list-style: none; padding: var(--sp-gap-2) 0 var(--sp-gap-6); }
+.sp-drawer-group-title {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-gap-3) var(--sp-gap-4); font-size: 14px; font-weight: 500;
+  color: var(--sp-text); cursor: pointer; user-select: none;
+}
+.sp-drawer-group-title:hover { background: var(--sp-bg); }
+.sp-drawer-group-title .sp-arrow { transition: transform 0.2s; font-size: 18px; color: var(--sp-hint); }
+.sp-drawer-group.collapsed .sp-arrow { transform: rotate(-90deg); }
+.sp-drawer-group.collapsed .sp-drawer-sub { display: none; }
+.sp-drawer-sub { list-style: none; }
+.sp-drawer-sub a {
+  display: flex; align-items: center; gap: var(--sp-gap-2);
+  min-height: 40px; padding: var(--sp-gap-2) var(--sp-gap-4) var(--sp-gap-2) 20px;
+  color: var(--sp-text); font-size: 14px; font-weight: 400;
+  text-decoration: none !important;
+}
+.sp-drawer-sub a .mi { font-size: 20px; color: var(--sp-text-2nd); }
+.sp-drawer-sub a:hover { background: var(--sp-bg); }
+.sp-drawer-sub a.active { color: var(--sp-primary); font-weight: 500; }
+.sp-drawer-sub a.active .mi { color: var(--sp-primary); }
+.sp-drawer-extra { padding: var(--sp-gap-3) var(--sp-gap-4); border-top: 1px solid var(--sp-divider); }
+.sp-drawer-extra a { display: flex; align-items: center; gap: var(--sp-gap-2); color: var(--sp-text); text-decoration: none !important; }
+.sp-drawer-extra a:hover { color: var(--sp-primary); }
+
+/* ---------- 5. 内容区骨架 (复刻旧 content / content-header) ---------- */
+.sp-content {
+  min-height: 100vh;
+  padding-top: var(--sp-header-h);
+  display: flex; flex-direction: column;
+}
+.sp-content-body { display: flex; flex: 1; }          /* 内含抽屉占位 */
+.sp-drawer-holder { width: var(--sp-drawer-w); flex: none; } /* 桌面端占位 (抽屉 fixed) */
+.sp-content-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.sp-content-header {
+  background: var(--sp-primary);
+  color: var(--sp-primary-dark);
+  padding: var(--sp-gap-3) 0;
+}
+.sp-content-heading { font-size: 24px; font-weight: 300; line-height: 32px; margin: 0; }
+.sp-content-inner { padding: var(--sp-gap-6) var(--sp-gap-4) var(--sp-gap-10); width: 100%; max-width: 1280px; margin: 0 auto; flex: 1; }
+.sp-content-sub-heading { font-size: 20px; font-weight: 500; color: var(--sp-primary); line-height: 28px; }
+
+/* ---------- 6. 栅格 (复刻旧 col-xx-12 col-lg-3 网格观感) ---------- */
+.sp-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--sp-gap-6); }
+.sp-col-12 { grid-column: span 12; }
+.sp-col-9  { grid-column: span 9; }
+.sp-col-8  { grid-column: span 8; }
+.sp-col-6  { grid-column: span 6; }
+.sp-col-4  { grid-column: span 4; }
+.sp-col-3  { grid-column: span 3; }
+
+/* ---------- 7. 卡片 (复刻旧 .card: 白面 2px 圆角浮层阴影) ---------- */
+.sp-card {
+  background: var(--sp-surface);
+  border-radius: var(--sp-radius);
+  box-shadow: var(--sp-shadow-1);
+  padding: var(--sp-gap-6);
+}
+.sp-card-title { display: flex; align-items: center; gap: var(--sp-gap-2); font-size: 16px; font-weight: 500; margin-bottom: var(--sp-gap-4); }
+.sp-card-title .mi { color: var(--sp-primary); font-size: 22px; }
+.sp-card-title .sp-extra { margin-left: auto; font-size: 13px; font-weight: 400; }
+
+/* 仪表盘统计卡 (复刻旧 user-info 卡: 名称+角标+数值+彩圈图标+底注) */
+.sp-stat { display: flex; flex-direction: column; justify-content: space-between; }
+.sp-stat-head { display: flex; align-items: flex-start; justify-content: space-between; }
+.sp-stat-name { font-size: 16px; }
+.sp-stat-value { font-size: 24px; font-weight: 500; padding: var(--sp-gap-2) 0; }
+.sp-stat-value small { font-size: 13px; font-weight: 400; color: var(--sp-text-2nd); }
+.sp-stat-foot {
+  border-top: 1px solid var(--sp-divider); margin-top: var(--sp-gap-3);
+  padding-top: var(--sp-gap-3); font-size: 12px; color: var(--sp-text-2nd);
+  display: flex; align-items: center; gap: var(--sp-gap-2);
+}
+.sp-stat-foot .mi { font-size: 20px; }
+.sp-stat-icon {
+  width: 56px; height: 56px; border-radius: 50%; flex: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.sp-stat-icon .mi { font-size: 30px; color: #fff; }
+.sp-stat-icon.red    { background: #fb6340; }
+.sp-stat-icon.green  { background: #88de5e; }
+.sp-stat-icon.yellow { background: #ffd600; }
+.sp-stat-icon.blue   { background: #11cdef; }
+
+/* 角标 (复刻旧 card-tag tag-orange/tag-green 升级/充值) */
+.sp-tag {
+  display: inline-block; padding: 1px 10px; border-radius: 12px;
+  font-size: 12px; line-height: 20px; white-space: nowrap; text-decoration: none !important;
+}
+.sp-tag-orange { background: #ffe0b2; color: #e65100; }
+.sp-tag-green  { background: #c8e6c9; color: #1b5e20; }
+.sp-tag-blue   { background: #bbdefb; color: #0d47a1; }
+.sp-tag-red    { background: #ffcdd2; color: #b71c1c; }
+.sp-tag-yellow { background: #fff9c4; color: #f57f17; }
+.sp-tag-grey   { background: #eeeeee; color: #616161; }
+
+/* 状态圆点 */
+.sp-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.sp-dot.green { background: var(--sp-success); }
+.sp-dot.red   { background: var(--sp-danger); }
+.sp-dot.yellow{ background: var(--sp-warn); }
+.sp-dot.grey  { background: #bdbdbd; }
+
+/* ---------- 8. 按钮 (复刻旧 .btn: 2px 圆角浮起) ---------- */
+.sp-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-gap-2);
+  background-color: rgba(154, 154, 154, 0.18);
+  border: 0; border-radius: var(--sp-radius-btn);
+  box-shadow: var(--sp-shadow-btn);
+  color: var(--sp-text); font-size: 14px; line-height: 20px;
+  padding: 8px 16px; cursor: pointer; text-decoration: none !important;
+  transition: box-shadow 0.2s, background-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sp-btn:hover { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
+.sp-btn:active { box-shadow: none; }
+.sp-btn:disabled, .sp-btn.disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+.sp-btn .mi { font-size: 18px; }
+.sp-btn-brand { background: var(--sp-brand); color: #fff !important; }
+.sp-btn-brand:hover { background: var(--sp-brand-dark); }
+.sp-btn-primary { background: var(--sp-primary); color: var(--sp-primary-dark) !important; }
+.sp-btn-danger { background: var(--sp-danger); color: #fff !important; }
+.sp-btn-success { background: var(--sp-success); color: #fff !important; }
+.sp-btn-flat { background: transparent; box-shadow: none; color: var(--sp-brand); }
+.sp-btn-flat:hover { background: rgba(63, 81, 181, 0.08); box-shadow: none; }
+.sp-btn-block { display: flex; width: 100%; }
+.sp-btn-sm { padding: 4px 10px; font-size: 13px; }
+.sp-btn-lg { padding: 10px 22px; font-size: 15px; }
+
+/* ---------- 9. 表单 (复刻旧 floating-label 浮动标签) ---------- */
+.sp-field { position: relative; margin: var(--sp-gap-4) 0 var(--sp-gap-5); }
+.sp-field > input, .sp-field > textarea, .sp-field > select {
+  width: 100%; border: 0; border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  background: transparent; outline: none; resize: vertical;
+  font-family: inherit; font-size: 14px; line-height: 20px; color: var(--sp-text);
+  padding: 8px 0 7px;
+}
+.sp-field > input:focus, .sp-field > textarea:focus, .sp-field > select:focus {
+  border-bottom: 2px solid var(--sp-brand); padding-bottom: 6px;
+}
+.sp-field > label {
+  position: absolute; top: 11px; left: 0; pointer-events: none;
+  color: var(--sp-hint); font-size: 14px; line-height: 1;
+  transform-origin: 0 0; transition: transform 0.2s, color 0.2s;
+}
+.sp-field > input:focus ~ label,
+.sp-field > input:not(:placeholder-shown) ~ label,
+.sp-field > textarea:focus ~ label,
+.sp-field > textarea:not(:placeholder-shown) ~ label,
+.sp-field > select:focus ~ label,
+.sp-field > select.sp-has-value ~ label {
+  transform: translateY(-20px) scale(0.8); color: var(--sp-brand);
+}
+.sp-field .sp-field-hint { font-size: 12px; color: var(--sp-hint); margin-top: var(--sp-gap-1); }
+
+/* 普通横排表单行 (设置页大量使用) */
+.sp-form-row { margin-bottom: var(--sp-gap-5); }
+.sp-form-row > label.sp-form-label { display: block; font-size: 13px; color: var(--sp-text-2nd); margin-bottom: var(--sp-gap-1); }
+.sp-input, .sp-select, .sp-textarea {
+  width: 100%; border: 1px solid var(--sp-border); border-radius: var(--sp-radius);
+  background: var(--sp-surface); color: var(--sp-text);
+  font-family: inherit; font-size: 14px; line-height: 20px;
+  padding: 8px 12px; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.sp-input:focus, .sp-select:focus, .sp-textarea:focus {
+  border-color: var(--sp-brand); box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.12);
+}
+.sp-input::placeholder { color: var(--sp-hint); }
+.sp-input-sm { padding: 4px 8px; font-size: 13px; width: auto; }
+
+/* 复选框 */
+.sp-check { display: inline-flex; align-items: center; gap: var(--sp-gap-2); cursor: pointer; user-select: none; }
+.sp-check input { width: 16px; height: 16px; accent-color: var(--sp-brand); cursor: pointer; }
+
+/* 开关 */
+.sp-switch { position: relative; display: inline-block; width: 40px; height: 20px; flex: none; }
+.sp-switch input { opacity: 0; width: 0; height: 0; }
+.sp-switch i {
+  position: absolute; inset: 0; background: #bdbdbd; border-radius: 10px;
+  transition: 0.2s; cursor: pointer;
+}
+.sp-switch i::after {
+  content: ""; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px;
+  background: #fff; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.sp-switch input:checked + i { background: var(--sp-brand); }
+.sp-switch input:checked + i::after { transform: translateX(20px); }
+
+/* ---------- 10. 表格 (复刻旧 .table: 白面浮层 + 分隔线) ---------- */
+.sp-table-wrap { background: var(--sp-surface); border-radius: var(--sp-radius); box-shadow: var(--sp-shadow-1); overflow: auto; }
+.sp-table { width: 100%; border-collapse: collapse; background: var(--sp-surface); font-size: 14px; }
+.sp-table th, .sp-table td { text-align: left; padding: 13px 16px 14px; border-top: 1px solid #eee; white-space: nowrap; }
+.sp-table th { border-top: 0; color: var(--sp-text-2nd); font-weight: 500; font-size: 13px; }
+.sp-table tbody tr:hover { background: #fafafa; }
+.sp-table td.sp-wrap { white-space: normal; min-width: 200px; }
+.sp-table .sp-num { font-family: var(--sp-mono); font-size: 13px; }
+
+/* ---------- 11. 弹窗 (复刻旧 #result modal "知道了") ---------- */
+.sp-modal { position: fixed; inset: 0; z-index: 90; display: none; }
+.sp-modal.show { display: block; }
+.sp-modal-mask { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); }
+.sp-modal-dialog {
+  position: relative; margin: 96px auto 0; max-width: 360px; width: calc(100% - 32px);
+  background: var(--sp-surface); border-radius: var(--sp-radius);
+  box-shadow: var(--sp-shadow-2); animation: spModalIn 0.2s ease;
+}
+.sp-modal-inner { padding: var(--sp-gap-6); font-size: 15px; line-height: 24px; }
+.sp-modal-footer { padding: 0 var(--sp-gap-4) var(--sp-gap-4); text-align: right; }
+@keyframes spModalIn { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }
+
+/* Toast 轻提示 (替代旧站无对应 / 新站 alert 的次要反馈) */
+.sp-toast {
+  position: fixed; left: 50%; bottom: 48px; transform: translateX(-50%) translateY(20px);
+  background: #323232; color: #fff; font-size: 13px; line-height: 20px;
+  padding: 10px 18px; border-radius: var(--sp-radius); z-index: 95;
+  opacity: 0; pointer-events: none; transition: 0.25s; max-width: 86vw;
+}
+.sp-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.sp-toast .mi { font-size: 16px; margin-right: 6px; vertical-align: -3px; }
+.sp-toast.success .mi { color: #81c784; }
+.sp-toast.error .mi { color: #e57373; }
+
+/* ---------- 12. 提示条 / 空态 / 进度 / 标签页 / 分页 ---------- */
+.sp-alert { display: flex; gap: var(--sp-gap-2); align-items: flex-start; padding: var(--sp-gap-3) var(--sp-gap-4); border-radius: var(--sp-radius); font-size: 13px; margin-bottom: var(--sp-gap-4); }
+.sp-alert .mi { font-size: 18px; margin-top: 1px; }
+.sp-alert-info    { background: #e3f2fd; color: #0d47a1; }
+.sp-alert-success { background: #e8f5e9; color: #1b5e20; }
+.sp-alert-danger  { background: #ffebee; color: #b71c1c; }
+.sp-alert-warn    { background: #fff8e1; color: #e65100; }
+
+.sp-empty { text-align: center; padding: var(--sp-gap-10) var(--sp-gap-4); color: var(--sp-hint); }
+.sp-empty .mi { font-size: 44px; display: block; margin-bottom: var(--sp-gap-3); color: #cfcfcf; }
+
+.sp-progress { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+.sp-progress > i { display: block; height: 100%; background: var(--sp-brand); border-radius: 4px; transition: width 0.6s ease; }
+.sp-progress.sp-progress-orange > i { background: var(--sp-primary); }
+.sp-progress.sp-progress-green > i { background: var(--sp-success); }
+.sp-progress.sp-progress-red > i { background: var(--sp-danger); }
+
+.sp-tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--sp-divider); gap: var(--sp-gap-1); }
+.sp-tab {
+  background: none; border: 0; cursor: pointer; padding: 10px 16px;
+  font-size: 14px; font-weight: 500; color: var(--sp-text-2nd);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  display: inline-flex; align-items: center; gap: var(--sp-gap-2);
+}
+.sp-tab .mi { font-size: 18px; }
+.sp-tab:hover { color: var(--sp-text); }
+.sp-tab.active { color: var(--sp-brand); border-bottom-color: var(--sp-brand); }
+
+.sp-chip {
+  display: inline-flex; align-items: center; gap: var(--sp-gap-2);
+  border: 1px solid var(--sp-border); background: var(--sp-surface);
+  color: var(--sp-text-2nd); border-radius: 16px; padding: 5px 14px;
+  font-size: 13px; cursor: pointer; transition: 0.15s;
+}
+.sp-chip:hover { border-color: var(--sp-brand); color: var(--sp-brand); }
+.sp-chip.active { background: var(--sp-brand); border-color: var(--sp-brand); color: #fff; }
+
+.sp-pagination { display: flex; gap: var(--sp-gap-2); align-items: center; justify-content: center; padding: var(--sp-gap-4) 0 var(--sp-gap-2); }
+.sp-pagination button { background: none; border: 1px solid var(--sp-border); border-radius: var(--sp-radius-btn); min-width: 32px; height: 32px; padding: 0 8px; cursor: pointer; color: var(--sp-text-2nd); }
+.sp-pagination button.on { background: var(--sp-brand); border-color: var(--sp-brand); color: #fff; }
+.sp-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 步骤列表 (教程) */
+.sp-steps { padding-left: 22px; margin: 0; }
+.sp-steps li { margin-bottom: var(--sp-gap-2); }
+.sp-steps li::marker { color: var(--sp-brand); font-weight: 600; }
+
+/* ---------- 13. /auth 认证页 (复刻旧 page-brand + auth-main 白卡) ---------- */
+body.sp-auth-body { background: var(--sp-auth-bg); min-height: 100vh; display: flex; flex-direction: column; }
+.sp-authpage { margin: 60px 0; flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 0 var(--sp-gap-4); }
+.sp-auth-main {
+  width: 100%; max-width: 420px;
+  background: #fff; border-radius: 15px;
+  box-shadow: 0 0 7px 1px #c5c5c5;
+}
+.sp-auth-top {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  background: #bbdefb; border-radius: 15px 15px 0 0;
+  padding: 0 var(--sp-gap-4);
+}
+.sp-auth-logo { padding: var(--sp-gap-3) 0; }
+.sp-auth-logo img { display: block; max-height: 96px; width: auto; }
+.sp-board-btn {
+  display: block; color: #fff; background: #54aff9;
+  padding: 3px 1.5em 2px; font-size: 14px;
+  box-shadow: 0 0 5px 0 #969696; text-decoration: none !important;
+}
+.sp-board-btn:hover { background: #3d9bf7; }
+.sp-board-btn.sp-left  { border-radius: 0 10px 0 0; margin-bottom: var(--sp-gap-4); }
+.sp-board-btn.sp-right { border-radius: 10px 0 0 0; margin-bottom: var(--sp-gap-4); text-align: center; }
+.sp-auth-body { padding: var(--sp-gap-2) 2em var(--sp-gap-6); }
+.sp-auth-btn { margin: var(--sp-gap-6) 0 0; }
+.sp-auth-help { display: flex; justify-content: space-between; align-items: center; margin: var(--sp-gap-3) 2px 0; font-size: 13px; }
+.sp-auth-links { text-align: center; margin-top: var(--sp-gap-4); font-size: 13px; color: var(--sp-text-2nd); }
+.sp-auth-captcha { display: flex; align-items: flex-end; gap: var(--sp-gap-3); }
+.sp-auth-captcha .sp-field { flex: 1; margin-bottom: 0; }
+.sp-auth-captcha img, .sp-auth-captcha .sp-captcha-svg { height: 42px; cursor: pointer; border-radius: var(--sp-radius); border: 1px solid var(--sp-divider); background: #fff; }
+
+/* ---------- 14. 页脚 (复刻旧 ui-footer marquee, CSS 动画实现) ---------- */
+.sp-footer { background: var(--sp-bg); border-top: 1px solid var(--sp-divider); padding: var(--sp-gap-3) 0; overflow: hidden; }
+.sp-footer .sp-container { display: flex; align-items: center; justify-content: center; }
+.sp-marquee { white-space: nowrap; display: inline-block; padding-left: 100%; animation: spMarquee 24s linear infinite; color: var(--sp-text-2nd); font-size: 13px; }
+.sp-marquee a { color: var(--sp-text-2nd); }
+@keyframes spMarquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+/* ---------- 15. 响应式 (复刻旧 nav-drawer-md: 桌面常驻 / 移动抽屉) ---------- */
+@media (max-width: 991px) {
+  .sp-drawer { transform: translateX(-100%); top: 0; z-index: 60; }
+  .sp-drawer.open { transform: translateX(0); }
+  .sp-drawer-mask.show { display: block; }
+  .sp-drawer-holder { display: none; }
+  .sp-header-menu-btn { display: inline-flex; }
+  .sp-col-3, .sp-col-4 { grid-column: span 6; }
+  .sp-col-8, .sp-col-9 { grid-column: span 12; }
+}
+@media (max-width: 600px) {
+  .sp-col-3, .sp-col-4, .sp-col-6 { grid-column: span 12; }
+  .sp-content-inner { padding: var(--sp-gap-4) var(--sp-gap-3) var(--sp-gap-8); }
+  .sp-card { padding: var(--sp-gap-4); }
+  .sp-header-user-name { display: none; }
+  .sp-table th, .sp-table td { padding: 10px 10px 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-marquee { animation: none; padding-left: 0; }
+  .sp-modal-dialog { animation: none; }
+}

@@ -1,54 +1,28 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="h-full bg-slate-950 text-slate-100">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>404 - 找不到指定资源 | SPanel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            outfit: ['Outfit', 'sans-serif'],
-            inter: ['Inter', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .neon-glow {
-      text-shadow: 0 0 10px rgba(99, 102, 241, 0.5), 0 0 40px rgba(236, 72, 153, 0.3);
-    }
-  </style>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
 </head>
-<body class="h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-100 flex flex-col items-center justify-center p-6 text-center select-none overflow-hidden relative">
-  
-  <!-- 背景装饰光环 -->
-  <div class="absolute w-[350px] h-[350px] bg-indigo-500/5 blur-[90px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-  
-  <div class="space-y-6 relative max-w-md">
-    <div class="w-20 h-20 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center mx-auto animate-bounce duration-1000">
-      <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+<body data-sp-area="auth" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;">
+  <div class="sp-card" style="max-width:420px;width:100%;text-align:center;">
+    <div style="display:flex;justify-content:center;margin-bottom:8px;">
+      <i class="mi sp-text-danger" style="font-size:56px;">report_problem</i>
     </div>
-    
-    <h1 class="text-7xl font-extrabold font-outfit text-white neon-glow tracking-widest">404</h1>
-    
-    <div class="space-y-2">
-      <h3 class="text-lg font-semibold text-slate-200">未能在星海中找到此路由资源</h3>
-      <p class="text-xs text-slate-500 leading-relaxed">您请求的网络访问端点路径并不存在，或者可能已被管理员进行了物理结构调整迁移。请核实输入地址后重试。</p>
-    </div>
-
-    <div class="pt-6">
-      <a href="/" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-pink-500 hover:brightness-110 text-white px-8 py-3 rounded-xl text-xs font-bold transition active:scale-[0.98] shadow-lg shadow-indigo-500/20">
-        <i class="fa-solid fa-house mr-1"></i> 返回系统主页门户
-      </a>
-    </div>
+    <div style="font-size:72px;font-weight:700;line-height:1.1;">404</div>
+    <div style="font-size:17px;font-weight:500;margin-top:12px;">未能在星海中找到此路由资源</div>
+    <p class="sp-text-muted" style="font-size:13px;line-height:1.8;margin-top:8px;">
+      您请求的网络访问端点路径并不存在，或者可能已被管理员进行了物理结构调整迁移。请核实输入地址后重试。
+    </p>
+    <a href="/" class="sp-btn sp-btn-brand sp-btn-block sp-mt-6"><i class="mi">home</i>返回系统主页门户</a>
   </div>
 
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
 </body>
 </html>

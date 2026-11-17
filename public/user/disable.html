@@ -1,89 +1,81 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="h-full bg-slate-950 text-slate-100">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>账户被禁 - SPanel</title>
+  <title>虚空之地 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            outfit: ['Outfit', 'sans-serif'],
-            inter: ['Inter', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .glass-card {
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-  </style>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
 </head>
+<body data-sp-area="user" data-sp-page="disable">
+  <main class="sp-content" x-data="disablePage()">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">虚空之地</h1></div>
+    </div>
 
-<body class="min-h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-100" x-data="disablePage()">
+    <div class="sp-content-inner">
+      <div class="sp-grid">
+        <div class="sp-col-8">
 
-  <!-- 主体内容: 被禁引导页 (全屏居中卡片, 无导航) -->
-  <main class="min-h-screen flex items-center justify-center px-4 py-12">
-    <div class="glass-card p-8 rounded-3xl max-w-md w-full relative overflow-hidden">
-      <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-rose-500/10 blur-[60px] rounded-full"></div>
+          <!-- 账户保护说明 (复刻旧版 disable.tpl 信息结构) -->
+          <div class="sp-card">
+            <div class="sp-card-title"><i class="mi">gpp_bad</i>您被系统启用了账户保护</div>
+            <p style="font-size:13px;">可能原因如下：</p>
+            <ol class="sp-steps">
+              <li>账号长期未使用，需要重新激活。</li>
+              <li>订阅请求来源异常，疑似账号泄露，启用账号保护。</li>
+              <li>账号流量异常，启用账号保护。</li>
+              <li>账号ip数异常，启用账号保护。</li>
+              <li>您的账号余额 &lt; 0，被系统自动禁用。</li>
+              <li>其他违反注册协议的行为，疑似被盗。</li>
+            </ol>
+            <p style="font-size:13px;">您可以自助解除账号保护。</p>
 
-      <div class="flex items-center space-x-4 mb-6">
-        <div class="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-400 flex-shrink-0">
-          <i class="fa-solid fa-ban text-xl"></i>
-        </div>
-        <div>
-          <h2 class="text-xl font-semibold font-outfit text-white">账户已被禁用</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Account Suspended</p>
+            <!-- 禁用原因提示 (warming) -->
+            <div class="sp-alert sp-alert-warn sp-mt-4">
+              <i class="mi">warning</i>
+              <span x-text="info.warming || '账户已被禁用，请联系客服'"></span>
+            </div>
+          </div>
+
+          <!-- 账号信息 -->
+          <div class="sp-card sp-mt-6">
+            <div class="sp-card-title"><i class="mi">account_box</i>账号信息</div>
+            <div class="sp-form-row" style="display:flex;justify-content:space-between;">
+              <span class="sp-text-muted">账户邮箱</span>
+              <span class="sp-break-all" x-text="info.email || '-'"></span>
+            </div>
+            <div class="sp-form-row" style="display:flex;justify-content:space-between;">
+              <span class="sp-text-muted">用户名</span>
+              <span x-text="info.user_name || '-'"></span>
+            </div>
+            <div class="sp-form-row" style="display:flex;justify-content:space-between;margin-bottom:0;">
+              <span class="sp-text-muted">累计被封次数</span>
+              <span class="sp-tag sp-tag-red" x-text="info.ban_times ?? '-'"></span>
+            </div>
+          </div>
+
+          <!-- 自助解封 -->
+          <div class="sp-card sp-mt-6">
+            <button class="sp-btn sp-btn-brand sp-btn-block sp-btn-lg" @click="reactive" :disabled="reactiving">
+              <span x-show="!reactiving"><i class="mi">lock_open</i>取消账户保护 (自助解封)</span>
+              <span x-show="reactiving" x-cloak><i class="mi">refresh</i>解封中...</span>
+            </button>
+            <p class="sp-text-hint" style="font-size:12px;text-align:center;">
+              <a href="/auth/logout.html"><i class="mi">exit_to_app</i>退出登录</a>
+            </p>
+          </div>
+
         </div>
       </div>
-
-      <!-- 禁用原因提示 (warming) -->
-      <div class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs leading-relaxed mb-6 flex items-start">
-        <i class="fa-solid fa-triangle-exclamation text-base mr-2.5 mt-0.5 flex-shrink-0"></i>
-        <span x-text="info.warming || '账户已被禁用，请联系客服'"></span>
-      </div>
-
-      <!-- 账号信息 -->
-      <div class="bg-slate-950/60 border border-slate-900 rounded-2xl p-5 space-y-3 mb-6">
-        <div class="flex justify-between text-xs py-1 border-b border-slate-800/50">
-          <span class="text-slate-500">账户邮箱</span>
-          <span class="text-slate-300 font-mono" x-text="info.email || '-'"></span>
-        </div>
-        <div class="flex justify-between text-xs py-1 border-b border-slate-800/50">
-          <span class="text-slate-500">用户名</span>
-          <span class="text-slate-300" x-text="info.user_name || '-'"></span>
-        </div>
-        <div class="flex justify-between text-xs py-1">
-          <span class="text-slate-500">累计被封次数</span>
-          <span class="text-rose-400 font-bold font-outfit" x-text="info.ban_times ?? '-'"></span>
-        </div>
-      </div>
-
-      <!-- 自助解封 -->
-      <button @click="reactive" :disabled="reactiving" class="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white rounded-xl py-3 text-sm font-semibold hover:brightness-110 transition disabled:opacity-60">
-        <span x-show="!reactiving"><i class="fa-solid fa-unlock-keyhole mr-1.5"></i>自助解封</span>
-        <span x-show="reactiving"><i class="fa-solid fa-spinner animate-spin mr-1"></i>解封中...</span>
-      </button>
-
-      <p class="text-center mt-6">
-        <a href="/user/logout" class="text-slate-500 hover:text-slate-300 text-xs transition"><i class="fa-solid fa-right-from-bracket mr-1"></i>退出登录</a>
-      </p>
     </div>
   </main>
 
   <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
   <script>
     function disablePage() {
       return {
@@ -95,22 +87,24 @@
             const res = await SPanelAPI.request('/user/disable');
             this.info = res.data || {};
           } catch (err) {
-            alert(err.message);
+            SPUI.msg(err.message);
           }
         },
 
         async reactive() {
-          if (!confirm('确定要尝试自助解封账户吗？')) return;
-          this.reactiving = true;
-          try {
-            const res = await SPanelAPI.request('/user/reactive', { method: 'POST' });
-            alert(res.message || '账户已解封');
-            window.location.href = '/user/dashboard.html';
-          } catch (err) {
-            alert(err.message);
-          } finally {
-            this.reactiving = false;
-          }
+          SPUI.confirm('确定要尝试自助解封账户吗？', async () => {
+            this.reactiving = true;
+            try {
+              const res = await SPanelAPI.request('/user/reactive', { method: 'POST' });
+              SPUI.msg(res.message || '账户已解封', () => {
+                window.location.href = '/user/dashboard.html';
+              });
+            } catch (err) {
+              SPUI.msg(err.message);
+            } finally {
+              this.reactiving = false;
+            }
+          });
         }
       }
     }
