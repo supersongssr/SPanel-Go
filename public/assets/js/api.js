@@ -32,8 +32,11 @@
       try {
         const response = await fetch(url, fetchOptions);
 
-        // 强力拦截 401 会话凭证失效错误，瞬间清除过期缓存并强制越权跳转
-        if (response.status === 401) {
+        // 强力拦截 401 会话凭证失效错误，瞬间清除过期缓存并强制越权跳转。
+        // 豁免 /api/v1/auth/* 端点: 其 401 是业务失败 (如登录密码错误),
+        // 必须透传后端真实 msg, 否则登录页会误报 "会话过期"。
+        const isAuthEndpoint = url.includes('/api/v1/auth/');
+        if (response.status === 401 && !isAuthEndpoint) {
           localStorage.removeItem('spanel_jwt');
           localStorage.removeItem('spanel_user');
 
