@@ -28,6 +28,7 @@
   </script>
   <style>
     body { font-family: 'Inter', sans-serif; }
+    [x-cloak] { display: none !important; }
     .neon-border::before {
       content: '';
       position: absolute;
@@ -62,8 +63,13 @@
           <label class="block text-slate-300 text-xs font-semibold uppercase tracking-wider mb-2">电子邮箱</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-regular fa-envelope"></i></span>
-            <input type="email" required x-model="email" placeholder="name@domain.com" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-300">
+            <input type="email" required autocomplete="username" x-model="email" @blur="validateEmail()" :class="{ '!border-rose-500': emailError, '!focus:border-rose-500': emailError, '!focus:ring-rose-500': emailError }" placeholder="name@domain.com" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-300">
           </div>
+          <!-- M: 强制邮箱格式校验提示 -->
+          <p x-show="emailError" x-cloak class="mt-2 text-xs text-rose-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>登录账号必须是有效的邮箱地址，例如 name@domain.com</span>
+          </p>
         </div>
 
         <!-- 密码 -->
@@ -135,6 +141,9 @@
     function loginForm() {
       return {
         email: '',
+        emailError: false,
+        // M: 邮箱格式严格校验 (与后端 binding:"required,email" 双重强制, 仅允许邮箱登录)
+        emailRegex: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/,
         password: '',
         captchaCode: '',
         captchaId: '',
@@ -180,7 +189,23 @@
           }
         },
 
+        // M: 失焦即校验, 强制提示邮箱格式
+        validateEmail() {
+          this.email = this.email.trim();
+          this.emailError = this.email.length > 0 && !this.emailRegex.test(this.email);
+          return !this.emailError;
+        },
+
         async submitLogin() {
+          // M: 提交前强制邮箱校验 — 非邮箱格式一律拦截 (后端另有一层 binding:email 兜底)
+          this.email = this.email.trim();
+          if (!this.emailRegex.test(this.email)) {
+            this.emailError = true;
+            this.loading = false;
+            alert('登录账号必须是有效的邮箱地址，例如 name@domain.com');
+            return;
+          }
+          this.emailError = false;
           this.loading = true;
           this.statusText = '正在验证账户...';
 
