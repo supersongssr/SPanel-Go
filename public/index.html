@@ -4,149 +4,304 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SPanel - 全球高速安全网络中转与加速代理门户</title>
-  <script src="/assets/js/auth-guard.js"></script>
+  <meta name="description" content="SPanel 搭载全球多入口中转与负载均衡架构，精选高速 BGP/IEPL 专线，提供 Shadowsocks 与 V2Ray 全协议加密加速服务。">
+  <meta name="keywords" content="SPanel,网络加速,IEPL,BGP,专线中转,Shadowsocks,V2Ray">
   <link rel="stylesheet" href="/assets/css/material-icons.css">
   <link rel="stylesheet" href="/assets/css/spanel.css">
-  <script defer src="/assets/js/alpine.min.js"></script>
+  <link rel="stylesheet" href="/assets/css/landing.css">
 </head>
-<body data-sp-area="user" x-data="landingPage()">
-  <main class="sp-content">
-    <div class="sp-content-inner">
+<body class="ld-body">
 
-      <!-- ═══ Hero 主横幅 ═══ -->
-      <div style="text-align:center;padding:32px 0 8px;">
-        <span class="sp-tag sp-tag-orange"><i class="mi" style="font-size:14px;">bolt</i> 极速中转 · 全链路 IEPL 专线级网络加速</span>
-        <h1 style="font-size:36px;font-weight:700;line-height:1.35;margin:20px 0 0;">重新定义您的 <b>全球网络连接</b> 体验</h1>
-        <p class="sp-text-muted" style="max-width:640px;margin:16px auto 0;font-size:14px;line-height:1.8;">
-          SPanel 搭载先进的全球多入口中转与负载均衡架构。精选高速 BGP/IEPL 专线，提供更强的主动防御与更低的跨境丢包率。让您无缝跨越地理阻碍，享受极致宽带网络。
-        </p>
-        <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:28px;">
-          <a href="/auth/register.html" class="sp-btn sp-btn-brand sp-btn-lg"><i class="mi">person_add</i>创建免费账户</a>
-          <a href="/auth/login.html" class="sp-btn sp-btn-lg">登录控制台</a>
-          <a href="#features" class="sp-btn sp-btn-flat sp-btn-lg">深入了解特性</a>
-        </div>
+  <!-- ═══ ① 顶部导航 (静态, 无侧边栏) ═══ -->
+  <header class="ld-navbar">
+    <div class="ld-nav-inner">
+      <a class="ld-brand" href="/"><i class="mi">language</i><span>SPanel</span></a>
+
+      <nav class="ld-nav-links" id="ldNavLinks">
+        <a href="#features">产品特性</a>
+        <a href="#pricing">订阅套餐</a>
+        <a href="#download">软件下载</a>
+        <a href="#faq">常见问题</a>
+      </nav>
+
+      <div class="ld-nav-cta">
+        <a class="ld-btn-ghost" href="/auth/login.html"><i class="mi" style="font-size:17px;">account_circle</i>登录</a>
+        <a class="ld-btn-solid" href="/auth/register.html"><i class="mi" style="font-size:17px;">person_add</i>免费注册</a>
       </div>
 
-      <!-- ═══ 特性展示 ═══ -->
-      <div class="sp-card sp-mt-6" id="features">
-        <div class="sp-card-title" style="justify-content:center;">
-          <i class="mi">stars</i>我们为什么与众不同？
-        </div>
-        <p class="sp-text-muted" style="text-align:center;font-size:13px;">以技术美德与匠心架构设计，为您提供无可挑剔的安全加速品质。</p>
-
-        <div class="sp-grid sp-mt-4" style="gap:16px;">
-          <div class="sp-col-4" style="text-align:center;">
-            <div style="display:flex;justify-content:center;"><div class="sp-stat-icon blue"><i class="mi">swap_horiz</i></div></div>
-            <div style="font-size:16px;font-weight:500;margin-top:12px;">全球分布式中转</div>
-            <p class="sp-text-muted" style="font-size:13px;margin-top:8px;">国内多路 BGP 优质带宽入口，支持配置自定义中转路由映射，自适应全球复杂路由优化。</p>
-          </div>
-          <div class="sp-col-4" style="text-align:center;">
-            <div style="display:flex;justify-content:center;"><div class="sp-stat-icon green"><i class="mi">security</i></div></div>
-            <div style="font-size:16px;font-weight:500;margin-top:12px;">AEAD 端到端加密</div>
-            <p class="sp-text-muted" style="font-size:13px;margin-top:8px;">全面兼容现代 Shadowsocks 与 V2Ray 协议。强制使用最前沿的加密隧道，强力保障通信隐私。</p>
-          </div>
-          <div class="sp-col-4" style="text-align:center;">
-            <div style="display:flex;justify-content:center;"><div class="sp-stat-icon yellow"><i class="mi">speed</i></div></div>
-            <div style="font-size:16px;font-weight:500;margin-top:12px;">高授信带宽不限速</div>
-            <p class="sp-text-muted" style="font-size:13px;margin-top:8px;">系统所有节点带宽均采用高承载冗余设计，不限速不设阻，满足 4K/8K 级超高清无缝流媒体需求。</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ 精选套餐 ═══ -->
-      <div class="sp-card sp-mt-6">
-        <div class="sp-card-title" style="justify-content:center;">
-          <i class="mi">shopping_cart</i>透明合理的订阅套餐计划
-        </div>
-        <p class="sp-text-muted" style="text-align:center;font-size:13px;">无论您是个人轻度冲浪，还是跨境企业团队，均可在此选配符合您带宽需求的产品。</p>
-
-        <div class="sp-grid sp-mt-4" style="gap:16px;">
-          <!-- VIP 1 -->
-          <div class="sp-col-4">
-            <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;box-shadow:none;border:1px solid var(--sp-divider);">
-              <div>
-                <span class="sp-tag sp-tag-grey">VIP 1 Light</span>
-                <div style="font-size:18px;font-weight:700;margin-top:12px;">标准轻度体验套餐</div>
-                <p class="sp-text-muted" style="font-size:13px;margin-top:8px;">满足个人轻度网络社交、查询文献及基础中转需求。</p>
-                <div style="border-top:1px solid var(--sp-divider);margin:16px 0;"></div>
-                <ul style="padding-left:4px;list-style:none;font-size:13px;color:var(--sp-text-2nd);line-height:2;">
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> <b>100 GB</b> 每月高速流量上限</li>
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> 尊享全球 <b>10+</b> 基础中转节点</li>
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> <b>1x</b> 费率常规折扣</li>
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> 3 个并发活跃连接终端</li>
-                </ul>
-              </div>
-              <div style="border-top:1px solid var(--sp-divider);margin-top:16px;padding-top:16px;">
-                <span style="font-size:24px;font-weight:700;">￥15.00</span> <span class="sp-text-hint" style="font-size:12px;">/ 月</span>
-                <a href="/auth/register.html" class="sp-btn sp-btn-block sp-mt-4">立即订阅体验</a>
-              </div>
-            </div>
-          </div>
-          <!-- VIP 2 (热门) -->
-          <div class="sp-col-4">
-            <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
-              <div>
-                <span class="sp-tag sp-tag-orange">VIP 2 Standard · Popular</span>
-                <div style="font-size:18px;font-weight:700;margin-top:12px;">尊享极速专线套餐</div>
-                <p class="sp-text-muted" style="font-size:13px;margin-top:8px;">提供 IEPL 独立专线加速入口，专为极速办公、影视流媒体设计。</p>
-                <div style="border-top:1px solid var(--sp-divider);margin:16px 0;"></div>
-                <ul style="padding-left:4px;list-style:none;font-size:13px;color:var(--sp-text-2nd);line-height:2;">
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> <b>300 GB</b> 每月高速流量上限</li>
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> 尊享全球 <b>30+</b> IEPL 专线中转</li>
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> <b>0.5x</b> 专线超级折扣费率</li>
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> 10 个并发活跃连接终端</li>
-                </ul>
-              </div>
-              <div style="border-top:1px solid var(--sp-divider);margin-top:16px;padding-top:16px;">
-                <span class="sp-text-success" style="font-size:24px;font-weight:700;">￥35.00</span> <span class="sp-text-hint" style="font-size:12px;">/ 月</span>
-                <a href="/auth/register.html" class="sp-btn sp-btn-brand sp-btn-block sp-mt-4">立即订阅体验</a>
-              </div>
-            </div>
-          </div>
-          <!-- VIP 3 -->
-          <div class="sp-col-4">
-            <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;box-shadow:none;border:1px solid var(--sp-divider);">
-              <div>
-                <span class="sp-tag sp-tag-grey">VIP 3 Premium</span>
-                <div style="font-size:18px;font-weight:700;margin-top:12px;">企业专属旗舰套餐</div>
-                <p class="sp-text-muted" style="font-size:13px;margin-top:8px;">大流量高并发承载，专为出海企业团队跨境电商、矩阵宣发打造。</p>
-                <div style="border-top:1px solid var(--sp-divider);margin:16px 0;"></div>
-                <ul style="padding-left:4px;list-style:none;font-size:13px;color:var(--sp-text-2nd);line-height:2;">
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> <b>1 TB</b> 每月超大授信流量上限</li>
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> 尊享全球 <b>All</b> 旗舰专属网络</li>
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> 独占最高优先级响应支持</li>
-                  <li><i class="mi sp-text-success" style="font-size:16px;">check_circle</i> 活跃连接设备终端不设限</li>
-                </ul>
-              </div>
-              <div style="border-top:1px solid var(--sp-divider);margin-top:16px;padding-top:16px;">
-                <span style="font-size:24px;font-weight:700;">￥90.00</span> <span class="sp-text-hint" style="font-size:12px;">/ 月</span>
-                <a href="/auth/register.html" class="sp-btn sp-btn-block sp-mt-4">立即订阅体验</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ 法务提示 ═══ -->
-      <p class="sp-text-hint sp-mt-6" style="text-align:center;font-size:12px;padding-bottom:8px;">
-        © 2026 SPanel. All Rights Reserved. Powered by ElysiaJS &amp; Bun.<br>
-        请遵守您当地国家及服务器所在地区网络通信法律法规。严禁将本服务用于任何非法用途。
-      </p>
-
+      <button class="ld-burger" id="ldBurger" aria-label="打开菜单" aria-expanded="false"><i class="mi">menu</i></button>
     </div>
+  </header>
+
+  <main class="ld-main">
+
+    <!-- ═══ ② Hero 主视觉 ═══ -->
+    <section class="ld-hero">
+      <div class="ld-container">
+        <span class="ld-hero-badge"><i class="mi">bolt</i>极速中转 · 全链路 IEPL 专线级网络加速</span>
+        <h1>重新定义您的<br><b>全球网络连接</b>体验</h1>
+        <p class="ld-hero-sub">
+          SPanel 搭载先进的全球多入口中转与负载均衡架构，精选高速 BGP CN2 / IEPL 专线，
+          提供更强的主动防御与更低的跨境丢包率，让您无缝跨越地理阻碍，享受极致宽带网络。
+        </p>
+        <div class="ld-hero-cta">
+          <a class="ld-btn-hero ld-btn-hero-primary" href="/auth/register.html"><i class="mi">person_add</i>创建免费账户</a>
+          <a class="ld-btn-hero ld-btn-hero-line" href="#pricing"><i class="mi">shopping_cart</i>查看套餐</a>
+        </div>
+
+        <div class="ld-hero-stats">
+          <div class="ld-hero-stat"><b>500+</b><span>全球中转节点</span></div>
+          <div class="ld-hero-stat"><b>50 Gbps</b><span>骨干总带宽</span></div>
+          <div class="ld-hero-stat"><b>99.9%</b><span>可用性 SLA</span></div>
+          <div class="ld-hero-stat"><b>7×24</b><span>人工运维支持</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ③ 产品特性 ═══ -->
+    <section class="ld-section" id="features">
+      <div class="ld-container">
+        <div class="ld-section-head">
+          <span class="ld-eyebrow">Features</span>
+          <h2>我们为什么与众不同？</h2>
+          <p>以技术美德与匠心架构设计，为您提供无可挑剔的安全加速品质。</p>
+        </div>
+
+        <div class="ld-features">
+          <div class="ld-feature">
+            <div class="ld-feature-icon"><i class="mi">swap_horiz</i></div>
+            <h3>全球分布式中转</h3>
+            <p>国内多路 BGP CN2 优质带宽入口，支持自定义中转路由映射，自适应全球复杂路由优化。</p>
+          </div>
+          <div class="ld-feature">
+            <div class="ld-feature-icon"><i class="mi">security</i></div>
+            <h3>AEAD 端到端加密</h3>
+            <p>全面兼容现代 Shadowsocks 与 V2Ray 协议，强制使用最前沿的加密隧道，强力保障通信隐私。</p>
+          </div>
+          <div class="ld-feature">
+            <div class="ld-feature-icon"><i class="mi">speed</i></div>
+            <h3>高授信带宽不限速</h3>
+            <p>所有节点均采用高承载冗余设计，不限速不设阻，满足 4K/8K 级超高清无缝流媒体需求。</p>
+          </div>
+          <div class="ld-feature">
+            <div class="ld-feature-icon"><i class="mi">balance</i></div>
+            <h3>智能负载均衡</h3>
+            <p>多入口自动分流与故障秒级切换，高峰时段依旧稳定如一，告别拥塞与丢包。</p>
+          </div>
+          <div class="ld-feature">
+            <div class="ld-feature-icon"><i class="mi">devices</i></div>
+            <h3>多端全平台兼容</h3>
+            <p>Windows / macOS / Linux / Android / iOS 全平台客户端支持，一次订阅，处处畅连。</p>
+          </div>
+          <div class="ld-feature">
+            <div class="ld-feature-icon"><i class="mi">support_agent</i></div>
+            <h3>7×24 技术支持</h3>
+            <p>专业运维团队全天候值守，工单系统快速响应，随时为您排忧解难。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ④ 订阅套餐 ═══ -->
+    <section class="ld-section ld-section-alt" id="pricing">
+      <div class="ld-container">
+        <div class="ld-section-head">
+          <span class="ld-eyebrow">Pricing</span>
+          <h2>透明合理的订阅套餐计划</h2>
+          <p>无论您是个人轻度冲浪，还是跨境企业团队，均可在此选配符合您带宽需求的产品。</p>
+        </div>
+
+        <div class="ld-pricing">
+          <!-- VIP 1 -->
+          <div class="ld-price-card">
+            <span class="ld-price-tag">VIP 1 Light</span>
+            <div class="ld-price-name">标准轻度体验套餐</div>
+            <p class="ld-price-desc">满足个人轻度网络社交、查询文献及基础中转需求。</p>
+            <hr class="ld-price-rule">
+            <ul class="ld-price-list">
+              <li><i class="mi">check_circle</i>每月 <b>100 GB</b> 高速流量上限</li>
+              <li><i class="mi">check_circle</i>尊享全球 <b>10+</b> 基础中转节点</li>
+              <li><i class="mi">check_circle</i><b>1x</b> 费率常规折扣</li>
+              <li><i class="mi">check_circle</i>3 个并发活跃连接终端</li>
+            </ul>
+            <hr class="ld-price-rule">
+            <div class="ld-price-num"><strong>￥15.00</strong><em>/ 月</em></div>
+            <a class="ld-price-btn" href="/auth/register.html">立即订阅体验</a>
+          </div>
+
+          <!-- VIP 2 (热门) -->
+          <div class="ld-price-card hot">
+            <span class="ld-price-flag">最受欢迎</span>
+            <span class="ld-price-tag">VIP 2 Standard</span>
+            <div class="ld-price-name">尊享极速专线套餐</div>
+            <p class="ld-price-desc">提供 IEPL 独立专线加速入口，专为极速办公、影视流媒体设计。</p>
+            <hr class="ld-price-rule">
+            <ul class="ld-price-list">
+              <li><i class="mi">check_circle</i>每月 <b>300 GB</b> 高速流量上限</li>
+              <li><i class="mi">check_circle</i>尊享全球 <b>30+</b> IEPL 专线中转</li>
+              <li><i class="mi">check_circle</i><b>0.5x</b> 专线超级折扣费率</li>
+              <li><i class="mi">check_circle</i>10 个并发活跃连接终端</li>
+            </ul>
+            <hr class="ld-price-rule">
+            <div class="ld-price-num"><strong>￥35.00</strong><em>/ 月</em></div>
+            <a class="ld-price-btn" href="/auth/register.html">立即订阅体验</a>
+          </div>
+
+          <!-- VIP 3 -->
+          <div class="ld-price-card">
+            <span class="ld-price-tag">VIP 3 Premium</span>
+            <div class="ld-price-name">企业专属旗舰套餐</div>
+            <p class="ld-price-desc">大流量高并发承载，专为出海企业团队跨境电商、矩阵宣发打造。</p>
+            <hr class="ld-price-rule">
+            <ul class="ld-price-list">
+              <li><i class="mi">check_circle</i>每月 <b>1 TB</b> 超大授信流量上限</li>
+              <li><i class="mi">check_circle</i>尊享全球 <b>All</b> 旗舰专属网络</li>
+              <li><i class="mi">check_circle</i>独占最高优先级响应支持</li>
+              <li><i class="mi">check_circle</i>活跃连接设备终端不设限</li>
+            </ul>
+            <hr class="ld-price-rule">
+            <div class="ld-price-num"><strong>￥90.00</strong><em>/ 月</em></div>
+            <a class="ld-price-btn" href="/auth/register.html">立即订阅体验</a>
+          </div>
+        </div>
+
+        <p class="ld-price-note">所有套餐均支持随时升级，流量与费率以用户中心实际展示为准。</p>
+      </div>
+    </section>
+
+    <!-- ═══ ⑤ 软件下载 (参考旧版 index.tpl 标签5) ═══ -->
+    <section class="ld-section" id="download">
+      <div class="ld-container">
+        <div class="ld-section-head">
+          <span class="ld-eyebrow">Download</span>
+          <h2>全平台客户端下载</h2>
+          <p>注册并订阅后，在用户中心「订阅节点」页一键获取订阅链接，导入以下任意客户端即可使用。</p>
+        </div>
+
+        <div class="ld-downloads">
+          <a class="ld-dl-card" href="https://github.com/2dust/v2rayN/releases/" target="_blank" rel="noopener">
+            <i class="mi">desktop_windows</i>
+            <div class="ld-dl-name">Windows</div>
+            <div class="ld-dl-hint">V2rayN</div>
+          </a>
+          <a class="ld-dl-card" href="https://github.com/2dust/v2rayNG/releases/" target="_blank" rel="noopener">
+            <i class="mi">android</i>
+            <div class="ld-dl-name">Android</div>
+            <div class="ld-dl-hint">V2rayNG</div>
+          </a>
+          <a class="ld-dl-card" href="https://apps.apple.com/app/sing-box-vt/id6673731168" target="_blank" rel="noopener">
+            <i class="mi">phone_iphone</i>
+            <div class="ld-dl-name">iOS</div>
+            <div class="ld-dl-hint">Sing-Box</div>
+          </a>
+          <a class="ld-dl-card" href="https://github.com/2dust/v2rayN/releases/" target="_blank" rel="noopener">
+            <i class="mi">laptop_mac</i>
+            <div class="ld-dl-name">macOS</div>
+            <div class="ld-dl-hint">V2rayN</div>
+          </a>
+          <a class="ld-dl-card" href="https://github.com/2dust/v2rayN/releases/" target="_blank" rel="noopener">
+            <i class="mi">terminal</i>
+            <div class="ld-dl-name">Linux</div>
+            <div class="ld-dl-hint">V2rayN / 内核</div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ⑥ 常见问题 (原生 details, 零 JS) ═══ -->
+    <section class="ld-section ld-section-alt" id="faq">
+      <div class="ld-container">
+        <div class="ld-section-head">
+          <span class="ld-eyebrow">FAQ</span>
+          <h2>常见问题解答</h2>
+        </div>
+
+        <div class="ld-faq">
+          <details>
+            <summary>你们支持哪些客户端平台？<i class="mi">add</i></summary>
+            <p>支持 Windows、macOS、Linux、Android 与 iOS 全平台，推荐使用上方「软件下载」页面列出的客户端。注册后在用户中心「订阅节点」页复制订阅链接，导入客户端即可自动配置全部节点。</p>
+          </details>
+          <details>
+            <summary>支持哪些代理协议？<i class="mi">add</i></summary>
+            <p>全面兼容现代 Shadowsocks（AEAD 加密）与 V2Ray/VMess 协议，全程强制加密隧道传输，保障通信隐私与数据安全。</p>
+          </details>
+          <details>
+            <summary>是否限制速度与设备数量？<i class="mi">add</i></summary>
+            <p>所有节点带宽均采用高承载冗余设计，不限速不设阻。并发活跃连接终端数按套餐等级分别为 3 个（VIP1）、10 个（VIP2）、不设限（VIP3）。</p>
+          </details>
+          <details>
+            <summary>流量用完了怎么办？<i class="mi">add</i></summary>
+            <p>可在用户中心「套餐购买」页随时叠加购买或升级更高等级套餐，新流量即刻生效；亦可等待套餐周期重置。</p>
+          </details>
+          <details>
+            <summary>遇到问题如何获得帮助？<i class="mi">add</i></summary>
+            <p>登录用户中心后，在「技术支持」页面提交工单，运维团队 7×24 小时快速响应；也可先查阅「网站公告」与「下载软件」页的使用教程。</p>
+          </details>
+          <details>
+            <summary>忘记密码了怎么办？<i class="mi">add</i></summary>
+            <p>前往登录页点击「忘记密码」，通过注册邮箱验证后即可重置密码。若邮箱已失效，请通过工单或页面底部联系方式联系管理员人工处理。</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <script src="/assets/js/api.js"></script>
-  <script src="/assets/js/sp-ui.js"></script>
-  <script src="/assets/js/sp-shell.js"></script>
+  <!-- ═══ ⑦ 页脚 ═══ -->
+  <footer class="ld-footer">
+    <div class="ld-container">
+      <div class="ld-footer-main">
+        <div class="ld-footer-brand">
+          <a class="ld-brand" href="/"><i class="mi">language</i><span>SPanel</span></a>
+          <p>全球高速安全网络中转与加速代理服务。精选 BGP CN2 / IEPL 专线，多入口负载均衡架构，为个人与出海企业提供稳定可靠的网络连接体验。</p>
+        </div>
+        <div class="ld-footer-links">
+          <div class="ld-footer-col">
+            <h4>产品</h4>
+            <a href="#features">产品特性</a>
+            <a href="#pricing">订阅套餐</a>
+            <a href="#download">软件下载</a>
+          </div>
+          <div class="ld-footer-col">
+            <h4>支持</h4>
+            <a href="#faq">常见问题</a>
+            <a href="/user/announcement.html">网站公告</a>
+            <a href="/user/tutorial.html">使用教程</a>
+          </div>
+          <div class="ld-footer-col">
+            <h4>账户</h4>
+            <a href="/auth/login.html">登录</a>
+            <a href="/auth/register.html">注册</a>
+            <a href="/user/dashboard.html">用户中心</a>
+          </div>
+        </div>
+      </div>
+      <div class="ld-footer-bottom">
+        &copy; <span id="ldYear">2026</span> SPanel. All Rights Reserved. Powered by SPanel-Go.<br>
+        请遵守您当地国家及服务器所在地区网络通信法律法规，严禁将本服务用于任何非法用途。
+      </div>
+    </div>
+  </footer>
+
+  <!-- 纯静态页: 无任何 API / 框架依赖, 仅以下 ~15 行原生 JS 处理移动端菜单与年份 -->
   <script>
-    function landingPage() {
-      return {
-        init() {
-          // 可以在此拉取动态公告或状态指标，提升交互感
+    (function () {
+      var burger = document.getElementById('ldBurger');
+      var links = document.getElementById('ldNavLinks');
+      burger.addEventListener('click', function () {
+        var open = links.classList.toggle('open');
+        burger.setAttribute('aria-expanded', open);
+        burger.firstElementChild.textContent = open ? 'close' : 'menu';
+      });
+      links.addEventListener('click', function (e) {
+        if (e.target.tagName === 'A') {
+          links.classList.remove('open');
+          burger.setAttribute('aria-expanded', 'false');
+          burger.firstElementChild.textContent = 'menu';
         }
-      }
-    }
+      });
+      document.getElementById('ldYear').textContent = new Date().getFullYear();
+    })();
   </script>
 </body>
 </html>

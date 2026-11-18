@@ -1,0 +1,317 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * SPanel 门户首页专属样式 (Landing) — 仅 public/index.html 引用
+ *
+ * - 依赖 spanel.css 的设计 token (--sp-*), 本文件不定义变量
+ * - 类名统一 .ld- 前缀, 与用户中心 (sp-) 样式完全隔离, 零冲突
+ * - 门户蓝 (--sp-brand indigo) 与用户中心橙 (--sp-primary) 双区色彩体系
+ * - 纯 CSS: 无 JS 依赖, 锚点平滑滚动用 scroll-behavior 实现
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ---------- 0. 页面基座 ---------- */
+html { scroll-behavior: smooth; }
+.ld-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--sp-surface);
+  color: var(--sp-text);
+  font-family: var(--sp-font);
+  -webkit-font-smoothing: antialiased;
+}
+.ld-main { flex: 1; }
+.ld-container { max-width: 1120px; margin: 0 auto; padding: 0 var(--sp-gap-4); }
+.ld-section { padding: 72px 0; scroll-margin-top: 64px; }
+.ld-section-alt { background: #f6f7fb; }
+
+.ld-eyebrow {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--sp-brand);
+}
+.ld-section-head { text-align: center; max-width: 640px; margin: 0 auto 44px; }
+.ld-section-head h2 { font-size: 28px; font-weight: 700; margin: 10px 0 0; line-height: 1.4; }
+.ld-section-head p { color: var(--sp-text-2nd); font-size: 14px; line-height: 1.8; margin: 12px 0 0; }
+
+/* ---------- 1. 顶部导航 (静态, 移动端原生 JS 开合) ---------- */
+.ld-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(48, 63, 159, 0.96);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.ld-nav-inner {
+  max-width: 1120px; margin: 0 auto; padding: 0 var(--sp-gap-4);
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-gap-4);
+}
+.ld-brand {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.5px;
+}
+.ld-brand .mi { font-size: 26px; color: #ffd600; }
+.ld-brand:hover { color: #fff; }
+
+.ld-nav-links { display: flex; align-items: center; gap: var(--sp-gap-6); }
+.ld-nav-links a {
+  color: rgba(255, 255, 255, 0.82); font-size: 14px; font-weight: 500;
+  transition: color 0.2s;
+}
+.ld-nav-links a:hover { color: #fff; }
+
+.ld-nav-cta { display: flex; align-items: center; gap: var(--sp-gap-3); }
+.ld-btn-ghost {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 18px; border-radius: var(--sp-radius-btn);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #fff !important; font-size: 14px; font-weight: 500;
+  transition: background 0.2s, border-color 0.2s;
+}
+.ld-btn-ghost:hover { background: rgba(255, 255, 255, 0.12); border-color: #fff; }
+.ld-btn-solid {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 18px; border-radius: var(--sp-radius-btn);
+  background: #fff; color: var(--sp-brand) !important;
+  font-size: 14px; font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: background 0.2s;
+}
+.ld-btn-solid:hover { background: #e8eaf6; }
+
+.ld-burger {
+  display: none;
+  background: none; border: 0; padding: 6px; cursor: pointer;
+  color: #fff; border-radius: var(--sp-radius);
+}
+.ld-burger .mi { font-size: 26px; }
+
+/* ---------- 2. Hero 主视觉 ---------- */
+.ld-hero {
+  position: relative;
+  color: #fff; text-align: center;
+  padding: 88px 0 64px;
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 26px 26px,
+    linear-gradient(135deg, #303f9f 0%, #3f51b5 48%, #5c6bc0 100%);
+  overflow: hidden;
+}
+.ld-hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 16px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 13px; color: rgba(255, 255, 255, 0.92);
+}
+.ld-hero-badge .mi { font-size: 15px; color: #ffd600; }
+.ld-hero h1 {
+  font-size: 42px; font-weight: 700; line-height: 1.3;
+  margin: 24px 0 0; letter-spacing: 0.5px;
+}
+.ld-hero h1 b { color: #ffd600; font-weight: 700; }
+.ld-hero-sub {
+  max-width: 660px; margin: 18px auto 0;
+  font-size: 15px; line-height: 1.9; color: rgba(255, 255, 255, 0.82);
+}
+.ld-hero-cta { display: flex; justify-content: center; flex-wrap: wrap; gap: var(--sp-gap-4); margin-top: 36px; }
+.ld-btn-hero {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 34px; border-radius: var(--sp-radius-btn);
+  font-size: 15px; font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  transition: transform 0.15s, background 0.2s;
+}
+.ld-btn-hero:hover { transform: translateY(-2px); }
+.ld-btn-hero .mi { font-size: 19px; }
+.ld-btn-hero-primary { background: #fff; color: var(--sp-brand) !important; }
+.ld-btn-hero-primary:hover { background: #e8eaf6; }
+.ld-btn-hero-line { border: 1px solid rgba(255, 255, 255, 0.55); color: #fff !important; }
+.ld-btn-hero-line:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* Hero 静态数据点 */
+.ld-hero-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  max-width: 860px; margin: 56px auto 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--sp-radius);
+  background: rgba(255, 255, 255, 0.06);
+}
+.ld-hero-stat { padding: 22px 12px; }
+.ld-hero-stat + .ld-hero-stat { border-left: 1px solid rgba(255, 255, 255, 0.18); }
+.ld-hero-stat b { display: block; font-size: 26px; font-weight: 700; }
+.ld-hero-stat span { display: block; margin-top: 6px; font-size: 13px; color: rgba(255, 255, 255, 0.72); }
+
+/* ---------- 3. 特性卡片 ---------- */
+.ld-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--sp-gap-5);
+}
+.ld-feature {
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-divider);
+  border-radius: 8px;
+  padding: 28px 26px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.ld-feature:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(63, 81, 181, 0.12); }
+.ld-feature-icon {
+  width: 52px; height: 52px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(63, 81, 181, 0.1);
+}
+.ld-feature-icon .mi { font-size: 28px; color: var(--sp-brand); }
+.ld-feature h3 { font-size: 17px; font-weight: 600; margin: 16px 0 0; }
+.ld-feature p { font-size: 13.5px; line-height: 1.85; color: var(--sp-text-2nd); margin: 10px 0 0; }
+
+/* ---------- 4. 套餐定价 ---------- */
+.ld-pricing {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--sp-gap-5);
+  align-items: stretch;
+}
+.ld-price-card {
+  position: relative;
+  display: flex; flex-direction: column;
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-divider);
+  border-radius: 8px;
+  padding: 30px 28px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.ld-price-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
+.ld-price-card.hot {
+  border: 2px solid var(--sp-brand);
+  box-shadow: 0 10px 32px rgba(63, 81, 181, 0.18);
+}
+.ld-price-flag {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  padding: 4px 16px; border-radius: 999px;
+  background: var(--sp-brand); color: #fff;
+  font-size: 12px; font-weight: 600; letter-spacing: 1px;
+  white-space: nowrap;
+}
+.ld-price-tag { display: inline-block; padding: 2px 12px; border-radius: 999px; background: #eeeeee; color: #616161; font-size: 12px; }
+.ld-price-card.hot .ld-price-tag { background: rgba(63, 81, 181, 0.1); color: var(--sp-brand); font-weight: 600; }
+.ld-price-name { font-size: 19px; font-weight: 700; margin-top: 14px; }
+.ld-price-desc { font-size: 13px; line-height: 1.8; color: var(--sp-text-2nd); margin: 8px 0 0; }
+.ld-price-rule { border: 0; border-top: 1px solid var(--sp-divider); margin: 20px 0; }
+.ld-price-list { list-style: none; padding: 0; margin: 0; font-size: 13.5px; color: var(--sp-text-2nd); line-height: 2.1; flex: 1; }
+.ld-price-list .mi { font-size: 17px; color: var(--sp-success); vertical-align: -3px; margin-right: 8px; }
+.ld-price-list b { color: var(--sp-text); }
+.ld-price-num { display: flex; align-items: baseline; gap: 6px; margin-bottom: 16px; }
+.ld-price-num strong { font-size: 32px; font-weight: 700; }
+.ld-price-card.hot .ld-price-num strong { color: var(--sp-brand); }
+.ld-price-num em { font-style: normal; font-size: 13px; color: var(--sp-hint); }
+.ld-price-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 0; border-radius: var(--sp-radius-btn);
+  font-size: 14px; font-weight: 600;
+  border: 1px solid var(--sp-brand); color: var(--sp-brand) !important;
+  transition: background 0.2s, color 0.2s;
+}
+.ld-price-btn:hover { background: var(--sp-brand); color: #fff !important; }
+.ld-price-card.hot .ld-price-btn { background: var(--sp-brand); color: #fff !important; }
+.ld-price-card.hot .ld-price-btn:hover { background: var(--sp-brand-dark); }
+.ld-price-note { text-align: center; font-size: 12.5px; color: var(--sp-hint); margin-top: 22px; }
+
+/* ---------- 5. 客户端下载 ---------- */
+.ld-downloads {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--sp-gap-4);
+}
+.ld-dl-card {
+  display: block;
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-divider);
+  border-radius: 8px;
+  padding: 24px 18px;
+  text-align: center; text-decoration: none !important;
+  color: var(--sp-text);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.ld-dl-card:hover { transform: translateY(-4px); border-color: var(--sp-brand); box-shadow: 0 8px 24px rgba(63, 81, 181, 0.12); }
+.ld-dl-card .mi { font-size: 40px; color: var(--sp-brand); }
+.ld-dl-name { font-size: 15px; font-weight: 600; margin-top: 12px; }
+.ld-dl-hint { font-size: 12px; color: var(--sp-hint); margin-top: 6px; }
+
+/* ---------- 6. FAQ (原生 details, 零 JS) ---------- */
+.ld-faq { max-width: 780px; margin: 0 auto; display: grid; gap: var(--sp-gap-3); }
+.ld-faq details {
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-divider);
+  border-radius: 8px;
+  padding: 0 22px;
+  transition: border-color 0.2s;
+}
+.ld-faq details[open] { border-color: rgba(63, 81, 181, 0.45); }
+.ld-faq summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-gap-3);
+  padding: 17px 0;
+  font-size: 15px; font-weight: 600;
+}
+.ld-faq summary::-webkit-details-marker { display: none; }
+.ld-faq summary .mi { font-size: 20px; color: var(--sp-brand); transition: transform 0.2s; }
+.ld-faq details[open] summary .mi { transform: rotate(45deg); }
+.ld-faq details p { font-size: 13.5px; line-height: 1.9; color: var(--sp-text-2nd); padding: 0 0 18px; margin: 0; }
+
+/* ---------- 7. 页脚 ---------- */
+.ld-footer { background: #1d2340; color: rgba(255, 255, 255, 0.66); }
+.ld-footer-main {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: var(--sp-gap-5);
+  padding: 40px 0 28px;
+}
+.ld-footer-brand .ld-brand { font-size: 18px; }
+.ld-footer-brand p { font-size: 13px; line-height: 1.9; max-width: 420px; margin: 12px 0 0; color: rgba(255, 255, 255, 0.55); }
+.ld-footer-links { display: flex; gap: 48px; flex-wrap: wrap; }
+.ld-footer-col h4 { font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 14px; letter-spacing: 1px; }
+.ld-footer-col a { display: block; font-size: 13px; color: rgba(255, 255, 255, 0.6); padding: 5px 0; }
+.ld-footer-col a:hover { color: #fff; }
+.ld-footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 18px 0 22px;
+  font-size: 12px; color: rgba(255, 255, 255, 0.42);
+  text-align: center; line-height: 2;
+}
+.ld-footer-bottom a { color: rgba(255, 255, 255, 0.55); }
+
+/* ---------- 8. 响应式 ---------- */
+@media (max-width: 860px) {
+  .ld-burger { display: block; }
+  .ld-nav-links {
+    display: none;
+    position: absolute; top: 64px; left: 0; right: 0;
+    flex-direction: column; align-items: stretch;
+    background: #303f9f;
+    padding: var(--sp-gap-3) var(--sp-gap-4) var(--sp-gap-5);
+    gap: 2px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+  }
+  .ld-nav-links.open { display: flex; }
+  .ld-nav-links a { padding: 12px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 15px; }
+  .ld-nav-cta { display: none; }
+
+  .ld-hero { padding: 60px 0 48px; }
+  .ld-hero h1 { font-size: 30px; }
+  .ld-hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .ld-hero-stat:nth-child(3) { border-left: 0; }
+  .ld-hero-stat:nth-child(n+3) { border-top: 1px solid rgba(255, 255, 255, 0.18); }
+  .ld-hero-stat b { font-size: 22px; }
+
+  .ld-section { padding: 52px 0; }
+  .ld-section-head { margin-bottom: 30px; }
+  .ld-section-head h2 { font-size: 23px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ld-feature:hover, .ld-price-card:hover, .ld-dl-card:hover, .ld-btn-hero:hover { transform: none; }
+}
