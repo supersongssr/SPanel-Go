@@ -13,7 +13,7 @@
 <body data-sp-area="auth" class="sp-auth-body" x-data="loginForm()">
 
   <div class="sp-authpage">
-    <form action="javascript:void(0);" method="POST" style="width:100%;display:flex;justify-content:center;">
+    <form action="javascript:void(0);" method="POST" @submit.prevent="submitLogin" style="width:100%;display:flex;justify-content:center;">
       <div class="sp-auth-main">
         <div class="sp-auth-top">
           <a class="sp-board-btn sp-left" href="/"><div>首 页</div></a>
