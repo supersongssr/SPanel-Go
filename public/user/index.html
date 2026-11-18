@@ -110,6 +110,7 @@
           <i class="mi" style="font-size:14px;">info</i>
           节点获取已全部由订阅自动完成, 无需任何手动配置; 完整的客户端图文教程已迁至「使用教程」页, 保持首页精简。
         </p>
+      </div>
 
       <!-- ═══ ③ 账号使用情况 + 流量消耗统计 ═══ -->
       <div class="sp-grid sp-mt-6">
@@ -180,23 +181,14 @@
         </div>
       </div>
 
-      <!-- ═══ ④ 订阅管理入口 + 公告 (不再提供通用订阅: 每设备绑定一个独立订阅) ═══ -->
+      <!-- ═══ ④ 系统公告 (订阅入口已并入上方向导第4步, 避免功能重复) ═══ -->
       <div class="sp-grid sp-mt-6">
-        <div class="sp-col-4">
-          <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
-            <div>
-              <div class="sp-card-title"><i class="mi">rss_feed</i>订阅管理</div>
-              <p class="sp-text-muted" style="font-size:13px;line-height:1.8;">本站不再提供通用订阅地址：每台设备需在「订阅管理」创建一个独立订阅，复制地址到客户端添加即自动绑定。各设备订阅互不影响、可独立作废，换设备请删除旧订阅后重新创建。</p>
-            </div>
-            <div class="sp-mt-4">
-              <a class="sp-btn sp-btn-brand sp-btn-block" href="/user/rss.html"><i class="mi">playlist_add</i>前往订阅管理 · 创建设备订阅</a>
-              <p class="sp-text-hint" style="font-size:12px;text-align:center;margin-top:8px;">已用 <span x-text="rssCount">-</span> / <span x-text="rssMax">-</span> 个设备订阅</p>
-            </div>
-          </div>
-        </div>
-        <div class="sp-col-8">
+        <div class="sp-col-12">
           <div class="sp-card">
-            <div class="sp-card-title"><i class="mi">announcement</i>系统最新公告</div>
+            <div class="sp-card-title">
+              <i class="mi">announcement</i>系统最新公告
+              <span class="sp-extra"><a class="sp-btn sp-btn-sm" href="/user/announcement.html"><i class="mi">forum</i>全部公告</a></span>
+            </div>
             <template x-for="ann in announcements" :key="ann.id">
               <div style="border-bottom:1px solid var(--sp-divider);padding-bottom:16px;margin-bottom:16px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -212,7 +204,6 @@
             </template>
           </div>
         </div>
-      </div>
       </div>
 
     </div>
@@ -237,10 +228,6 @@
         totalStr: '0 B',
         usagePercentage: 0,
         announcements: [],
-
-        // 订阅用量 (每设备一个独立订阅, 通用订阅已下线)
-        rssCount: '-',
-        rssMax: '-',
 
         // ── 旧版首页对齐字段 (在线设备/速率/过期倒计时/上次使用) ──
         nodeConnector: 0,
@@ -273,13 +260,6 @@
             this.checkedIn = data.checked_in;
             this.lastCheckinTime = data.checkin_status.last_checkin_time || '从未签到';
             this.announcements = data.announcements || [];
-
-            // 订阅管理用量 (GET /user/rss: items/max)
-            try {
-              const rssRes = await SPanelAPI.request('/user/rss');
-              this.rssCount = (rssRes.data.items || []).length;
-              this.rssMax = rssRes.data.max;
-            } catch (e) { /* 订阅用量拉取失败不阻断首屏 */ }
 
             this.nodeConnector = data.node_connector || 0;
             this.nodeSpeedlimit = parseFloat(data.node_speedlimit) || 0;
