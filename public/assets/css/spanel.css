@@ -516,3 +516,104 @@ body.sp-auth-body { background: var(--sp-auth-bg); min-height: 100vh; display: f
 .sp-dl-row:last-child { border-bottom: 0; }
 .sp-dl-row dt { color: var(--sp-text-2nd); flex: none; }
 .sp-dl-row dd { margin: 0; text-align: right; word-break: break-all; }
+
+/* ---------- 17. Admin 管理区 (2026-11-18 admin 移植方案: 靛蓝主题 + 数据表格组件) ---------- */
+/* 用法: <body data-sp-area="admin" class="sp-admin"> — 覆盖品牌 tokens, 骨架组件全部复用 */
+body.sp-admin { --sp-primary: #3f51b5; --sp-primary-dark: #fff; }
+body.sp-admin .sp-header { box-shadow: 0 2px 6px rgba(26, 35, 126, 0.35); }
+
+/* 顶栏 ADMIN 徽标 (与用户区一眼区分) */
+.sp-header-admin-badge {
+  display: inline-block; margin-left: var(--sp-gap-2);
+  padding: 1px 8px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.45);
+  color: inherit; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; vertical-align: 2px;
+}
+
+/* 概览大数字卡 (复刻旧 admin/index.tpl 4 卡片: 大数字+灰标签, 配色沿用旧版) */
+.sp-adm-stat { text-align: center; padding: 26px 10px; }
+.sp-adm-stat-num { font-size: 34px; font-weight: 700; line-height: 1.15; }
+.sp-adm-stat-label { color: #90a4ae; margin-top: 6px; font-size: 13px; }
+.sp-adm-stat-num.c-dark  { color: #37474f; }
+.sp-adm-stat-num.c-blue  { color: #2196f3; }
+.sp-adm-stat-num.c-orange{ color: #e65100; }
+.sp-adm-stat-num.c-green { color: #43a047; }
+.sp-adm-stat-cta { text-align: center; padding: 22px 10px; }
+.sp-adm-stat-cta p { color: #78909c; margin-bottom: 14px; }
+
+/* ---------- 18. 数据表格组件 (admin-table.js, DataTables serverSide UX 等价) ---------- */
+.sp-adm-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-gap-3);
+  padding: var(--sp-gap-3) var(--sp-gap-4);
+  border-bottom: 1px solid var(--sp-divider);
+  flex-wrap: wrap;
+}
+.sp-adm-search { position: relative; flex: 1; min-width: 200px; max-width: 360px; }
+.sp-adm-search .mi {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 18px; color: var(--sp-hint); pointer-events: none;
+}
+.sp-adm-search input {
+  width: 100%; height: 36px; padding: 0 12px 0 36px;
+  border: 1px solid var(--sp-border); border-radius: var(--sp-radius);
+  outline: none; font-size: 13px; font-family: inherit; background: var(--sp-surface); color: var(--sp-text);
+}
+.sp-adm-search input:focus { border-color: var(--sp-brand); box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.12); }
+.sp-adm-tools { display: flex; align-items: center; gap: var(--sp-gap-2); }
+.sp-adm-tools select.sp-select { width: auto; height: 36px; padding: 4px 8px; font-size: 13px; }
+
+/* 列显示面板 */
+.sp-adm-cols { position: relative; }
+.sp-adm-colpanel {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30;
+  min-width: 180px; max-height: 320px; overflow-y: auto;
+  background: var(--sp-surface); border-radius: var(--sp-radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22); padding: var(--sp-gap-2) var(--sp-gap-3);
+  display: none;
+}
+.sp-adm-colpanel.open { display: block; }
+.sp-adm-colpanel label {
+  display: flex; align-items: center; gap: var(--sp-gap-2);
+  padding: 5px 2px; font-size: 13px; cursor: pointer; user-select: none; white-space: nowrap;
+}
+.sp-adm-colpanel label:hover { color: var(--sp-brand); }
+
+/* 表格本体 (在 .sp-table 基础上叠加排序表头/加载态) */
+.sp-adm-tablewrap { position: relative; overflow: auto; background: var(--sp-surface); }
+.sp-table th.sp-th-sort { cursor: pointer; user-select: none; white-space: nowrap; }
+.sp-table th.sp-th-sort:hover { color: var(--sp-text); }
+.sp-table th.sp-th-sort .mi {
+  font-size: 14px; vertical-align: -2px; margin-left: 2px;
+  color: var(--sp-hint); opacity: 0; visibility: visible;
+}
+.sp-table th.sp-th-sort:hover .mi { opacity: 0.55; }
+.sp-table th.sp-th-sort.sorted { color: var(--sp-text); font-weight: 500; }
+.sp-table th.sp-th-sort.sorted .mi { opacity: 1; color: var(--sp-brand); }
+.sp-adm-loading {
+  position: absolute; inset: 0; z-index: 5;
+  background: rgba(255, 255, 255, 0.6);
+  display: none; align-items: center; justify-content: center;
+  color: var(--sp-text-2nd); font-size: 13px; gap: var(--sp-gap-2);
+}
+.sp-adm-loading.show { display: flex; }
+.sp-adm-loading .mi { font-size: 20px; animation: spSpin 1s linear infinite; }
+@keyframes spSpin { to { transform: rotate(360deg); } }
+
+/* 行操作按钮组 */
+.sp-adm-ops { display: flex; gap: 6px; }
+.sp-adm-ops .sp-btn { white-space: nowrap; }
+
+/* 表尾: 信息 + 分页 */
+.sp-adm-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-gap-3);
+  padding: var(--sp-gap-3) var(--sp-gap-4); border-top: 1px solid var(--sp-divider);
+  flex-wrap: wrap;
+}
+.sp-adm-info { font-size: 13px; color: var(--sp-text-2nd); }
+.sp-adm-foot .sp-pagination { padding: 0; }
+
+/* 外层卡片容器 (工具栏 + 表 + 页脚 一体) */
+.sp-adm {
+  background: var(--sp-surface); border-radius: var(--sp-radius);
+  box-shadow: var(--sp-shadow-1); overflow: visible;
+}

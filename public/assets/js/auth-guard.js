@@ -44,7 +44,7 @@
   // 3. 已具备有效会话的用户进入认证页 (登录/注册) 时, 正向业务分流
   if (path.includes('/auth/')) {
     if (authed && !path.includes('logout') && !path.includes('reset') && !path.includes('token')) {
-      jump(isAdmin ? '/admin/dashboard.html' : '/user/');
+      jump(isAdmin ? '/admin/' : '/user/');
       return;
     }
   }

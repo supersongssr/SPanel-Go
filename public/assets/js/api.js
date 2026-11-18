@@ -11,7 +11,10 @@
      * 底层统一的 HTTP 请求 Fetch 拦截封装
      */
     async request(endpoint, options = {}) {
-      const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
+      // 以 http 开头 → 完整 URL; 以 /api/ 开头 → 站内绝对路径 (admin v2 等跨版本端点);
+      // 其余 → 拼接 API_BASE (如 '/user/x' → '/api/v1/user/x')
+      const url = (endpoint.startsWith('http') || endpoint.startsWith('/api/'))
+        ? endpoint : `${API_BASE}${endpoint}`;
 
       // 合并 headers; 调试兜底: localStorage 中的 token 仍以 Bearer 附加 (非主通道)
       const headers = {

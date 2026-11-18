@@ -59,6 +59,8 @@ type User struct {
 	// —— 后台任务 (dailyjob/checkjob) 依赖的周期/统计列 ——
 	Score           int32  `gorm:"column:score" json:"score"`                         // 积分 (活跃+1/违规-1)
 	BanTimes        int32  `gorm:"column:ban_times" json:"ban_times"`                 // 违规计数
+	AutoResetDay    int32  `gorm:"column:auto_reset_day" json:"auto_reset_day"`       // 自动重置日 (几号重置流量, 0=不重置; admin 列表/编辑)
+	AutoResetBandwidth string `gorm:"column:auto_reset_bandwidth;type:decimal(12,2)" json:"auto_reset_bandwidth"` // 自动重置带宽 (GB)
 	RenewTime       int32  `gorm:"column:renew_time" json:"renew_time"`               // 流量周期到期时间戳 (记账)
 	TransferLimit   int64  `gorm:"column:transfer_limit" json:"transfer_limit"`       // 周期下行配额 (bytes)
 	LastDayT        int64  `gorm:"column:last_day_t" json:"last_day_t"`               // 昨日快照 d (bytes)

@@ -160,7 +160,7 @@
             setTimeout(() => {
               const u = loginResult.data.user;
               if (u.isAdmin === true || u.isAdmin === 1 || u.is_admin === 1) {
-                window.location.replace('/admin/dashboard.html');
+                window.location.replace('/admin/');
               } else {
                 window.location.replace('/user/');
               }

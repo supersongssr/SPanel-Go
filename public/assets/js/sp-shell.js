@@ -77,17 +77,80 @@
   /* ---------- 用户区骨架 ---------- */
   function injectUserShell() {
     var u = (window.SP && SP.user()) || null;
-    var name = (u && (u.user_name || u.email)) || null;
     var isAdmin = !!(window.SP && SP.isAdmin && SP.isAdmin());
-    var year = new Date().getFullYear();
-    var appName = (window.SP && SP.appName) || 'SPanel';
     /* 未登录 → 下拉为 登录/注册 (对齐旧版 main.tpl else 分支) */
-    var userDropHtml = name
+    var userDropHtml = u
       ? '<a href="/user/"><i class="mi">account_box</i>用户中心</a>' +
-        (isAdmin ? '<a href="/admin/dashboard.html"><i class="mi">dashboard</i>管理后台</a>' : '') +
+        (isAdmin ? '<a href="/admin/"><i class="mi">dashboard</i>管理后台</a>' : '') +
         '<button class="sp-dd-danger" id="spLogoutBtn"><i class="mi">exit_to_app</i>登出</button>'
       : '<a href="/auth/login.html"><i class="mi">account_box</i>登录</a>' +
         '<a href="/auth/register.html"><i class="mi">person_add</i>注册</a>';
+    injectAppShell(MENU, { userDropHtml: userDropHtml });
+  }
+
+  /* ---------- 管理区骨架 (旧 admin/main.tpl 六组菜单, 2026-11-18 admin 移植) ---------- */
+  var ADMIN_MENU = [
+    { title: '我的', items: [
+      { key: 'dashboard',         href: '/admin/',                      icon: 'business_center',   text: '系统概览' },
+      { key: 'announcements',     href: '/admin/announcements.html',    icon: 'announcement',      text: '公告管理' },
+      { key: 'tickets',           href: '/admin/tickets.html',          icon: 'question_answer',   text: '工单管理' },
+      { key: 'autos',             href: '/admin/autos.html',            icon: 'flash_auto',        text: '下发命令' }
+    ]},
+    { title: '节点', items: [
+      { key: 'nodes',             href: '/admin/nodes.html',            icon: 'router',            text: '节点列表' },
+      { key: 'node-ctl',          href: '/admin/node-ctl.html',         icon: 'router',            text: '节点调整' },
+      { key: 'node-group-traffic',href: '/admin/node-group-traffic.html', icon: 'show_chart',      text: '流量统计' },
+      { key: 'node-decision',     href: '/admin/node-decision.html',    icon: 'assessment',        text: '节点决策台' },
+      { key: 'traffic-log',       href: '/admin/traffic-log.html',      icon: 'traffic',           text: '流量记录' },
+      { key: 'rss-headers',       href: '/admin/rss-headers.html',      icon: 'content_paste',     text: '订阅请求记录' },
+      { key: 'blockips',          href: '/admin/blockips.html',         icon: 'dialer_sip',        text: '已封禁IP' },
+      { key: 'unblockips',        href: '/admin/unblockips.html',       icon: 'dialer_sip',        text: '已解封IP' }
+    ]},
+    { title: '用户', items: [
+      { key: 'users',             href: '/admin/users.html',            icon: 'supervisor_account', text: '用户列表' },
+      { key: 'relays',            href: '/admin/relays.html',           icon: 'compare_arrows',    text: '中转规则' },
+      { key: 'invites',           href: '/admin/invites.html',          icon: 'loyalty',            text: '邀请与返利' },
+      { key: 'audit-login',       href: '/admin/audit-login.html',      icon: 'text_fields',        text: '登录记录' },
+      { key: 'audit-alive',       href: '/admin/audit-alive.html',      icon: 'important_devices', text: '在线IP' },
+      { key: 'user-log',          href: '/admin/user-log.html',         icon: 'history',           text: '用户操作记录' }
+    ]},
+    { title: '审计', items: [
+      { key: 'detects',           href: '/admin/detects.html',          icon: 'account_balance',   text: '审计规则' },
+      { key: 'detect-log',        href: '/admin/detect-log.html',       icon: 'assignment_late',   text: '审计记录' }
+    ]},
+    { title: '交易', items: [
+      { key: 'codes',             href: '/admin/codes.html',            icon: 'code',              text: '充值与捐赠记录' },
+      { key: 'shops',             href: '/admin/shops.html',            icon: 'shop',              text: '商品' },
+      { key: 'coupons',           href: '/admin/coupons.html',          icon: 'card_giftcard',     text: '优惠码' },
+      { key: 'boughts',           href: '/admin/boughts.html',          icon: 'shopping_cart',     text: '购买记录' },
+      { key: 'recharge-stats',    href: '/admin/recharge-stats.html',   icon: 'equalizer',         text: '充值统计' }
+    ]}
+  ];
+
+  function injectAdminShell() {
+    var u = (window.SP && SP.user()) || null;
+    /* 旧 admin/main.tpl: 顶栏头像下拉 = 用户中心/登出; 个人资料无菜单入口, 放下拉 */
+    var userDropHtml = u
+      ? '<a href="/admin/profile.html"><i class="mi">account_box</i>个人资料</a>' +
+        '<a href="/user/"><i class="mi">person</i>用户中心</a>' +
+        '<button class="sp-dd-danger" id="spLogoutBtn"><i class="mi">exit_to_app</i>登出</button>'
+      : '<a href="/auth/login.html"><i class="mi">account_box</i>登录</a>';
+    injectAppShell(ADMIN_MENU, {
+      userDropHtml: userDropHtml,
+      drawerLogoIcon: 'person_pin',
+      drawerLogoText: '管理面板',
+      headerBadge: '<span class="sp-header-admin-badge">ADMIN</span>',
+      drawerExtra: '<a href="/user/"><i class="mi">person</i>&nbsp;用户中心</a>'
+    });
+  }
+
+  /* ---------- 通用骨架注入 (用户区/管理区共用) ---------- */
+  function injectAppShell(menu, cfg) {
+    cfg = cfg || {};
+    var u = (window.SP && SP.user()) || null;
+    var name = (u && (u.user_name || u.email)) || null;
+    var year = new Date().getFullYear();
+    var appName = (window.SP && SP.appName) || 'SPanel';
 
     /* 顶栏 (复刻旧 header-orange: 左菜单钮+logo / 右用户下拉) */
     var header = document.createElement('header');
@@ -96,21 +159,23 @@
       '<div class="sp-header-inner">' +
         '<div class="sp-header-left">' +
           '<button class="sp-header-menu-btn" id="spDrawerToggle" aria-label="菜单"><i class="mi">menu</i></button>' +
-          '<a class="sp-header-logo" href="/"><i class="mi">language</i><span>' + esc(appName) + '</span></a>' +
+          '<a class="sp-header-logo" href="/"><i class="mi">language</i><span>' + esc(appName) + '</span>' + (cfg.headerBadge || '') + '</a>' +
         '</div>' +
         '<div class="sp-header-user" id="spUserDrop">' +
           '<button class="sp-header-user-toggle" id="spUserBtn">' +
             '<span class="sp-header-user-name">' + esc(name || '未登录') + '</span>' +
             '<i class="mi">account_circle</i>' +
           '</button>' +
-          '<div class="sp-dropdown" id="spUserMenu">' + userDropHtml + '</div>' +
+          '<div class="sp-dropdown" id="spUserMenu">' + cfg.userDropHtml + '</div>' +
         '</div>' +
       '</div>';
     body.insertBefore(header, body.firstChild);
 
     /* 左抽屉 (复刻旧 nav-drawer-md, 分组默认展开 "collapse in") */
-    var navHtml = '<a class="sp-drawer-logo" href="/"><i class="mi">language</i><span>' + esc(appName) + '</span></a><ul class="sp-drawer-nav">';
-    MENU.forEach(function (g) {
+    var logoIcon = cfg.drawerLogoIcon || 'language';
+    var logoText = cfg.drawerLogoText != null ? cfg.drawerLogoText : appName;
+    var navHtml = '<a class="sp-drawer-logo" href="/"><i class="mi">' + logoIcon + '</i><span>' + esc(logoText) + '</span></a><ul class="sp-drawer-nav">';
+    menu.forEach(function (g) {
       navHtml += '<li class="sp-drawer-group">' +
         '<div class="sp-drawer-group-title">' + esc(g.title) + '<i class="mi sp-arrow">expand_more</i></div><ul class="sp-drawer-sub">';
       g.items.forEach(function (it) {
@@ -120,6 +185,7 @@
       navHtml += '</ul></li>';
     });
     navHtml += '</ul>';
+    if (cfg.drawerExtra) navHtml += '<div class="sp-drawer-extra">' + cfg.drawerExtra + '</div>';
     var drawer = document.createElement('nav');
     drawer.className = 'sp-drawer';
     drawer.id = 'spDrawer';
@@ -186,4 +252,5 @@
   /* ---------- 启动 ---------- */
   injectFeedbackNodes();
   if (area === 'user') injectUserShell();
+  else if (area === 'admin') injectAdminShell();
 })();

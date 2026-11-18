@@ -30,6 +30,7 @@ func SetupRouter() *gin.Engine {
 	RegisterUserStatic(r)
 	RegisterAdminRoutes(r)
 	RegisterAdminStatic(r)
+	RegisterAdminV2Routes(r)
 	RegisterApiRoutes(r)
 	return r
 }
