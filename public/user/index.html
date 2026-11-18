@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户中心 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="user" data-sp-page="dashboard">
+  <main class="sp-content" x-data="dashboardPage()">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">用户中心 ★</h1></div>
+    </div>
+
+    <div class="sp-content-inner">
+
+      <!-- ═══ ① 用户状态四卡 (复刻旧版 user-info 卡) ═══ -->
+      <div class="sp-grid">
+        <div class="sp-col-3">
+          <div class="sp-card sp-stat">
+            <div class="sp-stat-head">
+              <div class="sp-stat-name">帐号等级</div>
+              <a href="/user/shop.html" class="sp-tag sp-tag-orange">升级</a>
+            </div>
+            <div class="sp-stat-value" x-text="userClass != 0 ? ('VIP ' + userClass) : '普通用户'">普通用户</div>
+            <div class="sp-stat-foot"><span><i class="mi">add_circle</i>&nbsp;<span x-text="userClass != 0 ? '邀请好友使用' : '升级解锁VIP节点'">升级解锁VIP节点</span></span></div>
+          </div>
+        </div>
+        <div class="sp-col-3">
+          <div class="sp-card sp-stat">
+            <div class="sp-stat-head">
+              <div class="sp-stat-name">余额</div>
+              <a href="/user/code.html" class="sp-tag sp-tag-green">充值</a>
+            </div>
+            <div class="sp-stat-value"><span x-text="userMoney">0.00</span> <small>$</small></div>
+            <div class="sp-stat-foot"><span><i class="mi">attach_money</i>&nbsp;账户内可用余额</span></div>
+          </div>
+        </div>
+        <div class="sp-col-3">
+          <div class="sp-card sp-stat">
+            <div class="sp-stat-head">
+              <div class="sp-stat-name">在线设备数</div>
+            </div>
+            <div class="sp-stat-value" x-text="aliveIpCount + ' / ' + (nodeConnector != 0 ? nodeConnector : '不限制')">0 / 不限制</div>
+            <div class="sp-stat-foot"><span><i class="mi">phonelink</i>&nbsp;在线连接 / 限制数</span></div>
+          </div>
+        </div>
+        <div class="sp-col-3">
+          <div class="sp-card sp-stat">
+            <div class="sp-stat-head">
+              <div class="sp-stat-name">端口速率</div>
+            </div>
+            <div class="sp-stat-value" x-text="nodeSpeedlimit > 0 ? nodeSpeedlimit + ' Mbps' : '无限制'">无限制</div>
+            <div class="sp-stat-foot"><span><i class="mi">signal_cellular_alt</i>&nbsp;账户最高下行网速</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ② 签到 + 流量统计 ═══ -->
+      <div class="sp-grid sp-mt-6">
+        <div class="sp-col-4">
+          <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="sp-card-title"><i class="mi">account_circle</i>账号使用情况</div>
+              <dl style="margin:0;">
+                <div class="sp-dl-row">
+                  <dt>等级过期时间</dt>
+                  <dd x-text="classExpireText">永久有效</dd>
+                </div>
+                <div class="sp-dl-row">
+                  <dt>等级有效期</dt>
+                  <dd x-text="classRemainText">感谢您使用本站</dd>
+                </div>
+                <div class="sp-dl-row">
+                  <dt>帐号过期时间</dt>
+                  <dd x-text="accountExpireText">永久有效</dd>
+                </div>
+                <div class="sp-dl-row">
+                  <dt>账号有效期</dt>
+                  <dd x-text="accountRemainText">感谢您使用本站</dd>
+                </div>
+                <div class="sp-dl-row">
+                  <dt>上次使用</dt>
+                  <dd x-text="lastUseText">从未使用</dd>
+                </div>
+                <div class="sp-dl-row">
+                  <dt>上次签到</dt>
+                  <dd x-text="lastCheckinTime">从未签到</dd>
+                </div>
+              </dl>
+            </div>
+            <div class="sp-mt-4">
+              <button class="sp-btn sp-btn-brand sp-btn-block" @click="doCheckin" :disabled="checkedIn || checkinLoading">
+                <span x-show="!checkinLoading" x-text="checkedIn ? '今日已签到' : '点我签到 · 每日随机流量奖励'"></span>
+                <span x-show="checkinLoading" x-cloak><i class="mi">refresh</i>正在处理...</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="sp-col-8">
+          <div class="sp-card">
+            <div class="sp-card-title"><i class="mi">donut_large</i>流量消耗统计</div>
+            <div class="sp-mb-6">
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--sp-text-2nd);margin-bottom:8px;">
+                <span>已用流量占比</span>
+                <span x-text="usagePercentage + '%'">0%</span>
+              </div>
+              <div class="sp-progress sp-progress-orange"><i :style="'width:' + usagePercentage + '%'"></i></div>
+            </div>
+            <div class="sp-grid" style="gap:16px;">
+              <div class="sp-col-4" style="text-align:center;border-right:1px solid var(--sp-divider);">
+                <div class="sp-text-hint" style="font-size:12px;">已用上行</div>
+                <div style="font-weight:500;margin-top:4px;" x-text="uploadStr">0 B</div>
+              </div>
+              <div class="sp-col-4" style="text-align:center;border-right:1px solid var(--sp-divider);">
+                <div class="sp-text-hint" style="font-size:12px;">已用下行</div>
+                <div style="font-weight:500;margin-top:4px;" x-text="downloadStr">0 B</div>
+              </div>
+              <div class="sp-col-4" style="text-align:center;">
+                <div class="sp-text-hint" style="font-size:12px;">总授信配额</div>
+                <div style="font-weight:500;margin-top:4px;color:var(--sp-primary);" x-text="totalStr">0 B</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ③ 快捷订阅 + 公告 ═══ -->
+      <div class="sp-grid sp-mt-6">
+        <div class="sp-col-4">
+          <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="sp-card-title"><i class="mi">playlist_add</i>快捷节点导入</div>
+              <p class="sp-text-muted" style="font-size:13px;">一键生成您的个性化通用客户端配置订阅。支持 Clash、Surge、Loon、sing-box 及基础 base64 协议自适应解析。</p>
+            </div>
+            <div class="sp-mt-4">
+              <button class="sp-btn sp-btn-block" @click="copySubLink"><i class="mi">content_copy</i>复制通用订阅链接</button>
+              <p class="sp-text-hint" style="font-size:12px;text-align:center;margin-top:8px;">为保护您的网络安全，切勿将该订阅外泄。</p>
+            </div>
+          </div>
+        </div>
+        <div class="sp-col-8">
+          <div class="sp-card">
+            <div class="sp-card-title"><i class="mi">announcement</i>系统最新公告</div>
+            <template x-for="ann in announcements" :key="ann.id">
+              <div style="border-bottom:1px solid var(--sp-divider);padding-bottom:16px;margin-bottom:16px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <span class="sp-text-muted" style="font-size:12px;" x-text="ann.date"></span>
+                  <span class="sp-tag sp-tag-orange">重要公告</span>
+                </div>
+                <!-- 富文本 HTML 呈现 -->
+                <div style="margin-top:10px;line-height:1.7;font-size:13px;" x-html="ann.content"></div>
+              </div>
+            </template>
+            <template x-if="announcements.length === 0">
+              <div class="sp-empty"><i class="mi">inbox</i>暂无任何系统公告。</div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ④ 使用教程 · 五步配置向导 (复刻旧版首页 tut-grid, 带完成态 ✓) ═══ -->
+      <div class="sp-card sp-mt-6">
+        <div class="sp-card-title">
+          <i class="mi">school</i>使用教程
+          <span class="sp-extra sp-text-hint">按顺序完成即可科学上网, 带 ✓ 的步骤已完成</span>
+        </div>
+        <div class="sp-tut-grid">
+          <a class="sp-tut-card" :class="tutDone[1] && 'sp-tut-done'" href="/user/code.html">
+            <div class="sp-tut-num" x-text="tutDone[1] ? '✓' : '1'">1</div>
+            <div class="sp-tut-body">
+              <div class="sp-tut-name">充值</div>
+              <div class="sp-tut-desc">为账户充值余额</div>
+              <div class="sp-tut-go" x-text="tutDone[1] ? '已完成' : '去充值 →'">去充值 →</div>
+            </div>
+          </a>
+          <a class="sp-tut-card" :class="tutDone[2] && 'sp-tut-done'" href="/user/shop.html">
+            <div class="sp-tut-num" x-text="tutDone[2] ? '✓' : '2'">2</div>
+            <div class="sp-tut-body">
+              <div class="sp-tut-name">购买套餐</div>
+              <div class="sp-tut-desc">选购合适的套餐等级</div>
+              <div class="sp-tut-go" x-text="tutDone[2] ? '已完成' : '去商店 →'">去商店 →</div>
+            </div>
+          </a>
+          <a class="sp-tut-card" :class="tutDone[3] && 'sp-tut-done'" href="/user/tutorial.html">
+            <div class="sp-tut-num" x-text="tutDone[3] ? '✓' : '3'">3</div>
+            <div class="sp-tut-body">
+              <div class="sp-tut-name">下载软件</div>
+              <div class="sp-tut-desc">下载受支持的客户端</div>
+              <div class="sp-tut-go" x-text="tutDone[3] ? '已完成' : '查看教程 →'">查看教程 →</div>
+            </div>
+          </a>
+          <a class="sp-tut-card" :class="tutDone[4] && 'sp-tut-done'" href="/user/rss.html">
+            <div class="sp-tut-num" x-text="tutDone[4] ? '✓' : '4'">4</div>
+            <div class="sp-tut-body">
+              <div class="sp-tut-name">添加订阅</div>
+              <div class="sp-tut-desc">复制订阅地址到客户端</div>
+              <div class="sp-tut-go" x-text="tutDone[4] ? '已完成' : '订阅管理 →'">订阅管理 →</div>
+            </div>
+          </a>
+          <a class="sp-tut-card" href="/user/tickets.html">
+            <div class="sp-tut-num">5</div>
+            <div class="sp-tut-body">
+              <div class="sp-tut-name">售后客服</div>
+              <div class="sp-tut-desc">遇到问题提工单求助</div>
+              <div class="sp-tut-go">联系客服 →</div>
+            </div>
+          </a>
+        </div>
+        <p class="sp-text-hint" style="font-size:12px;margin-top:12px;">
+          <i class="mi" style="font-size:14px;">info</i>
+          节点获取已全部由订阅自动完成, 无需任何手动配置; 完整的客户端图文教程已迁至「使用教程」页, 保持首页精简。
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function dashboardPage() {
+      return {
+        userEmail: '',
+        isAdmin: false,
+        userClass: 0,
+        classExpire: '',
+        userMoney: '0.00',
+        checkedIn: false,
+        lastCheckinTime: '',
+        checkinLoading: false,
+        uploadStr: '0 B',
+        downloadStr: '0 B',
+        totalStr: '0 B',
+        usagePercentage: 0,
+        announcements: [],
+        subToken: '',
+
+        // ── 旧版首页对齐字段 (在线设备/速率/过期倒计时/上次使用) ──
+        nodeConnector: 0,
+        nodeSpeedlimit: 0,
+        aliveIpCount: 0,
+        lastUseTime: 0,
+        classExpireTs: 0,
+        accountExpireTs: 0,
+        tutDone: { 1: false, 2: false, 3: false, 4: false },
+
+        async init() {
+          const storedUser = localStorage.getItem('spanel_user');
+          if (storedUser) {
+            try {
+              const u = JSON.parse(storedUser);
+              this.userEmail = u.email;
+              this.isAdmin = u.isAdmin === true || u.isAdmin === 1 || u.is_admin === 1;
+            } catch(e) {}
+          }
+          await this.fetchDashboardData();
+        },
+
+        async fetchDashboardData() {
+          try {
+            const res = await SPanelAPI.request('/user/dashboard');
+            const data = res.data;
+            this.userMoney = data.money;
+            this.userClass = data.class;
+            this.classExpire = data.class_expire || '永久有效';
+            this.checkedIn = data.checked_in;
+            this.lastCheckinTime = data.checkin_status.last_checkin_time || '从未签到';
+            this.announcements = data.announcements || [];
+            this.subToken = data.sub_token || '';
+
+            this.nodeConnector = data.node_connector || 0;
+            this.nodeSpeedlimit = parseFloat(data.node_speedlimit) || 0;
+            this.aliveIpCount = data.alive_ip_count || 0;
+            this.lastUseTime = data.last_use_time || 0;
+            // 服务器与用户均为东八区, 无时区后缀的 ISO 串按浏览器本地时间解析 (等价 CST)
+            this.classExpireTs = data.class_expire ? Date.parse(data.class_expire.replace(' ', 'T')) || 0 : 0;
+            this.accountExpireTs = data.expire_in ? Date.parse(data.expire_in.replace(' ', 'T')) || 0 : 0;
+
+            // 流量显示逻辑封装
+            const u = BigInt(data.u);
+            const d = BigInt(data.d);
+            const total = BigInt(data.transfer_enable);
+
+            // 五步向导完成态 (语义对齐旧版 UserRss::tutorialStepsDone:
+            //   1=已充值 money>0; 2=有效套餐 class>0 且未过期; 3/4=订阅已使用——
+            //   新版订阅 token 自动开通, 故以"已产生流量"作为下载/订阅完成的信号)
+            const hasTraffic = (u + d) > 0n;
+            const classActive = this.userClass > 0 && this.classExpireTs > Date.now();
+            this.tutDone = {
+              1: parseFloat(this.userMoney) > 0,
+              2: classActive,
+              3: hasTraffic,
+              4: hasTraffic,
+            };
+
+            this.uploadStr = this.formatBytes(u);
+            this.downloadStr = this.formatBytes(d);
+            this.totalStr = this.formatBytes(total);
+
+            const used = u + d;
+            if (total > 0n) {
+              const pct = Number((used * 100n) / total);
+              this.usagePercentage = pct > 100 ? 100 : pct;
+            } else {
+              this.usagePercentage = 0;
+            }
+          } catch (err) {
+            console.error(err.message);
+          }
+        },
+
+        async doCheckin() {
+          this.checkinLoading = true;
+          try {
+            const res = await SPanelAPI.request('/user/checkin', { method: 'POST' });
+            SPUI.msg(`签到成功！随机奖励了 ${this.formatBytes(BigInt(res.data.traffic))} 流量。`);
+            await this.fetchDashboardData();
+          } catch (err) {
+            SPUI.msg(err.message || '签到失败，请稍后再试。');
+          } finally {
+            this.checkinLoading = false;
+          }
+        },
+
+        async copySubLink() {
+          // 订阅 Token 通用获取 (对齐 link 表 type=11)
+          if (!this.subToken) {
+            SPUI.msg('未能获取到订阅凭证！');
+            return;
+          }
+          const subLink = `${window.location.origin}/link/${this.subToken}`;
+          try {
+            await navigator.clipboard.writeText(subLink);
+            SPUI.toast('通用订阅链接已复制到您的剪贴板，快去客户端导入吧！', 'success');
+          } catch(e) {
+            SPUI.msg('复制失败，请手动选择复制！');
+          }
+        },
+
+        formatBytes(bytes) {
+          if (bytes === 0n) return '0 B';
+          const k = 1024n;
+          const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+          let i = 0;
+          let temp = bytes;
+          while (temp >= k && i < sizes.length - 1) {
+            temp = temp / k;
+            i++;
+          }
+          return temp.toString() + ' ' + sizes[i];
+        },
+
+        // ── 账号使用情况: 过期时间展示 + 剩余天数倒计时 (复刻旧版 CountDown) ──
+        fmtDate(ts) {
+          const dt = new Date(ts);
+          const p = n => String(n).padStart(2, '0');
+          return `${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())} ${p(dt.getHours())}:${p(dt.getMinutes())}:${p(dt.getSeconds())}`;
+        },
+        fmtExpire(ts) {
+          if (!ts || new Date(ts).getFullYear() < 2000) return '永久有效'; // 旧版 1989 哨兵值视为永久
+          return this.fmtDate(ts);
+        },
+        fmtRemain(ts) {
+          if (!ts || new Date(ts).getFullYear() < 2000) return '感谢您使用本站';
+          const days = Math.floor((ts - Date.now()) / 86400000);
+          return days >= 0 ? `剩余 ${days} 天` : '已过期, 请续期';
+        },
+        get classExpireText() { return this.fmtExpire(this.classExpireTs); },
+        get classRemainText() { return this.fmtRemain(this.classExpireTs); },
+        get accountExpireText() { return this.fmtExpire(this.accountExpireTs); },
+        get accountRemainText() { return this.fmtRemain(this.accountExpireTs); },
+        get lastUseText() {
+          return this.lastUseTime > 0 ? this.fmtDate(this.lastUseTime * 1000) : '从未使用';
+        },
+
+        async logout() {
+          SP.logout();
+        }
+      }
+    }
+  </script>
+</body>
+</html>

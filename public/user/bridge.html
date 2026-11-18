@@ -17,7 +17,7 @@
     </div>
     <p id="msg" class="sp-text-muted" style="font-size:14px;">正在处理您的请求...</p>
     <p style="margin-top:16px;">
-      <a id="link" href="/user/dashboard.html" class="sp-btn sp-btn-brand" style="display:none;">点此手动继续</a>
+      <a id="link" href="/user/" class="sp-btn sp-btn-brand" style="display:none;">点此手动继续</a>
     </p>
   </div>
   <script src="/assets/js/api.js"></script>
@@ -68,7 +68,7 @@
         icon.textContent = 'error';
         link.style.display = 'inline-flex';
         link.textContent = '返回上一页';
-        link.href = document.referrer || '/user/dashboard.html';
+        link.href = document.referrer || '/user/';
       }
     })();
   </script>

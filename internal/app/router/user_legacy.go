@@ -68,6 +68,8 @@ func registerCommonPages(r *gin.Engine) {
 	r.StaticFile("/", "public/index.html")
 	r.StaticFile("/index.html", "public/index.html")
 	r.StaticFile("/404.html", "public/404.html")
+	// 用户中心首页 (方案 B: dashboard.html 重命名为 index.html, /user/ 直出免跳转)
+	r.StaticFile("/user/", "public/user/index.html")
 
 	r.NoRoute(func(c *gin.Context) {
 		p := c.Request.URL.Path
@@ -98,9 +100,15 @@ func registerCommonPages(r *gin.Engine) {
 			}
 		}
 
-		// ③ /user 副作用 GET → bridge
+		// /user 副作用 GET → bridge
 		if userLegacyBridge[p] {
 			bridgePage(c)
+			return
+		}
+
+		// 旧用户中心首页别名: dashboard(.html) → /user/ (重命名后兼容旧书签/旧链接)
+		if p == "/user/dashboard" || p == "/user/dashboard.html" {
+			legacyRedirectTo(c, "/user/")
 			return
 		}
 
@@ -123,9 +131,9 @@ func registerCommonPages(r *gin.Engine) {
 				return
 			}
 		}
-		// /user 与 /user/ → 仪表盘
-		if p == "/user" || p == "/user/" {
-			legacyRedirectTo(c, "/user/dashboard.html")
+		// /user → /user/ (带斜杠路径, 保证 auth-guard 的 '/user/' 前缀拦截生效)
+		if p == "/user" {
+			legacyRedirectTo(c, "/user/")
 			return
 		}
 

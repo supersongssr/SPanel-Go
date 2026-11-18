@@ -486,3 +486,33 @@ body.sp-auth-body { background: var(--sp-auth-bg); min-height: 100vh; display: f
   .sp-marquee { animation: none; padding-left: 0; }
   .sp-modal-dialog { animation: none; }
 }
+
+/* ---------- 15. 用户中心首页: 五步向导卡 (复刻旧版 tut-grid) ---------- */
+.sp-tut-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.sp-tut-card {
+  display: flex; gap: 10px; align-items: flex-start;
+  border: 1px solid var(--sp-divider); border-radius: 8px; padding: 12px;
+  text-decoration: none !important; color: var(--sp-text-2nd); background: var(--sp-surface);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.sp-tut-card:hover { border-color: var(--sp-primary); box-shadow: 0 1px 4px rgba(255, 152, 0, 0.15); }
+.sp-tut-num {
+  flex: none; width: 24px; height: 24px; border-radius: 50%;
+  background: #e0e0e0; color: #fff; font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.sp-tut-card.sp-tut-done .sp-tut-num { background: var(--sp-success); }
+.sp-tut-card.sp-tut-done { border-color: #c8e6c9; background: #f6fbf6; }
+.sp-tut-name { font-size: 14px; font-weight: 600; color: var(--sp-text); }
+.sp-tut-desc { font-size: 12px; color: var(--sp-text-2nd); margin-top: 2px; }
+.sp-tut-go { font-size: 12px; color: var(--sp-info); margin-top: 6px; }
+.sp-tut-card.sp-tut-done .sp-tut-go { color: var(--sp-success); }
+
+/* ---------- 16. 账号使用情况详情行 (复刻旧版 dl-horizontal) ---------- */
+.sp-dl-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-gap-3);
+  padding: 8px 0; border-bottom: 1px dashed var(--sp-divider); font-size: 13px;
+}
+.sp-dl-row:last-child { border-bottom: 0; }
+.sp-dl-row dt { color: var(--sp-text-2nd); flex: none; }
+.sp-dl-row dd { margin: 0; text-align: right; word-break: break-all; }

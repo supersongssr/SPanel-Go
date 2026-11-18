@@ -251,7 +251,16 @@ func (h *UserHandler) Dashboard(c *gin.Context) {
 		lastCheckinStr = lastDate.Format("2006-01-02 15:04:05")
 	}
 
-	// 3. 查找专属 RSS 订阅 Token (type=11)
+	// 3. 在线设备数 (5 分钟内去重 IP, 与 UserInfo 同口径 — 复刻旧版 index.tpl 在线设备卡片)
+	fiveMinutesAgo := time.Now().Unix() - 5*60
+	var aliveIPList []model.AliveIP
+	database.DB.Where("userid = ? AND datetime > ?", user.ID, fiveMinutesAgo).Find(&aliveIPList)
+	seenAliveIPs := make(map[string]bool)
+	for _, ipLog := range aliveIPList {
+		seenAliveIPs[ipLog.IP] = true
+	}
+
+	// 4. 查找专属 RSS 订阅 Token (type=11)
 	var link model.Link
 	if err := database.DB.Where("userid = ? AND type = 11", user.ID).First(&link).Error; err != nil {
 		subToken := generateLocalRandomStr(16)
@@ -284,8 +293,15 @@ func (h *UserHandler) Dashboard(c *gin.Context) {
 				"can_checkin":       canCheckin,
 				"last_checkin_time": lastCheckinStr,
 			},
-			"announcements": formattedList,
+			"announcements":  formattedList,
 			"sub_token":     link.Token, // 专有订阅 token
+
+			// ── 旧版用户中心首页 (index.tpl) 对齐字段 ──
+			"expire_in":       user.ExpireIn.Format("2006-01-02 15:04:05"),
+			"node_connector":  user.NodeConnector,                              // 0 = 不限设备数
+			"node_speedlimit": user.NodeSpeedlimit,                             // "0.00" = 不限速 (Mbps)
+			"alive_ip_count":  len(seenAliveIPs),                              // 在线设备数
+			"last_use_time":   user.T,                                          // 最近一次流量上报 (0=从未使用)
 		},
 	})
 }

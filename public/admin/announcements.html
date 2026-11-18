@@ -78,7 +78,7 @@
           <a href="/admin/codes.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('code') ? 'text-purple-400 font-semibold' : 'text-slate-400 hover:text-purple-400'"><i class="fa-solid fa-barcode mr-1.5"></i>卡密</a>
           <a href="/admin/invites.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('invite') ? 'text-purple-400 font-semibold' : 'text-slate-400 hover:text-purple-400'"><i class="fa-solid fa-users mr-1.5"></i>推广</a>
           <a href="/admin/audits.html" class="transition font-medium whitespace-nowrap" :class="window.location.pathname.includes('audit') ? 'text-purple-400 font-semibold' : 'text-slate-400 hover:text-purple-400'"><i class="fa-solid fa-shield-halved mr-1.5"></i>审计</a>
-          <a href="/user/dashboard.html" class="text-indigo-400 hover:text-indigo-300 transition font-medium whitespace-nowrap"><i class="fa-solid fa-circle-user mr-1.5"></i>会员中心</a>
+          <a href="/user/" class="text-indigo-400 hover:text-indigo-300 transition font-medium whitespace-nowrap"><i class="fa-solid fa-circle-user mr-1.5"></i>会员中心</a>
           <button @click="logout" class="text-rose-400 hover:text-rose-300 transition font-medium whitespace-nowrap"><i class="fa-solid fa-right-from-bracket mr-1.5"></i>退出</button>
         </div>
 
@@ -106,7 +106,7 @@
         <a href="/admin/audits.html" class="block px-3 py-2 rounded-xl text-sm font-medium transition" :class="window.location.pathname.includes('audit') ? 'bg-slate-900 text-purple-400 font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-purple-400'"><i class="fa-solid fa-shield-halved mr-2"></i>审计</a>
         
         <hr class="border-slate-800 my-2">
-        <a href="/user/dashboard.html" class="block px-3 py-2 rounded-xl text-sm font-medium text-indigo-400 hover:bg-slate-900 transition"><i class="fa-solid fa-circle-user mr-2"></i>会员中心</a>
+        <a href="/user/" class="block px-3 py-2 rounded-xl text-sm font-medium text-indigo-400 hover:bg-slate-900 transition"><i class="fa-solid fa-circle-user mr-2"></i>会员中心</a>
         <button @click="logout" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-rose-400 hover:bg-rose-950/20 transition"><i class="fa-solid fa-right-from-bracket mr-2"></i>退出登录</button>
       </div>
     </div>

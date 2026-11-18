@@ -21,7 +21,7 @@
   /* ---------- 抽屉菜单 (照抄旧版 main.tpl 五组, 图标/文案/顺序一致) ---------- */
   var MENU = [
     { title: '我的', items: [
-      { key: 'dashboard',  href: '/user/dashboard.html',  icon: 'account_balance_wallet', text: '用户面板' },
+      { key: 'dashboard',  href: '/user/',  icon: 'account_balance_wallet', text: '用户面板' },
       { key: 'invite',     href: '/user/invite.html',     icon: 'loyalty',                text: '邀请返利' }
     ]},
     { title: '商店', items: [
@@ -83,7 +83,7 @@
     var appName = (window.SP && SP.appName) || 'SPanel';
     /* 未登录 → 下拉为 登录/注册 (对齐旧版 main.tpl else 分支) */
     var userDropHtml = name
-      ? '<a href="/user/dashboard.html"><i class="mi">account_box</i>用户中心</a>' +
+      ? '<a href="/user/"><i class="mi">account_box</i>用户中心</a>' +
         (isAdmin ? '<a href="/admin/dashboard.html"><i class="mi">dashboard</i>管理后台</a>' : '') +
         '<button class="sp-dd-danger" id="spLogoutBtn"><i class="mi">exit_to_app</i>登出</button>'
       : '<a href="/auth/login.html"><i class="mi">account_box</i>登录</a>' +

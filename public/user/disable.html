@@ -97,7 +97,7 @@
             try {
               const res = await SPanelAPI.request('/user/reactive', { method: 'POST' });
               SPUI.msg(res.message || '账户已解封', () => {
-                window.location.href = '/user/dashboard.html';
+                window.location.href = '/user/';
               });
             } catch (err) {
               SPUI.msg(err.message);
