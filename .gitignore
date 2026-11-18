@@ -41,3 +41,4 @@ spanel
 *.pid
 *.log
 .plans/
+public/download/

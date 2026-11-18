@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff7043">
+<title>Clash Verge 图文教程 · Windows</title>
+<style>
+  :root{
+    --brand:#ff7043;
+    --brand-dark:#f4511e;
+    --brand-soft:#fff3ee;
+    --ink:#2b2b2b;
+    --muted:#7a7a7a;
+    --line:#ececec;
+    --bg:#f6f7f9;
+    --card:#ffffff;
+    --ok:#43a047;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 18px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;font-family:"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.75;font-size:16px;
+  }
+  a{color:var(--brand-dark);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{background:#f1f1f1;padding:2px 6px;border-radius:5px;font-size:.92em;color:#c0392b;font-family:Consolas,"Courier New",monospace}
+
+  header.top{
+    background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);
+    color:#fff;padding:54px 18px 70px;text-align:center;position:relative;overflow:hidden;
+  }
+  header.top .tag{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+    padding:4px 14px;border-radius:999px;font-size:13px;margin-bottom:16px;letter-spacing:1px}
+  header.top h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.5px}
+  header.top p{margin:10px auto 0;max-width:640px;opacity:.95;font-size:15px}
+  .top-back{
+    position:absolute;top:18px;left:18px;color:#fff;font-size:14px;opacity:.95;
+    background:rgba(0,0,0,.12);padding:7px 14px;border-radius:999px;
+  }
+  .top-back:hover{background:rgba(0,0,0,.22);text-decoration:none}
+
+  .wrap{max-width:920px;margin:-46px auto 60px;padding:0 18px}
+  .toc{
+    background:var(--card);border-radius:14px;padding:22px 26px;box-shadow:var(--shadow);
+    margin-bottom:30px;
+  }
+  .toc h3{margin:0 0 12px;font-size:17px;color:var(--brand-dark)}
+  .toc ol{margin:0;padding-left:22px}
+  .toc li{margin:4px 0}
+
+  .phase{margin-bottom:34px}
+  .phase-title{
+    display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700;margin:0 0 6px;color:var(--ink);
+  }
+  .phase-title .num{
+    flex:0 0 auto;width:38px;height:38px;border-radius:50%;
+    background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;box-shadow:var(--shadow);
+  }
+  .phase-desc{color:var(--muted);margin:0 0 18px;padding-left:50px}
+
+  .step{
+    background:var(--card);border-radius:14px;padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow);
+    border-left:4px solid var(--brand);
+  }
+  .step h4{margin:0 0 10px;font-size:17px;display:flex;align-items:center;gap:10px}
+  .step .badge{
+    background:var(--brand-soft);color:var(--brand-dark);font-size:12px;font-weight:700;
+    padding:3px 10px;border-radius:6px;
+  }
+  .step p{margin:8px 0}
+  .step .tip{
+    margin-top:14px;padding:12px 16px;background:#fff8e1;border-left:4px solid #ffb300;border-radius:8px;font-size:14px;color:#7a5b00;
+  }
+  .step .tip.ok{background:#e9f7ec;border-left-color:var(--ok);color:#1f6b24}
+  .step .tip.err{background:#fdecea;border-left-color:#e53935;color:#a02720}
+  .step ul{margin:8px 0;padding-left:24px}
+  .step li{margin:4px 0}
+
+  .figure{margin:16px 0 6px}
+  .figure a{display:block;cursor:zoom-in}
+  .figure img{
+    width:100%;border-radius:10px;border:1px solid var(--line);display:block;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .figure a:hover img{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .figure figcaption{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+
+  .footer-note{
+    text-align:center;color:var(--muted);font-size:13px;padding:26px 18px;border-top:1px solid var(--line);margin-top:30px;
+  }
+  .footer-note a{margin:0 6px}
+  .pill{
+    display:inline-block;background:var(--brand-soft);color:var(--brand-dark);
+    padding:6px 14px;border-radius:999px;font-size:13px;margin:4px;font-weight:600;
+  }
+
+  .lightbox{
+    position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;
+    align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:zoom-out;
+  }
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:96%;max-height:92vh;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  .lightbox .close{position:absolute;top:18px;right:24px;color:#fff;font-size:34px;cursor:pointer;line-height:1}
+
+  @media (max-width:600px){
+    header.top{padding:44px 16px 64px}
+    header.top h1{font-size:24px}
+    .phase-desc{padding-left:0}
+    .phase-title{font-size:20px}
+    .step{padding:18px 16px}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="top-back" href="/user/tutorial">‹ 返回使用教程</a>
+  <span class="tag">Windows · 图文教程</span>
+  <h1>Clash Verge 使用教程</h1>
+  <p>适用于 Windows 系统。安装、导入订阅、开启代理，三步即可开始科学上网。</p>
+</header>
+
+<div class="wrap">
+
+  <div class="toc">
+    <h3>教程目录</h3>
+    <ol>
+      <li><a href="#phase1">安装 Clash Verge 软件</a></li>
+      <li><a href="#phase2">导入订阅，获取节点</a></li>
+      <li><a href="#phase3">开启代理，开始上网</a></li>
+    </ol>
+    <div style="margin-top:14px">
+      <span class="pill">📚</span>
+      <a href="/user/tutorial" style="font-size:14px">全部教程（教程中心）›</a>
+    </div>
+  </div>
+
+  <!-- 阶段 1 -->
+  <section class="phase" id="phase1">
+    <h2 class="phase-title"><span class="num">1</span>安装 Clash Verge 软件</h2>
+    <p class="phase-desc">Clash Verge 与绿色版软件不同，需要先安装才能使用。</p>
+    <div class="step">
+      <h4><span class="badge">步骤</span>运行安装程序</h4>
+      <p>点击下载好的安装程序进行安装，<b>一路下一步</b>即可完成安装。</p>
+      <div class="tip">💡 Clash Verge 需要安装后才能使用，请耐心等待安装完成。</div>
+      <figure class="figure">
+        <a href="/images/clash-verge-windows/1.png">
+          <img src="/images/clash-verge-windows/1.png" alt="安装 Clash Verge" loading="lazy">
+        </a>
+        <figcaption>图 1 · 点击安装，一路下一步即可</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 阶段 2 -->
+  <section class="phase" id="phase2">
+    <h2 class="phase-title"><span class="num">2</span>导入订阅，获取节点</h2>
+    <p class="phase-desc">新安装的用户需要先导入订阅地址，才能获取节点。</p>
+
+    <div class="step">
+      <h4><span class="badge">2.1</span>点击导入订阅</h4>
+      <p>新安装的用户，需要点击 <code>导入订阅</code>，从订阅中获取节点。</p>
+      <figure class="figure">
+        <a href="/images/clash-verge-windows/2.png">
+          <img src="/images/clash-verge-windows/2.png" alt="点击导入订阅" loading="lazy">
+        </a>
+        <figcaption>图 2 · 点击「导入订阅」，从订阅中获取节点</figcaption>
+      </figure>
+    </div>
+
+    <div class="step">
+      <h4><span class="badge">2.2</span>输入订阅地址并导入</h4>
+      <p>在弹出的窗口中输入您的 <b>订阅地址</b>，然后点击 <code>导入</code> 即可。</p>
+      <div class="tip err">⚠️ 如果出现报错，请检查订阅地址是否填写正确、订阅是否正常可用。</div>
+      <figure class="figure">
+        <a href="/images/clash-verge-windows/2-1.png">
+          <img src="/images/clash-verge-windows/2-1.png" alt="输入订阅地址并导入" loading="lazy">
+        </a>
+        <figcaption>图 2-1 · 输入订阅地址 → 点击「导入」</figcaption>
+      </figure>
+    </div>
+
+    <div class="step">
+      <h4><span class="badge">2.3</span>确认订阅导入成功</h4>
+      <p>订阅导入成功后，会显示如图所示的内容，表示节点已经成功获取。</p>
+      <figure class="figure">
+        <a href="/images/clash-verge-windows/2-2.png">
+          <img src="/images/clash-verge-windows/2-2.png" alt="订阅导入成功" loading="lazy">
+        </a>
+        <figcaption>图 2-2 · 订阅导入成功后的显示</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 阶段 3 -->
+  <section class="phase" id="phase3">
+    <h2 class="phase-title"><span class="num">3</span>开启代理，开始上网</h2>
+    <p class="phase-desc">Clash 类软件会自动管理节点，使用非常简单。</p>
+    <div class="step">
+      <h4><span class="badge">步骤</span>首页开启代理</h4>
+      <p>Clash 类软件<b>不需要</b>手动测试节点延迟——Clash 会自动测试节点延迟，您只需点击首页的 <code>开启</code> 代理即可。</p>
+      <div class="tip ok">✅ 开启代理后，即可正常访问 Google、YouTube 等网站。这就是 Clash Verge 在 Windows 上的完整图文教程。</div>
+      <figure class="figure">
+        <a href="/images/clash-verge-windows/3.png">
+          <img src="/images/clash-verge-windows/3.png" alt="首页开启代理" loading="lazy">
+        </a>
+        <figcaption>图 3 · 无需手动测速，点击首页「开启」代理即可</figcaption>
+      </figure>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer-note">
+  以上即为Clash Verge图文教程 &nbsp;·&nbsp; <a href="/user/tutorial">📚 教程中心</a><br>
+  Windows: <a href="v2rayn-windows.html">v2rayN</a> · <a href="clash-verge-windows.html">Clash Verge(测试)</a>&nbsp;&nbsp;
+  Android: <a href="v2rayng-android.html">v2rayNG</a>&nbsp;&nbsp;
+  iOS: <a href="onexray-ios.html">OneXray</a> · <a href="happ-ios.html">Happ</a> · <a href="clashmi-ios.html">ClashMi</a> · <a href="karing-ios.html">Karing</a> · <a href="hiddify-ios.html">Hiddify</a> · <a href="v2box-ios.html">V2Box</a><br>
+  macOS: <a href="v2rayn-macos.html">v2rayN</a>&nbsp;&nbsp;
+  Linux: <a href="v2rayn-linux.html">v2rayN</a> · <a href="v2raya-linux.html">v2rayA</a>&nbsp;&nbsp;
+  路由器: <a href="v2raya-openwrt.html">v2rayA</a><br>
+  如有疑问，请前往「技术支持」提交工单。
+</div>
+
+<div class="lightbox" id="lightbox">
+  <span class="close" id="lbClose">&times;</span>
+  <img id="lbImg" src="" alt="放大查看">
+</div>
+
+<script>
+  (function(){
+    var lb=document.getElementById('lightbox');
+    var lbImg=document.getElementById('lbImg');
+    var links=document.querySelectorAll('.figure a');
+    links.forEach(function(a){
+      a.addEventListener('click',function(e){
+        e.preventDefault();
+        var src=a.getAttribute('data-full')||a.getAttribute('href');
+        lbImg.src=src;
+        lb.classList.add('open');
+      });
+    });
+    function close(){lb.classList.remove('open');lbImg.src='';}
+    lb.addEventListener('click',close);
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+  })();
+</script>
+
+</body>
+</html>

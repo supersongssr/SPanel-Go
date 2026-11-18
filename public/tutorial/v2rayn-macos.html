@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff7043">
+<title>v2rayN for MacOS 使用教程 · 图文教程</title>
+<style>
+  :root{
+    --brand:#ff7043;--brand-dark:#f4511e;--brand-soft:#fff3ee;
+    --ink:#2b2b2b;--muted:#7a7a7a;--line:#ececec;--bg:#f6f7f9;--card:#ffffff;
+    --ok:#43a047;--shadow:0 1px 3px rgba(0,0,0,.08),0 4px 18px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box}html{scroll-behavior:smooth}
+  body{margin:0;font-family:"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.75;font-size:16px}
+  a{color:var(--brand-dark);text-decoration:none}a:hover{text-decoration:underline}
+  code{background:#f1f1f1;padding:2px 6px;border-radius:5px;font-size:.92em;color:#c0392b;font-family:Consolas,"Courier New",monospace}
+  header.top{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;padding:54px 18px 70px;text-align:center;position:relative;overflow:hidden}
+  header.top .tag{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);padding:4px 14px;border-radius:999px;font-size:13px;margin-bottom:16px;letter-spacing:1px}
+  header.top h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.5px}
+  header.top p{margin:10px auto 0;max-width:640px;opacity:.95;font-size:15px}
+  .top-back{position:absolute;top:18px;left:18px;color:#fff;font-size:14px;opacity:.95;background:rgba(0,0,0,.12);padding:7px 14px;border-radius:999px}
+  .top-back:hover{background:rgba(0,0,0,.22);text-decoration:none}
+  .wrap{max-width:920px;margin:-46px auto 60px;padding:0 18px}
+  .toc{background:var(--card);border-radius:14px;padding:22px 26px;box-shadow:var(--shadow);margin-bottom:30px}
+  .toc h3{margin:0 0 12px;font-size:17px;color:var(--brand-dark)}
+  .toc ol{margin:0;padding-left:22px}.toc li{margin:4px 0}
+  .phase{margin-bottom:34px}
+  .phase-title{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700;margin:0 0 6px;color:var(--ink)}
+  .phase-title .num{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;box-shadow:var(--shadow)}
+  .phase-desc{color:var(--muted);margin:0 0 18px;padding-left:50px}
+  .step{background:var(--card);border-radius:14px;padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow);border-left:4px solid var(--brand)}
+  .step h4{margin:0 0 10px;font-size:17px;display:flex;align-items:center;gap:10px}
+  .step .badge{background:var(--brand-soft);color:var(--brand-dark);font-size:12px;font-weight:700;padding:3px 10px;border-radius:6px}
+  .step p{margin:8px 0}
+  .step .tip{margin-top:14px;padding:12px 16px;background:#fff8e1;border-left:4px solid #ffb300;border-radius:8px;font-size:14px;color:#7a5b00}
+  .step .tip.ok{background:#e9f7ec;border-left-color:var(--ok);color:#1f6b24}
+  .step .tip.err{background:#fdecea;border-left-color:#e53935;color:#a02720}
+  .step ul{margin:8px 0;padding-left:24px}.step li{margin:4px 0}
+  .figure{margin:16px 0 6px}.figure a{display:block;cursor:zoom-in}
+  .figure img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;transition:transform .15s ease, box-shadow .15s ease;max-width:420px;margin:0 auto}
+  .figure a:hover img{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .figure figcaption{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+  .footer-note{text-align:center;color:var(--muted);font-size:13px;padding:26px 18px;border-top:1px solid var(--line);margin-top:30px}
+  .footer-note a{margin:0 6px}
+  .pill{display:inline-block;background:var(--brand-soft);color:var(--brand-dark);padding:6px 14px;border-radius:999px;font-size:13px;margin:4px;font-weight:600}
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:zoom-out}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:96%;max-height:92vh;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  .lightbox .close{position:absolute;top:18px;right:24px;color:#fff;font-size:34px;cursor:pointer;line-height:1}
+  @media (max-width:600px){header.top{padding:44px 16px 64px}header.top h1{font-size:24px}.phase-desc{padding-left:0}.phase-title{font-size:20px}.step{padding:18px 16px}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="top-back" href="/user/tutorial">‹ 返回使用教程</a>
+  <span class="tag">macOS · 图文教程 · 默认推荐</span>
+  <h1>v2rayN for MacOS 使用教程</h1>
+  <p>下载对应芯片版本安装，导入订阅后一键获取全部节点。</p>
+</header>
+
+<div class="wrap">
+
+  <div class="toc">
+    <h3>教程目录</h3>
+    <ol>
+      <li><a href="#phase1">安装 v2rayN</a></li>
+      <li><a href="#phase2">订阅节点</a></li>
+      <li><a href="#phase3">使用代理</a></li>
+    </ol>
+    <div style="margin-top:14px">
+      <span class="pill">📚</span>
+      <a href="/user/tutorial" style="font-size:14px">全部教程（教程中心）›</a>
+    </div>
+  </div>
+
+  <section class="phase" id="phase1">
+    <h2 class="phase-title"><span class="num">1</span>安装 v2rayN</h2>
+    <p class="phase-desc">下载对应芯片版本的安装包并安装（安装包未签名，需一条命令放行）。</p>
+    <div class="step">
+      <h4><span class="badge">1.1</span>下载对应芯片版本</h4>
+      <p>Intel 芯片的电脑请下载 Intel 芯片版本，M 芯片的请下载 M 芯片版本。</p>      <p>👉 <a href="/download/v2rayN-macos-64.dmg">本站下载 v2rayN MacOS Intel 芯片版</a> · <a href="/download/v2rayN-macos-arm64.dmg">Apple M 芯片版</a></p>      <figure class="figure">
+        <a href="/images/v2rayn-macos/100.png"><img src="/images/v2rayn-macos/100.png" alt="图 1 · 按电脑芯片选择对应版本" loading="lazy"></a>
+        <figcaption>图 1 · 按电脑芯片选择对应版本</figcaption>
+      </figure>
+    </div>
+    <div class="step">
+      <h4><span class="badge">1.2</span>打开安装包</h4>
+      <figure class="figure">
+        <a href="/images/v2rayn-macos/200.jpg"><img src="/images/v2rayn-macos/200.jpg" alt="图 2 · 双击 dmg 安装包" loading="lazy"></a>
+        <figcaption>图 2 · 双击 dmg 安装包</figcaption>
+      </figure>
+    </div>
+    <div class="step">
+      <h4><span class="badge">1.3</span>安装</h4>
+      <figure class="figure">
+        <a href="/images/v2rayn-macos/300.jpg"><img src="/images/v2rayn-macos/300.jpg" alt="图 3 · 安装过程" loading="lazy"></a>
+        <figcaption>图 3 · 安装过程</figcaption>
+      </figure>
+    </div>
+    <div class="step">
+      <h4><span class="badge">1.4</span>放行「应用已损坏」提示</h4>
+      <p>由于安装包没有签名，会提示「应用已损坏」；安装后需要在「终端」运行以下命令：</p>      <pre><code>xattr -cr /Applications/v2rayN.app</code></pre>      <figure class="figure">
+        <a href="/images/v2rayn-macos/310.png"><img src="/images/v2rayn-macos/310.png" alt="图 4 · 未签名提示与放行命令" loading="lazy"></a>
+        <figcaption>图 4 · 未签名提示与放行命令</figcaption>
+      </figure>
+    </div>
+    <div class="step">
+      <h4><span class="badge">1.5</span>启动软件</h4>
+      <p>macOS → Finder → 应用程序 → v2rayN → 打开。</p>      <figure class="figure">
+        <a href="/images/v2rayn-macos/400.png"><img src="/images/v2rayn-macos/400.png" alt="图 5 · Finder 中打开 v2rayN" loading="lazy"></a>
+        <figcaption>图 5 · Finder 中打开 v2rayN</figcaption>
+      </figure>
+    </div>
+  </section>
+  <section class="phase" id="phase2">
+    <h2 class="phase-title"><span class="num">2</span>订阅节点</h2>
+    <p class="phase-desc">切换软件语言为中文后，导入本站订阅地址并更新。</p>
+    <div class="step">
+      <h4><span class="badge">2.1</span>切换软件语言为中文（方法）</h4>
+      <figure class="figure">
+        <a href="/images/v2rayn-macos/500.jpg"><img src="/images/v2rayn-macos/500.jpg" alt="图 6 · 语言设置入口" loading="lazy"></a>
+        <figcaption>图 6 · 语言设置入口</figcaption>
+      </figure>
+    </div>
+    <div class="step">
+      <h4><span class="badge">2.2</span>切换语言为中文</h4>
+      <figure class="figure">
+        <a href="/images/v2rayn-macos/600.jpg"><img src="/images/v2rayn-macos/600.jpg" alt="图 7 · 选择简体中文" loading="lazy"></a>
+        <figcaption>图 7 · 选择简体中文</figcaption>
+      </figure>
+    </div>
+    <div class="step">
+      <h4><span class="badge">2.3</span>复制本站订阅地址</h4>
+      <p>到本站 <a href="/user/rss">订阅管理</a> 页面复制<b>订阅地址</b>。</p>      <figure class="figure">
+        <a href="/images/v2rayn-macos/700.png"><img src="/images/v2rayn-macos/700.png" alt="图 8 · 复制订阅地址" loading="lazy"></a>
+        <figcaption>图 8 · 复制订阅地址</figcaption>
+      </figure>
+    </div>
+    <div class="step">
+      <h4><span class="badge">2.4</span>导入订阅</h4>
+      <p>v2rayN → 配置文件 → <code>从剪贴板导入分享链接</code>。</p>      <figure class="figure">
+        <a href="/images/v2rayn-macos/710.png"><img src="/images/v2rayn-macos/710.png" alt="图 9 · 从剪贴板导入" loading="lazy"></a>
+        <figcaption>图 9 · 从剪贴板导入</figcaption>
+      </figure>
+    </div>
+    <div class="step">
+      <h4><span class="badge">2.5</span>点击本站订阅</h4>
+      <figure class="figure">
+        <a href="/images/v2rayn-macos/800.png"><img src="/images/v2rayn-macos/800.png" alt="图 10 · 点击本站订阅" loading="lazy"></a>
+        <figcaption>图 10 · 点击本站订阅</figcaption>
+      </figure>
+    </div>
+    <div class="step">
+      <h4><span class="badge">2.6</span>更新订阅</h4>
+      <p>v2rayN → 订阅分组 → <code>更新当前订阅(不通过代理)</code>，即可获取全部节点。</p>      <figure class="figure">
+        <a href="/images/v2rayn-macos/900.png"><img src="/images/v2rayn-macos/900.png" alt="图 11 · 更新当前订阅" loading="lazy"></a>
+        <figcaption>图 11 · 更新当前订阅</figcaption>
+      </figure>
+    </div>
+  </section>
+  <section class="phase" id="phase3">
+    <h2 class="phase-title"><span class="num">3</span>使用代理</h2>
+    <p class="phase-desc">选择节点并开启系统代理。</p>
+    <div class="step">
+      <h4><span class="badge">3.1</span>选择节点并设为活动</h4>
+      <p>v2rayN → 选择本站节点 → <code>设为活动配置文件</code>（或选中后按 Enter 回车键）。</p>      <figure class="figure">
+        <a href="/images/v2rayn-macos/1000.png"><img src="/images/v2rayn-macos/1000.png" alt="图 12 · 设为活动配置文件" loading="lazy"></a>
+        <figcaption>图 12 · 设为活动配置文件</figcaption>
+      </figure>
+    </div>
+    <div class="step">
+      <h4><span class="badge">3.2</span>开启系统代理</h4>
+      <p>代理模式设置 → <code>自动配置系统代理</code>。</p>      <figure class="figure">
+        <a href="/images/v2rayn-macos/1100.png"><img src="/images/v2rayn-macos/1100.png" alt="图 13 · 自动配置系统代理" loading="lazy"></a>
+        <figcaption>图 13 · 自动配置系统代理</figcaption>
+      </figure>      <div class="tip ok">✅ 配置完成后打开浏览器访问 google.com 验证。如多个节点不可用，请附节点名与报错截屏提交工单。</div>
+    </div>
+  </section>
+
+
+</div>
+
+<div class="footer-note">
+  以上即为v2rayN for MacOS 图文教程 &nbsp;·&nbsp; <a href="/user/tutorial">📚 教程中心</a><br>
+  Windows: <a href="v2rayn-windows.html">v2rayN</a> · <a href="clash-verge-windows.html">Clash Verge(测试)</a>&nbsp;&nbsp;
+  Android: <a href="v2rayng-android.html">v2rayNG</a>&nbsp;&nbsp;
+  iOS: <a href="onexray-ios.html">OneXray</a> · <a href="happ-ios.html">Happ</a> · <a href="clashmi-ios.html">ClashMi</a> · <a href="karing-ios.html">Karing</a> · <a href="hiddify-ios.html">Hiddify</a> · <a href="v2box-ios.html">V2Box</a><br>
+  macOS: <a href="v2rayn-macos.html">v2rayN</a>&nbsp;&nbsp;
+  Linux: <a href="v2rayn-linux.html">v2rayN</a> · <a href="v2raya-linux.html">v2rayA</a>&nbsp;&nbsp;
+  路由器: <a href="v2raya-openwrt.html">v2rayA</a><br>
+  如有疑问，请前往「技术支持」提交工单。
+</div>
+
+<div class="lightbox" id="lightbox">
+  <span class="close" id="lbClose">&times;</span>
+  <img id="lbImg" src="" alt="放大查看">
+</div>
+
+<script>
+  (function(){
+    var lb=document.getElementById('lightbox');var lbImg=document.getElementById('lbImg');
+    var links=document.querySelectorAll('.figure a');
+    links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var src=a.getAttribute('data-full')||a.getAttribute('href');lbImg.src=src;lb.classList.add('open');});});
+    function close(){lb.classList.remove('open');lbImg.src='';}
+    lb.addEventListener('click',close);
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+  })();
+</script>
+
+</body>
+</html>

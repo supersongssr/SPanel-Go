@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff7043">
+<title>v2rayA 使用教程（Debian/Ubuntu） · 图文教程</title>
+<style>
+  :root{
+    --brand:#ff7043;--brand-dark:#f4511e;--brand-soft:#fff3ee;
+    --ink:#2b2b2b;--muted:#7a7a7a;--line:#ececec;--bg:#f6f7f9;--card:#ffffff;
+    --ok:#43a047;--shadow:0 1px 3px rgba(0,0,0,.08),0 4px 18px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box}html{scroll-behavior:smooth}
+  body{margin:0;font-family:"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.75;font-size:16px}
+  a{color:var(--brand-dark);text-decoration:none}a:hover{text-decoration:underline}
+  code{background:#f1f1f1;padding:2px 6px;border-radius:5px;font-size:.92em;color:#c0392b;font-family:Consolas,"Courier New",monospace}
+  header.top{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;padding:54px 18px 70px;text-align:center;position:relative;overflow:hidden}
+  header.top .tag{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);padding:4px 14px;border-radius:999px;font-size:13px;margin-bottom:16px;letter-spacing:1px}
+  header.top h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.5px}
+  header.top p{margin:10px auto 0;max-width:640px;opacity:.95;font-size:15px}
+  .top-back{position:absolute;top:18px;left:18px;color:#fff;font-size:14px;opacity:.95;background:rgba(0,0,0,.12);padding:7px 14px;border-radius:999px}
+  .top-back:hover{background:rgba(0,0,0,.22);text-decoration:none}
+  .wrap{max-width:920px;margin:-46px auto 60px;padding:0 18px}
+  .toc{background:var(--card);border-radius:14px;padding:22px 26px;box-shadow:var(--shadow);margin-bottom:30px}
+  .toc h3{margin:0 0 12px;font-size:17px;color:var(--brand-dark)}
+  .toc ol{margin:0;padding-left:22px}.toc li{margin:4px 0}
+  .phase{margin-bottom:34px}
+  .phase-title{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700;margin:0 0 6px;color:var(--ink)}
+  .phase-title .num{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;box-shadow:var(--shadow)}
+  .phase-desc{color:var(--muted);margin:0 0 18px;padding-left:50px}
+  .step{background:var(--card);border-radius:14px;padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow);border-left:4px solid var(--brand)}
+  .step h4{margin:0 0 10px;font-size:17px;display:flex;align-items:center;gap:10px}
+  .step .badge{background:var(--brand-soft);color:var(--brand-dark);font-size:12px;font-weight:700;padding:3px 10px;border-radius:6px}
+  .step p{margin:8px 0}
+  .step .tip{margin-top:14px;padding:12px 16px;background:#fff8e1;border-left:4px solid #ffb300;border-radius:8px;font-size:14px;color:#7a5b00}
+  .step .tip.ok{background:#e9f7ec;border-left-color:var(--ok);color:#1f6b24}
+  .step .tip.err{background:#fdecea;border-left-color:#e53935;color:#a02720}
+  .step ul{margin:8px 0;padding-left:24px}.step li{margin:4px 0}
+  .figure{margin:16px 0 6px}.figure a{display:block;cursor:zoom-in}
+  .figure img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;transition:transform .15s ease, box-shadow .15s ease;max-width:420px;margin:0 auto}
+  .figure a:hover img{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .figure figcaption{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+  .footer-note{text-align:center;color:var(--muted);font-size:13px;padding:26px 18px;border-top:1px solid var(--line);margin-top:30px}
+  .footer-note a{margin:0 6px}
+  .pill{display:inline-block;background:var(--brand-soft);color:var(--brand-dark);padding:6px 14px;border-radius:999px;font-size:13px;margin:4px;font-weight:600}
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:zoom-out}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:96%;max-height:92vh;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  .lightbox .close{position:absolute;top:18px;right:24px;color:#fff;font-size:34px;cursor:pointer;line-height:1}
+  @media (max-width:600px){header.top{padding:44px 16px 64px}header.top h1{font-size:24px}.phase-desc{padding-left:0}.phase-title{font-size:20px}.step{padding:18px 16px}}
+  pre{background:#1e1e1e;color:#d4d4d4;padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:13.5px;line-height:1.6;font-family:Consolas,"Courier New",monospace;margin:10px 0}
+  pre code{background:none;color:inherit;padding:0;border-radius:0;font-size:inherit}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="top-back" href="/user/tutorial">‹ 返回使用教程</a>
+  <span class="tag">Linux · 图文教程 · 服务器适用</span>
+  <h1>v2rayA 使用教程（Debian/Ubuntu）</h1>
+  <p>网页控制台客户端，适合服务器与无桌面环境，透明代理一键开启。</p>
+</header>
+
+<div class="wrap">
+
+  <div class="toc">
+    <h3>教程目录</h3>
+    <ol>
+      <li><a href="#phase1">安装 v2rayA</a></li>
+      <li><a href="#phase2">启动与开机自启</a></li>
+      <li><a href="#phase3">基本使用（账号 / 订阅 / 节点 / 代理）</a></li>
+    </ol>
+    <div style="margin-top:14px">
+      <span class="pill">📚</span>
+      <a href="/user/tutorial" style="font-size:14px">全部教程（教程中心）›</a>
+    </div>
+  </div>
+
+  <section class="phase" id="phase1">
+    <h2 class="phase-title"><span class="num">1</span>安装 v2rayA</h2>
+    <p class="phase-desc">通过官方软件源在 Debian / Ubuntu 上安装 v2rayA 与 Xray 内核。</p>
+    <div class="step">
+      <h4><span class="badge">1.1</span>添加公钥</h4>
+      <pre><code>wget -qO - https://apt.v2raya.org/key/public-key.asc | sudo tee /etc/apt/keyrings/v2raya.asc</code></pre>
+    </div>
+    <div class="step">
+      <h4><span class="badge">1.2</span>添加 v2rayA 软件源</h4>
+      <pre><code>echo "deb [signed-by=/etc/apt/keyrings/v2raya.asc] https://apt.v2raya.org/ v2raya main" | sudo tee /etc/apt/sources.list.d/v2raya.list
+sudo apt update</code></pre>
+    </div>
+    <div class="step">
+      <h4><span class="badge">1.3</span>安装 v2rayA</h4>
+      <pre><code>sudo apt install v2raya xray</code></pre>
+    </div>
+  </section>
+  <section class="phase" id="phase2">
+    <h2 class="phase-title"><span class="num">2</span>启动 v2rayA</h2>
+    <p class="phase-desc">启动服务并设置开机自启（v1.5 起默认不再自动启动）。</p>
+    <div class="step">
+      <h4><span class="badge">2.1</span>启动服务</h4>
+      <pre><code>sudo systemctl start v2raya.service</code></pre>      <div class="tip ">💡 从 1.5 版本开始不再默认为用户启动 v2rayA 及设置开机自动，需手动执行以下命令。</div>
+    </div>
+    <div class="step">
+      <h4><span class="badge">2.2</span>设置开机自启</h4>
+      <pre><code>sudo systemctl enable v2raya.service</code></pre>      <p>启动后在浏览器打开 <code>http://localhost:2017</code> 访问 v2rayA 控制台。</p>      <div class="tip ">⚠️ 如通过 2017 端口无法访问 UI，请检查服务是否已启动。</div>
+    </div>
+  </section>
+  <section class="phase" id="phase3">
+    <h2 class="phase-title"><span class="num">3</span>基本使用</h2>
+    <p class="phase-desc">创建账号 → 导入订阅 → 连接节点 → 启动服务 → 配置代理。</p>
+    <div class="step">
+      <h4><span class="badge">3.1</span>创建账号</h4>
+      <p>第一次进入页面时，需要创建一个管理员账号，请妥善保管用户名密码；如遗忘，可使用命令重置：</p>      <pre><code>sudo v2raya --reset-password</code></pre>
+    </div>
+    <div class="step">
+      <h4><span class="badge">3.2</span>导入节点</h4>
+      <p>点击「导入」，支持节点链接、<b>订阅链接</b>、扫描二维码和批量导入等方式。推荐直接粘贴本站 <a href="/user/rss">订阅管理</a> 页面的<b>订阅地址</b>，一键导入全部节点。</p>
+    </div>
+    <div class="step">
+      <h4><span class="badge">3.3</span>连接节点并启动服务</h4>
+      <p>导入成功后节点显示在 SERVER 或新标签中，切换到该标签页，选择一个或多个节点连接。</p>      <div class="tip ">💡 不建议选择过多节点，6 个以内为佳。截至 2021-08，xray 尚未支持基于观测的负载均衡，多节点负载均衡为 v2ray-core 独有。</div>      <p>未启动服务时连接的节点呈<b>柚红色</b>；点击左上角按钮启动服务后，节点变为<b>蓝色</b>且图标显示运行中，代表服务启动成功。</p>
+    </div>
+    <div class="step">
+      <h4><span class="badge">3.4</span>配置代理</h4>
+      <p>默认情况下 v2rayA 通过内核开放 <code>20170 (socks5)</code>、<code>20171 (http)</code>、<code>20172 (带分流规则 http)</code> 端口，三种使用方式：</p>      <ul><li><b>透明代理</b>（推荐）：设置中选择透明代理的分流与实现方式后保存，可为几乎所有程序提供代理，路由器部署同理；</li><li><b>系统代理</b>：为主动支持代理设置的程序提供代理，位置因桌面环境而异；</li><li><b>SwitchyOmega 等浏览器插件</b>：为浏览器提供代理。</li></ul>      <div class="tip ">💡 如需为局域网其他机器提供代理，请在设置中打开「局域网共享」，并检查防火墙开放情况。</div>
+    </div>
+  </section>
+
+
+</div>
+
+<div class="footer-note">
+  以上即为v2rayA（Debian/Ubuntu）图文教程 &nbsp;·&nbsp; <a href="/user/tutorial">📚 教程中心</a><br>
+  Windows: <a href="v2rayn-windows.html">v2rayN</a> · <a href="clash-verge-windows.html">Clash Verge(测试)</a>&nbsp;&nbsp;
+  Android: <a href="v2rayng-android.html">v2rayNG</a>&nbsp;&nbsp;
+  iOS: <a href="onexray-ios.html">OneXray</a> · <a href="happ-ios.html">Happ</a> · <a href="clashmi-ios.html">ClashMi</a> · <a href="karing-ios.html">Karing</a> · <a href="hiddify-ios.html">Hiddify</a> · <a href="v2box-ios.html">V2Box</a><br>
+  macOS: <a href="v2rayn-macos.html">v2rayN</a>&nbsp;&nbsp;
+  Linux: <a href="v2rayn-linux.html">v2rayN</a> · <a href="v2raya-linux.html">v2rayA</a>&nbsp;&nbsp;
+  路由器: <a href="v2raya-openwrt.html">v2rayA</a><br>
+  如有疑问，请前往「技术支持」提交工单。
+</div>
+
+<div class="lightbox" id="lightbox">
+  <span class="close" id="lbClose">&times;</span>
+  <img id="lbImg" src="" alt="放大查看">
+</div>
+
+<script>
+  (function(){
+    var lb=document.getElementById('lightbox');var lbImg=document.getElementById('lbImg');
+    var links=document.querySelectorAll('.figure a');
+    links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var src=a.getAttribute('data-full')||a.getAttribute('href');lbImg.src=src;lb.classList.add('open');});});
+    function close(){lb.classList.remove('open');lbImg.src='';}
+    lb.addEventListener('click',close);
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+  })();
+</script>
+
+</body>
+</html>

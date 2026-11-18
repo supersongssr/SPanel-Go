@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff7043">
+<title>v2rayN 图文教程 · Windows</title>
+<style>
+  :root{
+    --brand:#ff7043;
+    --brand-dark:#f4511e;
+    --brand-soft:#fff3ee;
+    --ink:#2b2b2b;
+    --muted:#7a7a7a;
+    --line:#ececec;
+    --bg:#f6f7f9;
+    --card:#ffffff;
+    --ok:#43a047;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 18px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;font-family:"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.75;font-size:16px;
+  }
+  a{color:var(--brand-dark);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{background:#f1f1f1;padding:2px 6px;border-radius:5px;font-size:.92em;color:#c0392b;font-family:Consolas,"Courier New",monospace}
+
+  /* header */
+  header.top{
+    background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);
+    color:#fff;padding:54px 18px 70px;text-align:center;position:relative;overflow:hidden;
+  }
+  header.top .tag{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+    padding:4px 14px;border-radius:999px;font-size:13px;margin-bottom:16px;letter-spacing:1px}
+  header.top h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.5px}
+  header.top p{margin:10px auto 0;max-width:640px;opacity:.95;font-size:15px}
+  .top-back{
+    position:absolute;top:18px;left:18px;color:#fff;font-size:14px;opacity:.95;
+    background:rgba(0,0,0,.12);padding:7px 14px;border-radius:999px;
+  }
+  .top-back:hover{background:rgba(0,0,0,.22);text-decoration:none}
+
+  /* layout */
+  .wrap{max-width:920px;margin:-46px auto 60px;padding:0 18px}
+  .toc{
+    background:var(--card);border-radius:14px;padding:22px 26px;box-shadow:var(--shadow);
+    margin-bottom:30px;
+  }
+  .toc h3{margin:0 0 12px;font-size:17px;color:var(--brand-dark)}
+  .toc ol{margin:0;padding-left:22px}
+  .toc li{margin:4px 0}
+
+  .phase{margin-bottom:34px}
+  .phase-title{
+    display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700;margin:0 0 6px;color:var(--ink);
+  }
+  .phase-title .num{
+    flex:0 0 auto;width:38px;height:38px;border-radius:50%;
+    background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;box-shadow:var(--shadow);
+  }
+  .phase-desc{color:var(--muted);margin:0 0 18px;padding-left:50px}
+
+  .step{
+    background:var(--card);border-radius:14px;padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow);
+    border-left:4px solid var(--brand);
+  }
+  .step h4{margin:0 0 10px;font-size:17px;display:flex;align-items:center;gap:10px}
+  .step .badge{
+    background:var(--brand-soft);color:var(--brand-dark);font-size:12px;font-weight:700;
+    padding:3px 10px;border-radius:6px;
+  }
+  .step p{margin:8px 0}
+  .step .tip{
+    margin-top:14px;padding:12px 16px;background:#fff8e1;border-left:4px solid #ffb300;border-radius:8px;font-size:14px;color:#7a5b00;
+  }
+  .step .tip.ok{background:#e9f7ec;border-left-color:var(--ok);color:#1f6b24}
+  .step ul{margin:8px 0;padding-left:24px}
+  .step li{margin:4px 0}
+
+  .figure{margin:16px 0 6px}
+  .figure a{display:block;cursor:zoom-in}
+  .figure img{
+    width:100%;border-radius:10px;border:1px solid var(--line);display:block;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .figure a:hover img{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .figure figcaption{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+
+  .footer-note{
+    text-align:center;color:var(--muted);font-size:13px;padding:26px 18px;border-top:1px solid var(--line);margin-top:30px;
+  }
+  .footer-note a{margin:0 6px}
+  .pill{
+    display:inline-block;background:var(--brand-soft);color:var(--brand-dark);
+    padding:6px 14px;border-radius:999px;font-size:13px;margin:4px;font-weight:600;
+  }
+
+  /* lightbox */
+  .lightbox{
+    position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;
+    align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:zoom-out;
+  }
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:96%;max-height:92vh;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  .lightbox .close{position:absolute;top:18px;right:24px;color:#fff;font-size:34px;cursor:pointer;line-height:1}
+
+  @media (max-width:600px){
+    header.top{padding:44px 16px 64px}
+    header.top h1{font-size:24px}
+    .phase-desc{padding-left:0}
+    .phase-title{font-size:20px}
+    .step{padding:18px 16px}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="top-back" href="/user/tutorial">‹ 返回使用教程</a>
+  <span class="tag">Windows · 图文教程</span>
+  <h1>v2rayN 使用教程</h1>
+  <p>适用于 Windows 系统。跟随下面的步骤，几分钟即可完成订阅配置并选择最优节点上网。</p>
+</header>
+
+<div class="wrap">
+
+  <div class="toc">
+    <h3>教程目录</h3>
+    <ol>
+      <li><a href="#phase1">打开 v2rayN 代理软件</a></li>
+      <li><a href="#phase2">配置订阅，获取节点</a></li>
+      <li><a href="#phase3">测试真连接，选择最优节点</a></li>
+      <li><a href="#phase4">启用系统代理，开始上网</a></li>
+    </ol>
+    <div style="margin-top:14px">
+      <span class="pill">📚</span>
+      <a href="/user/tutorial" style="font-size:14px">全部教程（教程中心）›</a>
+    </div>
+  </div>
+
+  <!-- 阶段 1 -->
+  <section class="phase" id="phase1">
+    <h2 class="phase-title"><span class="num">1</span>打开 v2rayN 代理软件</h2>
+    <p class="phase-desc">解压下载的安装包后，双击运行 v2rayN。</p>
+    <div class="step">
+      <h4><span class="badge">步骤</span>启动软件</h4>
+      <p>双击打开 v2rayN 代理软件，进入主界面。</p>
+      <figure class="figure">
+        <a href="/images/v2rayn-windows/1.png" data-full="/images/v2rayn-windows/1.png">
+          <img src="/images/v2rayn-windows/1.png" alt="打开 v2rayN 软件" loading="lazy">
+        </a>
+        <figcaption>图 1 · 点击打开 v2rayN 代理软件</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 阶段 2 -->
+  <section class="phase" id="phase2">
+    <h2 class="phase-title"><span class="num">2</span>配置订阅，获取节点</h2>
+    <p class="phase-desc">通过订阅地址获取节点，无需手动逐个添加。</p>
+
+    <div class="step">
+      <h4><span class="badge">2.1</span>进入订阅功能</h4>
+      <p>开始使用订阅功能：点击顶部菜单的 <code>订阅分组</code>。</p>
+      <figure class="figure">
+        <a href="/images/v2rayn-windows/2.png">
+          <img src="/images/v2rayn-windows/2.png" alt="点击订阅分组" loading="lazy">
+        </a>
+        <figcaption>图 2 · 点击「订阅分组」</figcaption>
+      </figure>
+    </div>
+
+    <div class="step">
+      <h4><span class="badge">2.2</span>添加订阅地址</h4>
+      <p>在订阅分组中操作：</p>
+      <ul>
+        <li>选择 <code>添加</code>，添加一条新的订阅；</li>
+        <li>把您的 <b>订阅地址</b> 填入「可选地址」一栏；</li>
+        <li>勾选 <code>启用更新</code>；</li>
+        <li>点击 <code>保存</code>，即完成了订阅地址的添加。</li>
+      </ul>
+      <figure class="figure">
+        <a href="/images/v2rayn-windows/2-1.png">
+          <img src="/images/v2rayn-windows/2-1.png" alt="添加订阅地址" loading="lazy">
+        </a>
+        <figcaption>图 2-1 · 添加 → 填写订阅地址 → 勾选启用更新 → 保存</figcaption>
+      </figure>
+    </div>
+
+    <div class="step">
+      <h4><span class="badge">2.3</span>更新订阅获取节点</h4>
+      <p>依然在 <code>订阅分组</code> 菜单中，选择 <code>更新订阅</code>，即可通过订阅获取节点。</p>
+      <div class="tip">
+        💡 <b>第一次更新订阅</b>请选择 <code>不通过代理 更新订阅</code>，因为此时还未建立任何代理通道。
+      </div>
+      <figure class="figure">
+        <a href="/images/v2rayn-windows/2-2.png">
+          <img src="/images/v2rayn-windows/2-2.png" alt="更新订阅获取节点" loading="lazy">
+        </a>
+        <figcaption>图 2-2 · 订阅分组 → 更新订阅（首次请用「不通过代理」）</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 阶段 3 -->
+  <section class="phase" id="phase3">
+    <h2 class="phase-title"><span class="num">3</span>测试真连接，选择最优节点</h2>
+    <p class="phase-desc">订阅出现节点后，快速测试节点是否可用，选出延迟最好的节点。</p>
+
+    <div class="step">
+      <h4><span class="badge">3.1</span>快速测试所有节点的真连接</h4>
+      <p>点击工具栏的 <code>闪电图标 ⚡</code>，快速测试所有节点的真连接。</p>
+      <div class="tip">
+        ❓ <b>什么是「测试真连接」？</b><br>
+        真连接代表真实地使用该节点去连接 Google、<code>gstatic.com</code> 等网站。
+        如果出现延迟，说明这个节点在您的网络下是真的可用的。
+      </div>
+      <figure class="figure">
+        <a href="/images/v2rayn-windows/3.png">
+          <img src="/images/v2rayn-windows/3.png" alt="点击闪电图标测试真连接" loading="lazy">
+        </a>
+        <figcaption>图 3 · 点击闪电图标 ⚡，快速测试所有节点的真连接</figcaption>
+      </figure>
+    </div>
+
+    <div class="step">
+      <h4><span class="badge">3.2</span>按延迟排序，选择绿色延迟节点</h4>
+      <p>测试完成后，<b>按照延迟排序</b>，优先选择延迟数字为 <span style="color:var(--ok);font-weight:700">绿色</span> 的节点（绿色代表可用且延迟较低）。</p>
+      <figure class="figure">
+        <a href="/images/v2rayn-windows/3-1.png">
+          <img src="/images/v2rayn-windows/3-1.png" alt="按延迟排序选择绿色节点" loading="lazy">
+        </a>
+        <figcaption>图 3-1 · 按延迟排序，选择绿色延迟节点</figcaption>
+      </figure>
+    </div>
+
+    <div class="step">
+      <h4><span class="badge">3.3</span>设为活动节点</h4>
+      <p><b>右键点击</b>选中的节点，选择 <code>设为活动节点</code>（活动的服务器），即可激活这个节点。</p>
+      <figure class="figure">
+        <a href="/images/v2rayn-windows/3-2.png">
+          <img src="/images/v2rayn-windows/3-2.png" alt="右键设为活动节点" loading="lazy">
+        </a>
+        <figcaption>图 3-2 · 右键节点 → 设为活动节点</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 阶段 4 -->
+  <section class="phase" id="phase4">
+    <h2 class="phase-title"><span class="num">4</span>启用系统代理，开始上网</h2>
+    <p class="phase-desc">最后一步，让 v2rayN 接管系统代理。</p>
+    <div class="step">
+      <h4><span class="badge">步骤</span>设置自动配置系统代理</h4>
+      <p>在软件下方的系统代理选项中，设置为 <code>自动配置系统代理</code> 即可使用。</p>
+      <div class="tip ok">✅ 设置完成后，打开浏览器访问 google.com 试试吧！这就是 v2rayN 在 Windows 上的完整图文教程。</div>
+      <figure class="figure">
+        <a href="/images/v2rayn-windows/3-3.png">
+          <img src="/images/v2rayn-windows/3-3.png" alt="设置自动配置系统代理" loading="lazy">
+        </a>
+        <figcaption>图 3-3 · 选择「自动配置系统代理」即可使用</figcaption>
+      </figure>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer-note">
+  以上即为v2rayN图文教程 &nbsp;·&nbsp; <a href="/user/tutorial">📚 教程中心</a><br>
+  Windows: <a href="v2rayn-windows.html">v2rayN</a> · <a href="clash-verge-windows.html">Clash Verge(测试)</a>&nbsp;&nbsp;
+  Android: <a href="v2rayng-android.html">v2rayNG</a>&nbsp;&nbsp;
+  iOS: <a href="onexray-ios.html">OneXray</a> · <a href="happ-ios.html">Happ</a> · <a href="clashmi-ios.html">ClashMi</a> · <a href="karing-ios.html">Karing</a> · <a href="hiddify-ios.html">Hiddify</a> · <a href="v2box-ios.html">V2Box</a><br>
+  macOS: <a href="v2rayn-macos.html">v2rayN</a>&nbsp;&nbsp;
+  Linux: <a href="v2rayn-linux.html">v2rayN</a> · <a href="v2raya-linux.html">v2rayA</a>&nbsp;&nbsp;
+  路由器: <a href="v2raya-openwrt.html">v2rayA</a><br>
+  如有疑问，请前往「技术支持」提交工单。
+</div>
+
+<div class="lightbox" id="lightbox">
+  <span class="close" id="lbClose">&times;</span>
+  <img id="lbImg" src="" alt="放大查看">
+</div>
+
+<script>
+  (function(){
+    var lb=document.getElementById('lightbox');
+    var lbImg=document.getElementById('lbImg');
+    var links=document.querySelectorAll('.figure a');
+    links.forEach(function(a){
+      a.addEventListener('click',function(e){
+        e.preventDefault();
+        var src=a.getAttribute('data-full')||a.getAttribute('href');
+        lbImg.src=src;
+        lb.classList.add('open');
+      });
+    });
+    function close(){lb.classList.remove('open');lbImg.src='';}
+    lb.addEventListener('click',close);
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+  })();
+</script>
+
+</body>
+</html>

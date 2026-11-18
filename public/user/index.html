@@ -58,8 +58,60 @@
           </div>
         </div>
       </div>
+      <!-- ═══ ② 使用教程 · 五步配置向导 (复刻旧版首页 tut-grid, 带完成态 ✓) ═══ -->
+      <div class="sp-card sp-mt-6">
+        <div class="sp-card-title">
+          <i class="mi">school</i>使用教程
+          <span class="sp-extra sp-text-hint">按顺序完成即可科学上网, 带 ✓ 的步骤已完成</span>
+        </div>
+        <div class="sp-tut-grid">
+          <a class="sp-tut-card" :class="tutDone[1] && 'sp-tut-done'" href="/user/code.html">
+            <div class="sp-tut-num" x-text="tutDone[1] ? '✓' : '1'">1</div>
+            <div class="sp-tut-body">
+              <div class="sp-tut-name">充值</div>
+              <div class="sp-tut-desc">为账户充值余额</div>
+              <div class="sp-tut-go" x-text="tutDone[1] ? '已完成' : '去充值 →'">去充值 →</div>
+            </div>
+          </a>
+          <a class="sp-tut-card" :class="tutDone[2] && 'sp-tut-done'" href="/user/shop.html">
+            <div class="sp-tut-num" x-text="tutDone[2] ? '✓' : '2'">2</div>
+            <div class="sp-tut-body">
+              <div class="sp-tut-name">购买套餐</div>
+              <div class="sp-tut-desc">选购合适的套餐等级</div>
+              <div class="sp-tut-go" x-text="tutDone[2] ? '已完成' : '去商店 →'">去商店 →</div>
+            </div>
+          </a>
+          <a class="sp-tut-card" :class="tutDone[3] && 'sp-tut-done'" href="/user/tutorial.html">
+            <div class="sp-tut-num" x-text="tutDone[3] ? '✓' : '3'">3</div>
+            <div class="sp-tut-body">
+              <div class="sp-tut-name">下载软件</div>
+              <div class="sp-tut-desc">下载受支持的客户端</div>
+              <div class="sp-tut-go" x-text="tutDone[3] ? '已完成' : '查看教程 →'">查看教程 →</div>
+            </div>
+          </a>
+          <a class="sp-tut-card" :class="tutDone[4] && 'sp-tut-done'" href="/user/rss.html">
+            <div class="sp-tut-num" x-text="tutDone[4] ? '✓' : '4'">4</div>
+            <div class="sp-tut-body">
+              <div class="sp-tut-name">添加订阅</div>
+              <div class="sp-tut-desc">复制订阅地址到客户端</div>
+              <div class="sp-tut-go" x-text="tutDone[4] ? '已完成' : '订阅管理 →'">订阅管理 →</div>
+            </div>
+          </a>
+          <a class="sp-tut-card" href="/user/tickets.html">
+            <div class="sp-tut-num">5</div>
+            <div class="sp-tut-body">
+              <div class="sp-tut-name">售后客服</div>
+              <div class="sp-tut-desc">遇到问题提工单求助</div>
+              <div class="sp-tut-go">联系客服 →</div>
+            </div>
+          </a>
+        </div>
+        <p class="sp-text-hint" style="font-size:12px;margin-top:12px;">
+          <i class="mi" style="font-size:14px;">info</i>
+          节点获取已全部由订阅自动完成, 无需任何手动配置; 完整的客户端图文教程已迁至「使用教程」页, 保持首页精简。
+        </p>
 
-      <!-- ═══ ② 签到 + 流量统计 ═══ -->
+      <!-- ═══ ③ 账号使用情况 + 流量消耗统计 ═══ -->
       <div class="sp-grid sp-mt-6">
         <div class="sp-col-4">
           <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
@@ -128,17 +180,17 @@
         </div>
       </div>
 
-      <!-- ═══ ③ 快捷订阅 + 公告 ═══ -->
+      <!-- ═══ ④ 订阅管理入口 + 公告 (不再提供通用订阅: 每设备绑定一个独立订阅) ═══ -->
       <div class="sp-grid sp-mt-6">
         <div class="sp-col-4">
           <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
             <div>
-              <div class="sp-card-title"><i class="mi">playlist_add</i>快捷节点导入</div>
-              <p class="sp-text-muted" style="font-size:13px;">一键生成您的个性化通用客户端配置订阅。支持 Clash、Surge、Loon、sing-box 及基础 base64 协议自适应解析。</p>
+              <div class="sp-card-title"><i class="mi">rss_feed</i>订阅管理</div>
+              <p class="sp-text-muted" style="font-size:13px;line-height:1.8;">本站不再提供通用订阅地址：每台设备需在「订阅管理」创建一个独立订阅，复制地址到客户端添加即自动绑定。各设备订阅互不影响、可独立作废，换设备请删除旧订阅后重新创建。</p>
             </div>
             <div class="sp-mt-4">
-              <button class="sp-btn sp-btn-block" @click="copySubLink"><i class="mi">content_copy</i>复制通用订阅链接</button>
-              <p class="sp-text-hint" style="font-size:12px;text-align:center;margin-top:8px;">为保护您的网络安全，切勿将该订阅外泄。</p>
+              <a class="sp-btn sp-btn-brand sp-btn-block" href="/user/rss.html"><i class="mi">playlist_add</i>前往订阅管理 · 创建设备订阅</a>
+              <p class="sp-text-hint" style="font-size:12px;text-align:center;margin-top:8px;">已用 <span x-text="rssCount">-</span> / <span x-text="rssMax">-</span> 个设备订阅</p>
             </div>
           </div>
         </div>
@@ -161,59 +213,6 @@
           </div>
         </div>
       </div>
-
-      <!-- ═══ ④ 使用教程 · 五步配置向导 (复刻旧版首页 tut-grid, 带完成态 ✓) ═══ -->
-      <div class="sp-card sp-mt-6">
-        <div class="sp-card-title">
-          <i class="mi">school</i>使用教程
-          <span class="sp-extra sp-text-hint">按顺序完成即可科学上网, 带 ✓ 的步骤已完成</span>
-        </div>
-        <div class="sp-tut-grid">
-          <a class="sp-tut-card" :class="tutDone[1] && 'sp-tut-done'" href="/user/code.html">
-            <div class="sp-tut-num" x-text="tutDone[1] ? '✓' : '1'">1</div>
-            <div class="sp-tut-body">
-              <div class="sp-tut-name">充值</div>
-              <div class="sp-tut-desc">为账户充值余额</div>
-              <div class="sp-tut-go" x-text="tutDone[1] ? '已完成' : '去充值 →'">去充值 →</div>
-            </div>
-          </a>
-          <a class="sp-tut-card" :class="tutDone[2] && 'sp-tut-done'" href="/user/shop.html">
-            <div class="sp-tut-num" x-text="tutDone[2] ? '✓' : '2'">2</div>
-            <div class="sp-tut-body">
-              <div class="sp-tut-name">购买套餐</div>
-              <div class="sp-tut-desc">选购合适的套餐等级</div>
-              <div class="sp-tut-go" x-text="tutDone[2] ? '已完成' : '去商店 →'">去商店 →</div>
-            </div>
-          </a>
-          <a class="sp-tut-card" :class="tutDone[3] && 'sp-tut-done'" href="/user/tutorial.html">
-            <div class="sp-tut-num" x-text="tutDone[3] ? '✓' : '3'">3</div>
-            <div class="sp-tut-body">
-              <div class="sp-tut-name">下载软件</div>
-              <div class="sp-tut-desc">下载受支持的客户端</div>
-              <div class="sp-tut-go" x-text="tutDone[3] ? '已完成' : '查看教程 →'">查看教程 →</div>
-            </div>
-          </a>
-          <a class="sp-tut-card" :class="tutDone[4] && 'sp-tut-done'" href="/user/rss.html">
-            <div class="sp-tut-num" x-text="tutDone[4] ? '✓' : '4'">4</div>
-            <div class="sp-tut-body">
-              <div class="sp-tut-name">添加订阅</div>
-              <div class="sp-tut-desc">复制订阅地址到客户端</div>
-              <div class="sp-tut-go" x-text="tutDone[4] ? '已完成' : '订阅管理 →'">订阅管理 →</div>
-            </div>
-          </a>
-          <a class="sp-tut-card" href="/user/tickets.html">
-            <div class="sp-tut-num">5</div>
-            <div class="sp-tut-body">
-              <div class="sp-tut-name">售后客服</div>
-              <div class="sp-tut-desc">遇到问题提工单求助</div>
-              <div class="sp-tut-go">联系客服 →</div>
-            </div>
-          </a>
-        </div>
-        <p class="sp-text-hint" style="font-size:12px;margin-top:12px;">
-          <i class="mi" style="font-size:14px;">info</i>
-          节点获取已全部由订阅自动完成, 无需任何手动配置; 完整的客户端图文教程已迁至「使用教程」页, 保持首页精简。
-        </p>
       </div>
 
     </div>
@@ -238,7 +237,10 @@
         totalStr: '0 B',
         usagePercentage: 0,
         announcements: [],
-        subToken: '',
+
+        // 订阅用量 (每设备一个独立订阅, 通用订阅已下线)
+        rssCount: '-',
+        rssMax: '-',
 
         // ── 旧版首页对齐字段 (在线设备/速率/过期倒计时/上次使用) ──
         nodeConnector: 0,
@@ -271,7 +273,13 @@
             this.checkedIn = data.checked_in;
             this.lastCheckinTime = data.checkin_status.last_checkin_time || '从未签到';
             this.announcements = data.announcements || [];
-            this.subToken = data.sub_token || '';
+
+            // 订阅管理用量 (GET /user/rss: items/max)
+            try {
+              const rssRes = await SPanelAPI.request('/user/rss');
+              this.rssCount = (rssRes.data.items || []).length;
+              this.rssMax = rssRes.data.max;
+            } catch (e) { /* 订阅用量拉取失败不阻断首屏 */ }
 
             this.nodeConnector = data.node_connector || 0;
             this.nodeSpeedlimit = parseFloat(data.node_speedlimit) || 0;
@@ -324,21 +332,6 @@
             SPUI.msg(err.message || '签到失败，请稍后再试。');
           } finally {
             this.checkinLoading = false;
-          }
-        },
-
-        async copySubLink() {
-          // 订阅 Token 通用获取 (对齐 link 表 type=11)
-          if (!this.subToken) {
-            SPUI.msg('未能获取到订阅凭证！');
-            return;
-          }
-          const subLink = `${window.location.origin}/link/${this.subToken}`;
-          try {
-            await navigator.clipboard.writeText(subLink);
-            SPUI.toast('通用订阅链接已复制到您的剪贴板，快去客户端导入吧！', 'success');
-          } catch(e) {
-            SPUI.msg('复制失败，请手动选择复制！');
           }
         },
 

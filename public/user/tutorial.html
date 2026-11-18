@@ -8,6 +8,30 @@
   <link rel="stylesheet" href="/assets/css/material-icons.css">
   <link rel="stylesheet" href="/assets/css/spanel.css">
   <script defer src="/assets/js/alpine.min.js"></script>
+  <style>
+    /* 教程页局部样式 (对齐 PHP tutorial.tpl 徽章/文件块口径) */
+    .tut-legend { display:flex; flex-wrap:wrap; gap:6px 18px; font-size:12px; color:var(--sp-text-2nd); margin:0 0 4px; }
+    .tut-legend .tut-lg { display:inline-flex; align-items:center; gap:6px; }
+    .tut-badge { display:inline-block; padding:1px 10px; border-radius:999px; font-size:11px; line-height:18px; white-space:nowrap; }
+    .tut-badge.def     { background:#ffe0b2; color:#e65100; }
+    .tut-badge.full    { background:#c8e6c9; color:#1b5e20; }
+    .tut-badge.partial { background:#fff9c4; color:#f57f17; }
+    .tut-badge.testing { background:#e1bee7; color:#6a1b9a; }
+    .tut-app.is-default { border-left:3px solid var(--sp-primary); }
+    .tut-step { display:flex; gap:12px; margin-top:14px; }
+    .tut-step-num { flex:none; width:22px; height:22px; border-radius:50%; background:var(--sp-brand); color:#fff; font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; margin-top:2px; }
+    .tut-step-body { flex:1; min-width:0; }
+    .tut-step-title { font-size:13px; font-weight:600; margin-bottom:8px; }
+    .tut-dl { border:1px solid var(--sp-divider); border-radius:var(--sp-radius); padding:10px 14px; margin-bottom:10px; background:#fafafa; }
+    .tut-dl-label { font-size:12px; color:var(--sp-text-2nd); margin-bottom:8px; }
+    .tut-dl-main { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .tut-dl-alt { font-size:12px; color:var(--sp-hint); margin-top:8px; line-height:1.8; }
+    .tut-dl-alt a { margin: 0 2px; }
+    details.tut-altarch { margin-top:6px; font-size:12px; color:var(--sp-text-2nd); }
+    details.tut-altarch summary { cursor:pointer; padding:6px 0; color:var(--sp-brand); }
+    details.tut-altarch .tut-dl { background:#fff; }
+    .tut-pending { font-size:13px; color:var(--sp-hint); display:inline-flex; align-items:center; gap:6px; }
+  </style>
 </head>
 <body data-sp-area="user" data-sp-page="tutorial">
   <main class="sp-content" x-data="tutorialPage()">
@@ -17,63 +41,149 @@
 
     <div class="sp-content-inner">
 
-      <!-- 三步引导 (复刻旧版教程页引导文案) -->
+      <!-- ① 三步引导 (口径: 每台设备绑定一个独立订阅) -->
       <div class="sp-alert sp-alert-info">
         <i class="mi">info</i>
-        <span>已按您的设备自动定位系统。三步完成配置：<b>① 下载软件 → ② 添加订阅 → ③ 更新同步节点</b>。订阅地址在「订阅节点」页面复制，节点信息由订阅自动下发，无需任何手动配置。</span>
+        <span>已按您的设备自动定位系统。三步完成配置：<b>① 下载软件 → ② 添加订阅 → ③ 查看图文教程</b>。订阅地址请在<a href="/user/rss.html">订阅管理</a>为每台设备创建并复制（独立作废互不影响），节点信息由订阅自动下发，无需任何手动配置。</span>
       </div>
 
-      <div class="sp-card sp-mt-6">
-        <div class="sp-card-title">
-          <i class="mi">checklist</i>配置步骤
-          <span class="sp-extra"><a class="sp-btn sp-btn-sm" href="/user/nodes.html"><i class="mi">link</i>获取订阅链接</a></span>
+      <!-- ② 图例 -->
+      <div class="sp-card">
+        <div class="tut-legend">
+          <span class="tut-lg"><span class="tut-badge def">⭐ 默认推荐</span>本站当前推荐</span>
+          <span class="tut-lg"><span class="tut-badge full">✅ 全兼容</span>支持全部节点</span>
+          <span class="tut-lg"><span class="tut-badge partial">⚠️ 部分支持</span>仅支持部分协议</span>
+          <span class="tut-lg"><span class="tut-badge testing">🧪 测试中</span>功能仍在测试</span>
         </div>
-        <ol class="sp-steps" style="font-size:13px;line-height:1.9;">
-          <li>根据当前平台选择下方推荐客户端，点击「前往下载」进入官方渠道获取最新版本并安装。</li>
-          <li>进入「节点列表」页面复制您的专属订阅链接。</li>
-          <li>打开客户端，选择「订阅 → 添加订阅」并粘贴链接，更新订阅即可自动同步全部节点。若连接异常，请尝试切换客户端内核或更新至最新版本。</li>
-        </ol>
+
+        <!-- ③ 系统 Tab (数据驱动, UA 自动定位) -->
+        <div class="sp-tabs sp-mt-4">
+          <template x-for="(sys, key) in systems" :key="key">
+            <button class="sp-tab" :class="activeTab === key && 'active'" @click="activeTab = key">
+              <i class="mi" x-text="sys.icon"></i><span x-text="sys.name"></span>
+            </button>
+          </template>
+        </div>
       </div>
 
-      <!-- 平台切换 -->
-      <div class="sp-tabs sp-mt-6">
-        <template x-for="tab in tabs" :key="tab.key">
-          <button class="sp-tab" :class="activeTab === tab.key && 'active'" @click="activeTab = tab.key">
-            <i class="mi" x-text="tab.icon"></i><span x-text="tab.label"></span>
-          </button>
-        </template>
-      </div>
-
-      <!-- 加载中 -->
+      <!-- ④ 软件卡片矩阵 -->
       <template x-if="loading">
-        <div class="sp-empty"><i class="mi">refresh</i>正在加载客户端数据...</div>
+        <div class="sp-empty sp-mt-6"><i class="mi">refresh</i>正在加载客户端数据...</div>
       </template>
 
-      <!-- 客户端卡片矩阵 -->
       <template x-if="!loading">
-        <div>
-          <div class="sp-grid sp-mt-6">
-            <template x-for="app in (data[activeTab] || [])" :key="app.name">
-              <div class="sp-col-4">
-                <div class="sp-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
-                  <div>
-                    <div class="sp-card-title">
-                      <i class="mi">get_app</i><span x-text="app.name"></span>
-                      <span class="sp-extra"><span class="sp-tag sp-tag-blue" x-text="tabLabel(activeTab) + ' 平台'"></span></span>
+        <div class="sp-mt-6">
+          <template x-for="app in currentApps" :key="app.id + app.name">
+            <div class="sp-card tut-app" :class="app.default && 'is-default'" style="margin-bottom:16px;">
+
+              <!-- 标题 + 徽章 -->
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <i class="mi" style="font-size:22px; color:var(--sp-primary);">apps</i>
+                <span style="font-size:16px; font-weight:600;" x-text="app.name"></span>
+                <span style="display:inline-flex; gap:6px; flex-wrap:wrap;">
+                  <span x-show="app.default" class="tut-badge def">⭐ 默认推荐</span>
+                  <span x-show="app.compat === 'full'" class="tut-badge full">✅ 全兼容</span>
+                  <span x-show="app.compat === 'partial'" class="tut-badge partial">⚠️ 部分支持</span>
+                  <span x-show="app.compat === 'testing'" class="tut-badge testing">🧪 测试中</span>
+                </span>
+              </div>
+              <p class="sp-text-muted" style="font-size:12.5px; margin:8px 0 0;" x-text="app.compat_note"></p>
+
+              <!-- ① 下载软件 -->
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">⬇️ 下载软件</div>
+
+                  <!-- 主区: 适配当前设备架构(或通用)的安装包 + 外链按钮 -->
+                  <template x-for="(dl, i) in mainDownloads(app)" :key="i">
+                    <div>
+                      <!-- 外链按钮 (商店/教程页) -->
+                      <template x-if="dl.external">
+                        <a class="sp-btn" style="margin-bottom:10px;" :href="dl.url" target="_blank" rel="noopener">
+                          <i class="mi">save_alt</i><span x-text="dl.label"></span>
+                        </a>
+                      </template>
+                      <!-- 站内/教程链接 (无 github 直链) -->
+                      <template x-if="!dl.external && !dl.github">
+                        <a class="sp-btn" style="margin-bottom:10px;" :href="dl.url">
+                          <i class="mi">save_alt</i><span x-text="dl.label || '立即下载'"></span>
+                        </a>
+                      </template>
+                      <!-- 三通道安装包: ghfast 加速主按钮 + 双备选 -->
+                      <template x-if="dl.github">
+                        <div class="tut-dl">
+                          <div class="tut-dl-label" x-show="dl.label" x-text="dl.label"></div>
+                          <div class="tut-dl-main">
+                            <a class="sp-btn sp-btn-brand" :href="cnProxy + dl.github">
+                              <i class="mi">rocket_launch</i>🚀 立即下载
+                            </a>
+                          </div>
+                          <div class="tut-dl-alt">
+                            下载慢？试试：
+                            <a :href="dl.url"><i class="mi" style="font-size:13px;">home</i> 本站下载(已验证版本)</a> |
+                            <a :href="dl.github" target="_blank" rel="noopener"><i class="mi" style="font-size:13px;">open_in_new</i> GitHub 官方(最新版)</a>
+                          </div>
+                        </div>
+                      </template>
                     </div>
-                    <p class="sp-text-muted" style="font-size:13px;line-height:1.7;" x-text="app.desc"></p>
-                  </div>
-                  <div class="sp-mt-4">
-                    <a class="sp-btn sp-btn-brand sp-btn-block" :href="app.url" target="_blank" rel="noopener noreferrer"><i class="mi">get_app</i>前往下载</a>
-                  </div>
+                  </template>
+
+                  <!-- 折叠区: 其他设备架构 -->
+                  <template x-if="altDownloads(app).length > 0">
+                    <details class="tut-altarch">
+                      <summary><i class="mi" style="font-size:15px;">devices_other</i> 其他设备架构？点此展开</summary>
+                      <template x-for="(dl, i) in altDownloads(app)" :key="'alt' + i">
+                        <div class="tut-dl">
+                          <div class="tut-dl-label" x-text="dl.label"></div>
+                          <div class="tut-dl-main">
+                            <a class="sp-btn sp-btn-sm sp-btn-brand" :href="cnProxy + dl.github"><i class="mi">rocket_launch</i>🚀 立即下载</a>
+                          </div>
+                          <div class="tut-dl-alt">
+                            <a :href="dl.url">本站下载(已验证版本)</a> |
+                            <a :href="dl.github" target="_blank" rel="noopener">GitHub 官方</a>
+                          </div>
+                        </div>
+                      </template>
+                    </details>
+                  </template>
                 </div>
               </div>
-            </template>
-          </div>
 
-          <!-- 空态 -->
-          <template x-if="(data[activeTab] || []).length === 0">
-            <div class="sp-empty"><i class="mi">inbox</i>暂无数据</div>
+              <!-- ② 添加订阅 -->
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">🔗 添加订阅</div>
+                  <p style="font-size:13px; line-height:1.9; margin:0;" x-html="app.sub"></p>
+                  <p class="sp-text-hint" style="font-size:12px; margin-top:6px;">
+                    <i class="mi" style="font-size:14px;">vpn_key</i>
+                    订阅地址在<a href="/user/rss.html">订阅管理</a>为每台设备创建独立订阅后复制。
+                  </p>
+                </div>
+              </div>
+
+              <!-- ③ 图文教程 -->
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">📖 使用代理</div>
+                  <template x-if="app.tutorial">
+                    <a class="sp-btn sp-btn-brand" :href="app.tutorial">
+                      <i class="mi">menu_book</i>查看图文教程
+                    </a>
+                  </template>
+                  <template x-if="!app.tutorial">
+                    <span class="tut-pending"><i class="mi" style="font-size:16px;">schedule</i>教程整理中，敬请期待</span>
+                  </template>
+                </div>
+              </div>
+
+            </div>
+          </template>
+
+          <template x-if="currentApps.length === 0">
+            <div class="sp-empty"><i class="mi">inbox</i>该平台暂无收录客户端</div>
           </template>
         </div>
       </template>
@@ -87,23 +197,19 @@
   <script>
     function tutorialPage() {
       return {
-        data: {},
+        data: {},          // { windows: {name, icon, apps[]}, ... }
+        cnProxy: '',
         loading: true,
         activeTab: 'windows',
-        tabs: [
-          { key: 'windows', label: 'Windows', icon: 'desktop_windows' },
-          { key: 'macos', label: 'macOS', icon: 'laptop_mac' },
-          { key: 'ios', label: 'iOS', icon: 'phone_iphone' },
-          { key: 'android', label: 'Android', icon: 'android' },
-          { key: 'linux', label: 'Linux', icon: 'dns' },
-        ],
+        detectedArch: 'x64',
 
         async init() {
           this.detectPlatform();
+          this.detectArch();
           await this.load();
         },
 
-        // 根据 User-Agent 判定默认展示的平台 Tab
+        // 根据 User-Agent 判定默认展示的系统 Tab
         detectPlatform() {
           const ua = navigator.userAgent;
           if (ua.includes('iPhone') || ua.includes('iPad')) this.activeTab = 'ios';
@@ -113,14 +219,24 @@
           else if (ua.includes('Linux')) this.activeTab = 'linux';
         },
 
+        // 架构识别 (移动端一律 arm64; 桌面探测 arm64/arm 字样, 其余默认 x64,
+        // 识别不准确的场景由「其他设备架构」折叠区兜底)
+        detectArch() {
+          const ua = navigator.userAgent;
+          if (/iPhone|iPad|Android/i.test(ua)) { this.detectedArch = 'arm64'; return; }
+          if (/aarch64|arm64|ARM(?![a-z])/i.test(ua)) { this.detectedArch = 'arm64'; return; }
+          this.detectedArch = 'x64';
+        },
+
         async load() {
           try {
             const res = await fetch('/assets/data/tutorial.json');
             if (!res.ok) throw new Error('HTTP ' + res.status);
             this.data = await res.json();
+            this.cnProxy = this.data.cn_proxy_prefix || '';
             // 若当前默认 Tab 无数据则回退到第一个有数据的平台
-            if (!this.data[this.activeTab] || this.data[this.activeTab].length === 0) {
-              const first = Object.keys(this.data).find(k => Array.isArray(this.data[k]) && this.data[k].length > 0);
+            if (!this.systems[this.activeTab] || this.currentApps.length === 0) {
+              const first = Object.keys(this.systems).find(k => this.currentAppsOf(k).length > 0);
               if (first) this.activeTab = first;
             }
           } catch (err) {
@@ -130,17 +246,29 @@
           }
         },
 
-        tabLabel(key) {
-          const tab = this.tabs.find(t => t.key === key);
-          return tab ? tab.label : key;
+        get systems() {
+          // 剔除 _meta/cn_proxy_prefix 等非平台键
+          const out = {};
+          Object.keys(this.data).forEach(k => {
+            if (this.data[k] && Array.isArray(this.data[k].apps)) out[k] = this.data[k];
+          });
+          return out;
         },
+        currentAppsOf(key) {
+          const sys = this.data[key];
+          return (sys && sys.apps) || [];
+        },
+        get currentApps() { return this.currentAppsOf(this.activeTab); },
 
-        async logout() {
-          try { await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
-          localStorage.removeItem('spanel_jwt');
-          localStorage.removeItem('spanel_user');
-          window.location.replace('/auth/login.html');
-        }
+        // 主区下载条目: 外链/站内链接全部展示; 三通道安装包仅展示适配当前架构(或通用)的
+        mainDownloads(app) {
+          return (app.downloads || []).filter(dl =>
+            !dl.github || !dl.arch || dl.arch === '' || dl.arch === this.detectedArch);
+        },
+        // 折叠区: 不适配当前架构的三通道安装包
+        altDownloads(app) {
+          return (app.downloads || []).filter(dl => dl.github && dl.arch && dl.arch !== this.detectedArch);
+        },
       }
     }
   </script>

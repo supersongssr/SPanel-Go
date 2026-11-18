@@ -1,87 +1,265 @@
 {
-  "windows": [
-    {
-      "name": "v2rayN",
-      "desc": "Windows 平台最流行的 v2ray 图形客户端，支持 VMess / VLESS / Trojan / Shadowsocks 等多种协议，订阅链接一键导入，推荐新手使用。",
-      "url": "https://github.com/2dust/v2rayN/releases"
-    },
-    {
-      "name": "Clash Verge Rev",
-      "desc": "基于 Clash Meta 内核的现代化图形客户端，界面美观，支持规则分流、TUN 模式与订阅自动更新。",
-      "url": "https://github.com/clash-verge-rev/clash-verge-rev/releases"
-    },
-    {
-      "name": "Nekoray",
-      "desc": "轻量级跨平台代理内核管理器，支持切换 Xray / sing-box 内核，配置灵活，适合进阶用户。",
-      "url": "https://github.com/MatsuriDayo/nekoray/releases"
-    }
-  ],
-  "macos": [
-    {
-      "name": "Clash Verge Rev",
-      "desc": "跨平台 Clash Meta 图形客户端，macOS 下体验优秀，支持 TUN 模式、规则分流与脚本增强。",
-      "url": "https://github.com/clash-verge-rev/clash-verge-rev/releases"
-    },
-    {
-      "name": "V2rayU",
-      "desc": "macOS 原生免费 v2ray 客户端，菜单栏快捷操作，支持订阅自动更新与 Pac 模式。",
-      "url": "https://github.com/yanue/V2rayU/releases"
-    },
-    {
-      "name": "Surge",
-      "desc": "macOS / iOS 平台顶级网络调试与代理工具，功能强大稳定，付费使用，适合专业用户。",
-      "url": "https://nssurge.com/"
-    }
-  ],
-  "ios": [
-    {
-      "name": "Shadowrocket",
-      "desc": "iOS 上最常用的付费代理客户端（小火箭），支持绝大多数主流协议，订阅链接一键导入。",
-      "url": "https://apps.apple.com/app/shadowrocket/id932747118"
-    },
-    {
-      "name": "Stash",
-      "desc": "基于 Clash 内核的 iOS 规则代理客户端，界面精美，完整支持规则分流与策略组。",
-      "url": "https://apps.apple.com/app/stash-rule-proxy/id1591596215"
-    },
-    {
-      "name": "sing-box",
-      "desc": "SagerNet 官方 iOS 客户端，支持 VLESS / Hysteria2 / TUIC 等新协议与通用订阅链接。",
-      "url": "https://apps.apple.com/app/sing-box/id6451272673"
-    }
-  ],
-  "android": [
-    {
-      "name": "v2rayNG",
-      "desc": "Android 平台广泛使用的 v2ray 客户端，支持多种协议、路由设置与订阅自动更新。",
-      "url": "https://github.com/2dust/v2rayNG/releases"
-    },
-    {
-      "name": "ClashMeta for Android",
-      "desc": "基于 Clash Meta 内核的 Android 客户端，完整支持规则分流、策略组与多种订阅格式。",
-      "url": "https://github.com/MetaCubeX/ClashMetaForAndroid/releases"
-    },
-    {
-      "name": "sing-box (SFA)",
-      "desc": "SagerNet 官方 Android 客户端，支持 VLESS / Hysteria2 / TUIC 等全部主流新协议。",
-      "url": "https://github.com/SagerNet/sing-box-for-android/releases"
-    }
-  ],
-  "linux": [
-    {
-      "name": "Nekoray",
-      "desc": "Linux 桌面下的图形化代理管理器，支持 Xray 与 sing-box 双内核切换，开箱即用。",
-      "url": "https://github.com/MatsuriDayo/nekoray/releases"
-    },
-    {
-      "name": "FlClash",
-      "desc": "基于 Clash Meta 内核的跨平台客户端，提供 Linux 原生界面，多语言支持，简洁易用。",
-      "url": "https://github.com/chen08209/FlClash/releases"
-    },
-    {
-      "name": "sing-box",
-      "desc": "通用代理内核官方程序，命令行方式运行，配置灵活，支持全部主流新协议，适合服务器使用。",
-      "url": "https://github.com/SagerNet/sing-box/releases"
-    }
-  ]
+  "_meta": "软件矩阵单一数据源 — 移植自 PHP config/tutorial.php (2026-11 口径)。增删软件/换链接/改文案只改本文件, tutorial.html 自动渲染。",
+  "cn_proxy_prefix": "https://ghfast.top/",
+
+  "windows": {
+    "name": "Windows",
+    "icon": "desktop_windows",
+    "apps": [
+      {
+        "id": "onexray",
+        "name": "OneXray",
+        "default": true,
+        "compat": "full",
+        "compat_note": "完整支持本站全部节点协议（含 Vless xHTTP），基于 Xray 内核",
+        "downloads": [
+          { "label": "x64 版", "arch": "x64", "url": "/download/OneXray-windows-amd64.exe", "github": "https://github.com/YuanDevTeam/OneXray/releases/latest/download/OneXray-windows-amd64.exe" },
+          { "label": "ARM64 版", "arch": "arm64", "url": "/download/OneXray-windows-arm64.exe", "github": "https://github.com/YuanDevTeam/OneXray/releases/latest/download/OneXray-windows-arm64.exe" },
+          { "label": "微软商店下载", "url": "https://apps.microsoft.com/detail/9NJ0MVHW215D", "external": true }
+        ],
+        "sub": "下载安装 OneXray → 打开 OneXray → 添加订阅 → 粘贴订阅地址 → 选择节点连接",
+        "tutorial": "/tutorial/onexray-ios.html"
+      },
+      {
+        "id": "v2rayn",
+        "name": "v2rayN",
+        "compat": "full",
+        "compat_note": "完整支持本站全部节点协议（SS / Vmess / Vless / Trojan）",
+        "downloads": [
+          { "label": "x64 版", "arch": "x64", "url": "/download/v2rayN-windows-64-desktop.zip", "github": "https://github.com/2dust/v2rayN/releases/latest/download/v2rayN-windows-64-desktop.zip" }
+        ],
+        "sub": "解压运行 V2rayN.exe → 订阅分组 → <code>订阅分组设置</code> → 添加 → 粘贴订阅地址 → 确定 → <code>更新订阅(不通过代理)</code>",
+        "tutorial": "/tutorial/v2rayn-windows.html"
+      },
+      {
+        "id": "clash-verge",
+        "name": "Clash Verge",
+        "compat": "partial",
+        "compat_note": "Clash 内核，支持本站大部分节点协议，全部分组均可获取 Clash 订阅",
+        "downloads": [
+          { "label": "Windows 安装包", "arch": "", "url": "/download/Clash.Verge_x64-setup.exe" }
+        ],
+        "sub": "安装后打开「配置」页 → 导入订阅地址 → 选择节点使用",
+        "tutorial": "/tutorial/clash-verge-windows.html"
+      }
+    ]
+  },
+
+  "macos": {
+    "name": "MacOS",
+    "icon": "laptop_mac",
+    "apps": [
+      {
+        "id": "onexray",
+        "name": "OneXray",
+        "default": true,
+        "compat": "full",
+        "compat_note": "完整支持本站全部节点协议（含 Vless xHTTP），基于 Xray 内核",
+        "downloads": [
+          { "label": "通用版 (Intel/M 芯片)", "arch": "", "url": "/download/OneXray-macos-universal.zip", "github": "https://github.com/YuanDevTeam/OneXray/releases/latest/download/OneXray-macos-universal.zip" }
+        ],
+        "sub": "下载 zip 解压，将 OneXray 拖入「应用程序」→ 打开 OneXray → 添加订阅 → 粘贴订阅地址 → 选择节点连接",
+        "tutorial": "/tutorial/onexray-ios.html"
+      },
+      {
+        "id": "v2rayn",
+        "name": "v2rayN",
+        "compat": "full",
+        "compat_note": "完整支持本站全部节点协议（SS / Vmess / Vless / Trojan）",
+        "downloads": [
+          { "label": "Intel 芯片版", "arch": "x64", "url": "/download/v2rayN-macos-64.dmg", "github": "https://github.com/2dust/v2rayN/releases/latest/download/v2rayN-macos-64.dmg" },
+          { "label": "Apple M 芯片版", "arch": "arm64", "url": "/download/v2rayN-macos-arm64.dmg", "github": "https://github.com/2dust/v2rayN/releases/latest/download/v2rayN-macos-arm64.dmg" }
+        ],
+        "sub": "安装后需运行 <code>xattr -cr /Applications/v2rayN.app</code> → 订阅分组 → <code>更新当前订阅(不通过代理)</code> → 选节点 → <code>自动配置系统代理</code>",
+        "tutorial": "/tutorial/v2rayn-macos.html"
+      }
+    ]
+  },
+
+  "ios": {
+    "name": "iOS",
+    "icon": "phone_iphone",
+    "apps": [
+      {
+        "id": "onexray",
+        "name": "OneXray",
+        "default": true,
+        "compat": "full",
+        "compat_note": "完整支持本站全部节点协议（含 Vless xHTTP），推荐优先使用",
+        "downloads": [
+          { "label": "App Store 下载", "url": "https://apps.apple.com/us/app/onexray/id6745748773", "external": true }
+        ],
+        "sub": "安装界面国家选 <code>CN</code>、启用 <code>IPv6</code> → 打开 OneXray → 右上角 <code>+</code> → <code>订阅链接(RSS)</code> → 粘贴 → 保存后测速选节点连接",
+        "tutorial": "/tutorial/onexray-ios.html"
+      },
+      {
+        "id": "shadowrocket",
+        "name": "Shadowrocket",
+        "compat": "partial",
+        "compat_note": "支持本站大部分节点协议（SS / Vmess / Vless / Trojan），建议更新至最新版；App Store 付费应用，$2.99",
+        "downloads": [
+          { "label": "App Store 下载", "url": "https://apps.apple.com/us/app/shadowrocket/id932747118", "external": true }
+        ],
+        "sub": "打开 Shadowrocket → 首页右上角 <code>＋</code> → 类型选 <code>Subscribe</code> → 粘贴订阅地址 → 保存 → 更新订阅",
+        "tutorial": ""
+      },
+      {
+        "id": "happ",
+        "name": "Happ",
+        "compat": "partial",
+        "compat_note": "支持本站大部分节点协议",
+        "downloads": [
+          { "label": "App Store 下载", "url": "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215", "external": true }
+        ],
+        "sub": "打开 Happ → 添加订阅 → 粘贴订阅地址 → 保存后选择节点连接",
+        "tutorial": "/tutorial/happ-ios.html"
+      },
+      {
+        "id": "clashmi",
+        "name": "ClashMi",
+        "compat": "partial",
+        "compat_note": "Clash 内核，支持本站大部分节点协议",
+        "downloads": [
+          { "label": "App Store 下载", "url": "https://apps.apple.com/us/app/clash-mi/id6744321968", "external": true }
+        ],
+        "sub": "打开 ClashMi → 添加订阅 → 粘贴订阅地址 → 保存后选择节点连接",
+        "tutorial": "/tutorial/clashmi-ios.html"
+      },
+      {
+        "id": "karing",
+        "name": "Karing",
+        "compat": "partial",
+        "compat_note": "支持本站大部分节点协议",
+        "downloads": [
+          { "label": "App Store 下载", "url": "https://apps.apple.com/us/app/karing/id6472431552", "external": true }
+        ],
+        "sub": "打开 Karing → 添加订阅 → 粘贴订阅地址 → 保存后选择节点连接",
+        "tutorial": "/tutorial/karing-ios.html"
+      },
+      {
+        "id": "hiddify",
+        "name": "Hiddify",
+        "compat": "partial",
+        "compat_note": "支持本站大部分节点协议",
+        "downloads": [
+          { "label": "App Store 下载", "url": "https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532", "external": true }
+        ],
+        "sub": "打开 Hiddify → 添加订阅 → 粘贴订阅地址 → 保存后选择节点连接",
+        "tutorial": "/tutorial/hiddify-ios.html"
+      },
+      {
+        "id": "v2box",
+        "name": "V2Box",
+        "compat": "partial",
+        "compat_note": "支持本站大部分节点协议",
+        "downloads": [
+          { "label": "App Store 下载", "url": "https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690", "external": true }
+        ],
+        "sub": "打开 V2Box → 添加订阅 → 粘贴订阅地址 → 保存后选择节点连接",
+        "tutorial": "/tutorial/v2box-ios.html"
+      }
+    ]
+  },
+
+  "android": {
+    "name": "Android",
+    "icon": "android",
+    "apps": [
+      {
+        "id": "onexray",
+        "name": "OneXray",
+        "default": true,
+        "compat": "full",
+        "compat_note": "完整支持本站全部节点协议（含 Vless xHTTP），基于 Xray 内核",
+        "downloads": [
+          { "label": "通用版 APK", "arch": "", "url": "/download/OneXray-android-universal.apk", "github": "https://github.com/YuanDevTeam/OneXray/releases/latest/download/OneXray-android-universal.apk" }
+        ],
+        "sub": "安装后打开 OneXray → 右上角 <code>+</code> → <code>订阅链接</code> → 粘贴订阅地址 → 保存后自动获取节点",
+        "tutorial": "/tutorial/onexray-ios.html"
+      },
+      {
+        "id": "v2rayng",
+        "name": "v2rayNG",
+        "compat": "full",
+        "compat_note": "完整支持本站全部节点协议（SS / Vmess / Vless / Trojan）",
+        "downloads": [
+          { "label": "arm64-v8a APK", "arch": "arm64", "url": "/download/v2rayNG_arm64-v8a.apk", "github": "https://github.com/2dust/v2rayNG/releases/download/2.2.6/v2rayNG_2.2.6_arm64-v8a.apk" }
+        ],
+        "sub": "打开 <code>订阅分组设置</code> → 添加分组 → 粘贴订阅地址 → 自动获取节点 → <code>批量测试真连接</code>排序选节点",
+        "tutorial": "/tutorial/v2rayng-android.html"
+      },
+      {
+        "id": "singbox-sn",
+        "name": "sing-box (SN)",
+        "compat": "testing",
+        "compat_note": "🧪 测试中，暂不作为推荐客户端",
+        "downloads": [
+          { "label": "arm64-v8a APK", "arch": "", "url": "/download/SN-arm64-v8a.apk" }
+        ],
+        "sub": "新建配置 → 类型选 <code>Remote</code> → 粘贴订阅地址 → 保存后选择节点连接",
+        "tutorial": ""
+      }
+    ]
+  },
+
+  "linux": {
+    "name": "Linux",
+    "icon": "dvr",
+    "apps": [
+      {
+        "id": "onexray",
+        "name": "OneXray",
+        "default": true,
+        "compat": "full",
+        "compat_note": "完整支持本站全部节点协议（含 Vless xHTTP），基于 Xray 内核",
+        "downloads": [
+          { "label": "x86_64 版", "arch": "x64", "url": "/download/OneXray-linux-x86_64.deb", "github": "https://github.com/YuanDevTeam/OneXray/releases/latest/download/OneXray-linux-x86_64.deb" },
+          { "label": "aarch64 版", "arch": "arm64", "url": "/download/OneXray-linux-aarch64.deb", "github": "https://github.com/YuanDevTeam/OneXray/releases/latest/download/OneXray-linux-aarch64.deb" }
+        ],
+        "sub": "下载对应架构 deb 安装 → 打开 OneXray → 添加订阅 → 粘贴订阅地址 → 选择节点连接",
+        "tutorial": "/tutorial/onexray-ios.html"
+      },
+      {
+        "id": "v2rayn",
+        "name": "v2rayN",
+        "compat": "full",
+        "compat_note": "完整支持本站全部节点协议（SS / Vmess / Vless / Trojan）",
+        "downloads": [
+          { "label": "x64 deb 包", "arch": "x64", "url": "/download/v2rayN-linux-64.deb", "github": "https://github.com/2dust/v2rayN/releases/latest/download/v2rayN-linux-64.deb" }
+        ],
+        "sub": "安装后打开 v2rayN → 订阅分组 → <code>添加订阅</code> → 粘贴订阅地址 → <code>更新当前订阅(不通过代理)</code> → 选节点 → <code>自动配置系统代理</code>",
+        "tutorial": "/tutorial/v2rayn-linux.html"
+      },
+      {
+        "id": "v2raya",
+        "name": "v2rayA",
+        "compat": "full",
+        "compat_note": "网页控制台，适合服务器 / 无桌面环境，完整支持本站节点协议",
+        "downloads": [
+          { "label": "查看安装教程", "url": "/tutorial/v2raya-linux.html" }
+        ],
+        "sub": "按图文教程安装 → 浏览器打开 <code>localhost:2017</code> 创建账号 → 导入 → 粘贴订阅地址 → 选节点 → 启动",
+        "tutorial": "/tutorial/v2raya-linux.html"
+      }
+    ]
+  },
+
+  "router": {
+    "name": "路由器",
+    "icon": "router",
+    "apps": [
+      {
+        "id": "v2raya-openwrt",
+        "name": "v2rayA (OpenWrt)",
+        "default": true,
+        "compat": "full",
+        "compat_note": "路由器 / 软路由透明代理方案，完整支持本站节点协议",
+        "downloads": [
+          { "label": "查看安装教程", "url": "/tutorial/v2raya-openwrt.html" }
+        ],
+        "sub": "按图文教程在 OpenWrt 安装 → 浏览器打开 <code>路由器IP:2017</code> → 导入订阅 → 选节点 → 启用透明代理",
+        "tutorial": "/tutorial/v2raya-openwrt.html"
+      }
+    ]
+  }
 }
