@@ -18,7 +18,22 @@ func RegisterAdminV2Routes(r *gin.Engine) {
 		// 总览
 		g.GET("/dashboard", h.Dashboard)
 
-		// 用户 (Phase 0: 列表先行; CRUD/编辑随 Phase 1 平移)
+		// 用户 (Phase 0: 列表; Phase 1: 编辑/删除/切换身份/操作记录)
 		g.GET("/user", h.ListUsers)
+		g.GET("/user/:id", h.GetUser)
+		g.PUT("/user/:id", h.UpdateUser)
+		g.DELETE("/user/:id", h.DeleteUser)
+		g.POST("/user/:id/masquerade", h.Masquerade)
+
+		// 用户操作审计
+		g.GET("/user-log", h.ListUserLogs)
+
+		// 工单
+		g.GET("/ticket", h.ListTickets)
+		g.GET("/ticket/:id", h.GetTicket)
+		g.PUT("/ticket/:id", h.ReplyTicket)
+
+		// 个人资料
+		g.GET("/profile", h.GetProfile)
 	}
 }

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工单详情 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="tickets" data-sp-active="tickets" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">工单 <span x-show="id" x-cloak>#<span x-text="id"></span></span></h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="ticketViewPage()" x-init="init()">
+      <template x-if="!invalid && loaded">
+        <div>
+          <!-- 用户信息卡 -->
+          <div class="sp-card sp-mb-6">
+            <div class="sp-card-title"><i class="mi">account_box</i>发起人</div>
+            <div class="sp-grid">
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>ID</dt><dd><a :href="'/admin/user-edit.html?id=' + user.id" x-text="user.id"></a></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>用户名</dt><dd x-text="user.user_name"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>邮箱</dt><dd x-text="user.email"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>等级/群组</dt><dd x-text="user.class + ' / ' + user.node_group"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>余额</dt><dd x-text="user.money"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>状态</dt><dd x-text="user.enable === 1 ? '可用' : '禁用'"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>已用流量</dt><dd x-text="fmtGB(user.used_traffic)"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>备注</dt><dd x-text="user.remark || '—'"></dd></div></div>
+            </div>
+          </div>
+
+          <!-- 对话楼层 -->
+          <div class="sp-card sp-mb-6">
+            <div class="sp-card-title"><i class="mi">question_answer</i>对话</div>
+            <template x-for="t in tickets" :key="t.id">
+              <div class="sp-alert" :class="t.is_admin ? 'sp-alert-info' : 'sp-alert-success'" style="margin-bottom:10px;flex-direction:column;align-items:stretch">
+                <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                  <b>
+                    <i class="mi" style="font-size:16px" x-text="t.is_admin ? 'support_agent' : 'person'"></i>
+                    <span x-text="t.is_admin ? '管理员' : '用户 #' + t.userid"></span>
+                    <span class="sp-text-hint" style="margin-left:8px" x-text="t.datetime"></span>
+                  </b>
+                  <span class="sp-text-hint">#<span x-text="t.id"></span></span>
+                </div>
+                <div x-html="t.content" style="white-space:pre-wrap;word-break:break-word;margin-top:6px"></div>
+              </div>
+            </template>
+          </div>
+
+          <!-- 回复 -->
+          <div class="sp-card sp-mb-6">
+            <div class="sp-card-title"><i class="mi">reply</i>处理</div>
+            <textarea class="sp-textarea" rows="6" x-model="content" placeholder="回复内容 (markdown/纯文本)"></textarea>
+            <div class="sp-mt-4" style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="sp-btn sp-btn-brand" @click="submit('3')" :disabled="submitting"><i class="mi">send</i>回复并展示(邮件通知)</button>
+              <button class="sp-btn" @click="submit('1')" :disabled="submitting"><i class="mi">save</i>仅记录回复</button>
+              <button class="sp-btn" @click="submit('2')" :disabled="submitting"><i class="mi">skip_next</i>跳过</button>
+              <button class="sp-btn sp-btn-danger" @click="submit('0')" :disabled="submitting"><i class="mi">close</i>关闭</button>
+              <a class="sp-btn sp-btn-flat" :href="nextId ? '/admin/ticket-view.html?id=' + nextId : '/admin/tickets.html'">
+                下一张 <i class="mi">arrow_forward</i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template x-if="invalid">
+        <div class="sp-alert sp-alert-warn">
+          <i class="mi">warning</i>
+          <span>工单无效 (可能已被清理或发起人注销), 即将跳转下一张有效工单…</span>
+        </div>
+      </template>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function ticketViewPage() {
+      return {
+        loaded: false, invalid: false, submitting: false,
+        id: new URLSearchParams(location.search).get('id') || '',
+        tickets: [], user: {}, nextId: 0, content: '',
+        fmtGB(b) { return ((b || 0) / 1073741824).toFixed(2) + ' GB'; },
+        init() {
+          if (!this.id) { SPUI.msg('缺少工单 ID'); return; }
+          this.load();
+        },
+        load() {
+          SPanelAPI.request('/api/v2/admin/ticket/' + this.id)
+            .then(res => {
+              if (res.data && res.data.invalid) {
+                this.invalid = true;
+                const nid = res.data.next_id;
+                setTimeout(() => {
+                  window.location.replace(nid ? '/admin/ticket-view.html?id=' + nid : '/admin/tickets.html');
+                }, 1200);
+                return;
+              }
+              this.tickets = res.data.tickets || [];
+              this.user = res.data.user || {};
+              this.nextId = res.data.next_id || 0;
+              this.loaded = true;
+            })
+            .catch(e => SPUI.msg(e.message));
+        },
+        submit(status) {
+          this.submitting = true;
+          SPanelAPI.request('/api/v2/admin/ticket/' + this.id, {
+            method: 'PUT',
+            body: JSON.stringify({ content: this.content, status: status })
+          })
+            .then(res => {
+              // res.nextid 由 SPanelAPI 归一化保留在顶层 (ret/msg/nextid 信封)
+              const nid = res.nextid || res.data && res.data.nextid;
+              SPUI.toast(res.msg || '提交成功', 'success');
+              setTimeout(() => {
+                if (status === '2' || status === '0') {
+                  // 跳过/关闭 → 直接进队列下一张 (PHP 语义)
+                  window.location.replace(nid ? '/admin/ticket-view.html?id=' + nid : '/admin/tickets.html');
+                } else {
+                  this.content = '';
+                  this.load(); // 回复 → 刷新本单
+                }
+              }, 600);
+            })
+            .catch(e => SPUI.msg(e.message))
+            .finally(() => { this.submitting = false; });
+        }
+      };
+    }
+  </script>
+</body>
+</html>

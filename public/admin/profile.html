@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人资料 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="profile" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">个人资料</h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="profilePage()" x-init="init()">
+      <div class="sp-grid">
+        <!-- 返利流水 -->
+        <div class="sp-col-8">
+          <div class="sp-card">
+            <div class="sp-card-title"><i class="mi">loyalty</i>返利流水
+              <span class="sp-extra">共 <span x-text="rebateTotal"></span> 条</span>
+            </div>
+            <div class="sp-table-wrap">
+              <table class="sp-table">
+                <thead><tr><th>ID</th><th>用户</th><th>订单金额</th><th>返利</th><th>时间</th></tr></thead>
+                <tbody>
+                  <template x-for="r in rebates" :key="r.id">
+                    <tr>
+                      <td class="sp-num" x-text="r.id"></td>
+                      <td><a :href="'/admin/user-edit.html?id=' + r.userid" x-text="r.user_name || ('#' + r.userid)"></a></td>
+                      <td class="sp-num" x-text="r.total"></td>
+                      <td class="sp-num" x-text="r.ref_get"></td>
+                      <td x-text="r.datetime"></td>
+                    </tr>
+                  </template>
+                  <tr x-show="!rebates.length" x-cloak><td colspan="5"><div class="sp-empty"><i class="mi">inbox</i>暂无返利记录</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="sp-pagination" x-show="pages > 1" x-cloak>
+              <button :disabled="page <= 1" @click="go(page - 1)">‹</button>
+              <button class="on" x-text="page + ' / ' + pages"></button>
+              <button :disabled="page >= pages" @click="go(page + 1)">›</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 在线 IP + 最近登录 -->
+        <div class="sp-col-4">
+          <div class="sp-card sp-mb-6">
+            <div class="sp-card-title"><i class="mi">important_devices</i>在线 IP (5 分钟内)</div>
+            <template x-for="ip in onlineIps" :key="ip">
+              <div class="sp-dl-row"><dt><span class="sp-dot green"></span>IP</dt><dd class="sp-num" x-text="ip"></dd></div>
+            </template>
+            <div class="sp-empty" x-show="!onlineIps.length" x-cloak><i class="mi">wifi_off</i>暂无在线 IP</div>
+          </div>
+          <div class="sp-card">
+            <div class="sp-card-title"><i class="mi">history</i>最近登录 (10 次)</div>
+            <template x-for="l in logins" :key="l.ip + l.datetime">
+              <div class="sp-dl-row"><dt class="sp-num" x-text="l.ip"></dt><dd x-text="l.datetime"></dd></div>
+            </template>
+            <div class="sp-empty" x-show="!logins.length" x-cloak><i class="mi">inbox</i>暂无登录记录</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function profilePage() {
+      return {
+        page: 1, pages: 1, rebateTotal: 0,
+        rebates: [], onlineIps: [], logins: [],
+        init() { this.load(); },
+        go(p) { if (p >= 1 && p <= this.pages) { this.page = p; this.load(); } },
+        load() {
+          SPanelAPI.request('/api/v2/admin/profile?page=' + this.page)
+            .then(res => {
+              this.rebates = res.data.rebates || [];
+              this.rebateTotal = res.data.rebate_total || 0;
+              this.pages = Math.max(1, Math.ceil(this.rebateTotal / 15));
+              this.onlineIps = res.data.online_ips || [];
+              this.logins = res.data.logins || [];
+            })
+            .catch(e => SPUI.msg(e.message));
+        }
+      };
+    }
+  </script>
+</body>
+</html>

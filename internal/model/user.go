@@ -69,6 +69,10 @@ type User struct {
 	RssIpsCount     int32  `gorm:"column:rss_ips_count" json:"rss_ips_count"`         // 订阅 IP 来源计数 (当日)
 	RssIpsLastday   int32  `gorm:"column:rss_ips_lastday" json:"rss_ips_lastday"`     // 昨日 IP 来源快照
 	Warming         string `gorm:"column:warming" json:"warming"`                     // 禁用引导文案 (面板展示)
+	RssIP           string `gorm:"column:rss_ip" json:"rss_ip"`                       // 最近订阅来源 IP (admin 编辑页页头统计)
+	IsMultiUser     int32  `gorm:"column:is_multi_user" json:"is_multi_user"`         // 单端口多用户承载 (0非/1混淆式/2协议式; admin 编辑)
+	ForbiddenIP    string `gorm:"column:forbidden_ip" json:"forbidden_ip"`         // 禁访 IP 列表 (逗号分隔, admin 编辑)
+	ForbiddenPort  string `gorm:"column:forbidden_port" json:"forbidden_port"`     // 禁访端口列表 (逗号分隔, admin 编辑)
 	SendDailyMail   int32  `gorm:"column:sendDailyMail" json:"sendDailyMail"`         // 每日报告邮件订阅 (1=发)
 	Plan            string `gorm:"column:plan" json:"plan"`                           // 套餐标记 (createAdmin 用)
 }

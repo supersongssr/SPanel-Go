@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户操作记录 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="user-log" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">用户操作记录</h1></div>
+    </div>
+    <div class="sp-content-inner">
+      <!-- 过滤 (PHP user_log.tpl 过滤表单) -->
+      <div class="sp-card sp-mb-6">
+        <div class="sp-card-title"><i class="mi">filter_list</i>过滤</div>
+        <div class="sp-grid">
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">用户 ID</label>
+            <input class="sp-input" id="f-user" type="text" placeholder="user_id">
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">操作者 ID</label>
+            <input class="sp-input" id="f-operator" type="text" placeholder="operator_id">
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">级别</label>
+            <select class="sp-select" id="f-level">
+              <option value="">全部</option>
+              <option value="info">info</option>
+              <option value="warning">warning</option>
+              <option value="error">error</option>
+            </select>
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">分类</label>
+            <select class="sp-select" id="f-category">
+              <option value="">全部</option>
+              <option value="auth">auth</option><option value="profile">profile</option>
+              <option value="security">security</option><option value="money">money</option>
+              <option value="traffic">traffic</option><option value="ban">ban</option>
+              <option value="admin">admin</option><option value="ticket">ticket</option>
+              <option value="node">node</option>
+            </select>
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">开始日期</label>
+            <input class="sp-input" id="f-from" type="date">
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">结束日期</label>
+            <input class="sp-input" id="f-to" type="date">
+          </div></div>
+          <div class="sp-col-3" style="display:flex;align-items:flex-end">
+            <button class="sp-btn sp-btn-brand sp-btn-sm" id="f-apply"><i class="mi">search</i>应用过滤</button>
+          </div>
+        </div>
+      </div>
+      <div id="logTable"></div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script src="/assets/js/admin-table.js"></script>
+  <script>
+    function esc(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function levelTag(l) {
+      const cls = l === 'error' ? 'sp-tag-red' : l === 'warning' ? 'sp-tag-orange' : 'sp-tag-blue';
+      return '<span class="sp-tag ' + cls + '">' + esc(l) + '</span>';
+    }
+    function fmtDetail(d) {
+      if (!d) return '';
+      try {
+        const obj = JSON.parse(d);
+        return '<details><summary style="cursor:pointer;color:var(--sp-brand)">diff</summary>' +
+          '<pre style="white-space:pre-wrap;font-size:12px;max-width:420px">' + esc(JSON.stringify(obj, null, 1)) + '</pre></details>';
+      } catch (e) { return ''; }
+    }
+
+    /* URL 预填 (如 user-edit 页「查看操作记录」入口) */
+    (function () {
+      const p = new URLSearchParams(location.search);
+      if (p.get('user_id')) document.getElementById('f-user').value = p.get('user_id');
+    })();
+
+    var tbl = AdminTable('#logTable', {
+      api: '/api/v2/admin/user-log',
+      stateKey: 'adm:user-log',
+      pageSizes: [50, 100, 200, 0],
+      search: '搜索摘要/动作/IP',
+      defaultOrder: ['id', 'desc'],
+      params: function () {
+        return {
+          user_id: document.getElementById('f-user').value.trim(),
+          operator_id: document.getElementById('f-operator').value.trim(),
+          level: document.getElementById('f-level').value,
+          category: document.getElementById('f-category').value,
+          from: document.getElementById('f-from').value,
+          to: document.getElementById('f-to').value,
+        };
+      },
+      columns: [
+        { key: 'id',           title: 'ID', sortable: true },
+        { key: 'created_at',   title: '时间', sortable: true },
+        { key: 'level',        title: '级别', sortable: true, render: r => levelTag(r.level) },
+        { key: 'category',     title: '分类', sortable: true },
+        { key: 'action',       title: '动作' },
+        { key: 'message',      title: '摘要' },
+        { key: 'user_id',      title: '用户', sortable: true,
+          render: r => r.user_id ? '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a>' +
+            (r.user_name ? '<br><span class="sp-text-hint">' + esc(r.user_name) + '</span>' : '') : '—' },
+        { key: 'operator_id',  title: '操作者',
+          render: r => r.operator_id === 0 ? '系统' :
+            (r.operator_id + (r.operator_name ? ' (' + esc(r.operator_name) + ')' : '')) +
+            '<br><span class="sp-text-hint">' + ({0:'系统',1:'用户',2:'管理员',3:'API'}[r.operator_type] || '') + '</span>' },
+        { key: 'ip',           title: 'IP' },
+        { key: 'detail',       title: '详情', render: r => fmtDetail(r.detail) },
+      ]
+    });
+
+    document.getElementById('f-apply').addEventListener('click', function () { tbl.reload(); });
+  </script>
+</body>
+</html>

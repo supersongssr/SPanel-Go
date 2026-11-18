@@ -87,21 +87,21 @@
         '<button class="sp-btn sp-btn-sm" data-mask="' + r.id + '" data-name="' + esc(r.user_name) + '">切换用户</button>'
     });
 
-    /* 行操作 (事件委托; 编辑/删除/切换用户 — 删除与切换暂走 v1 端点, v2 补齐后切换) */
+    /* 行操作 (事件委托; 编辑/删除/切换用户 → v2 端点, 含幽灵保护与审计) */
     document.getElementById('usersTable').addEventListener('click', function (e) {
       var del = e.target.closest('[data-del]');
       var mask = e.target.closest('[data-mask]');
       if (del) {
         var uid = del.getAttribute('data-del');
-        SPUI.confirm('确认要删除用户 <b>' + del.getAttribute('data-name') + '</b> (ID:' + uid + ')?<br>删除后无法恢复, 请您确认。', function () {
-          SPanelAPI.request('/api/v1/admin/user/' + uid, { method: 'DELETE' })
+        SPUI.confirm('确认要删除用户 <b>' + del.getAttribute('data-name') + '</b> (ID:' + uid + ')?<br>删除后无法恢复; 仍在服务中的用户会被拒绝删除 (幽灵账号保护)。', function () {
+          SPanelAPI.request('/api/v2/admin/user/' + uid, { method: 'DELETE' })
             .then(res => { SPUI.toast(res.msg || '删除成功', 'success'); tbl.reload(); })
             .catch(err => SPUI.msg(err.message));
         }, { danger: true, okText: '删除' });
       } else if (mask) {
         var mid = mask.getAttribute('data-mask');
         SPUI.confirm('确认要切换为该用户 <b>' + mask.getAttribute('data-name') + '</b>?<br>将以该用户身份进入用户中心, 可通过「返回管理台」还原。', function () {
-          SPanelAPI.request('/api/v1/admin/user/' + mid + '/masquerade', { method: 'POST' })
+          SPanelAPI.request('/api/v2/admin/user/' + mid + '/masquerade', { method: 'POST' })
             .then(res => {
               localStorage.setItem('spanel_user', JSON.stringify({
                 user_name: res.data.user_name, email: res.data.email, isAdmin: 0
