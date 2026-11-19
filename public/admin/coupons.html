@@ -63,7 +63,7 @@
     var tbl;
     function couponGenPage() {
       return {
-        generate_type: 1, prefix: '', expire: 72, shop: '', credit: 25, onetime: 1, saving: false,
+        generate_type: 1, prefix: '', expire: 1, shop: '', credit: 25, onetime: 1, saving: false, // 旧版默认有效期 1 小时
         gen() {
           this.saving = true;
           SPanelAPI.request('/api/v2/admin/coupon', {

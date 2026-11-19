@@ -25,15 +25,16 @@
             <label class="sp-form-label">起源节点 (中转节点)</label>
             <select class="sp-select" x-model.number="f.source_node">
               <template x-for="n in sourceNodes" :key="n.id">
-                <option :value="n.id" x-text="n.id + ' - ' + (n.name || '(未命名)')"></option>
+                <option :value="n.id" :selected="f.source_node === n.id" x-text="n.id + ' - ' + (n.name || '(未命名)')"></option>
               </template>
             </select>
           </div></div>
           <div class="sp-col-6"><div class="sp-form-row">
             <label class="sp-form-label">目标节点</label>
             <select class="sp-select" x-model.number="f.dist_node">
-              <template x-for="n in distNodes" :key="n.id">
-                <option :value="n.id" x-text="n.id + ' - ' + (n.name || '(未命名)')"></option>
+              <option :value="-1" :selected="f.dist_node === -1">-1 - 不进行中转</option>
+              <template x-for="n in distNodes" :key="'d'+n.id">
+                <option :value="n.id" :selected="f.dist_node === n.id" x-text="n.id + ' - ' + (n.name || '(未命名)')"></option>
               </template>
             </select>
           </div></div>

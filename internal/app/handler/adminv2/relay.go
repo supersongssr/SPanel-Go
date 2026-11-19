@@ -106,7 +106,7 @@ func listRelaysImpl(c *gin.Context, q *ListQuery) {
 		Priority       int32  `json:"priority" gorm:"column:priority"`
 	}
 	var rows []row
-	dbq := base().Order("relay." + q.OrderBy + " " + q.OrderDir)
+	dbq := base().Order(q.OrderBy + " " + q.OrderDir) // 白名单值已带 relay. 前缀
 	if q.Limit >= 0 {
 		dbq = dbq.Offset(q.Offset).Limit(q.Limit)
 	}
@@ -135,7 +135,8 @@ func (h *Handler) RelayNodeOptions(c *gin.Context) {
 	for _, n := range source {
 		src = append(src, opt{ID: n.ID, Name: n.Name})
 	}
-	ds := make([]opt, 0, len(dist))
+	ds := make([]opt, 0, len(dist)+1)
+	ds = append(ds, opt{ID: -1, Name: "不进行中转"}) // PHP add/edit: -1 = 不中转
 	for _, n := range dist {
 		ds = append(ds, opt{ID: n.ID, Name: n.Name})
 	}
@@ -379,6 +380,8 @@ func (h *Handler) RelayPathSearch(c *gin.Context) {
 						if !ok {
 							prefix = "❌" + bn.Name
 							paths[i].Status = "阻断"
+						} else {
+							paths[i].Status = "通畅" // PHP: 前驱可达则恢复通畅
 						}
 						paths[i].Path = prefix + " → " + paths[i].Path
 						paths[i].Begin = rule.SourceNodeID
@@ -445,6 +448,38 @@ func (h *Handler) RelayPathSearch(c *gin.Context) {
 						insert(rule, muUser.Port)
 					}
 				}
+			}
+		}
+	}
+
+	// 第二轮链路合并 (PHP path_search 末段: 同端口两条存量链路两两合并, 被吸收方移除)
+	merged := true
+	for merged {
+		merged = false
+		for a := 0; a < len(paths); a++ {
+			for b := 0; b < len(paths); b++ {
+				if a == b || paths[a].Port != paths[b].Port {
+					continue
+				}
+				// b 链尾 == a 链头 → a 前接 b
+				if paths[b].End == paths[a].Begin {
+					paths[a].Begin = paths[b].Begin
+					paths[a].Path = paths[b].Path + " → " + paths[a].Path
+					paths = append(paths[:b], paths[b+1:]...)
+					merged = true
+					break
+				}
+				// a 链尾 == b 链头 → a 后接 b
+				if paths[a].End == paths[b].Begin {
+					paths[a].End = paths[b].End
+					paths[a].Path = paths[a].Path + " → " + paths[b].Path
+					paths = append(paths[:b], paths[b+1:]...)
+					merged = true
+					break
+				}
+			}
+			if merged {
+				break
 			}
 		}
 	}

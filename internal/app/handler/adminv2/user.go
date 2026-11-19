@@ -1,6 +1,7 @@
 package adminv2
 
 import (
+	"strings"
 	"time"
 
 	"spanel-go/internal/model"
@@ -125,18 +126,45 @@ func (h *Handler) ListUsers(c *gin.Context) {
 		}
 	}
 
-	// 在线 IP 数: alive_ip 按 userid 分组计数 (PHP $user->online_ip_count())
+	// 在线 IP 数 (PHP $user->online_ip_count(): 90s 内记录, 去重真实 IP, 排除节点自身 IP)
 	ipCount := map[int32]int64{}
 	if len(ids) > 0 {
 		var rows []struct {
 			UserID int32
-			Cnt    int64
+			IP     string
 		}
 		database.DB.Model(&model.AliveIP{}).
-			Select("userid AS user_id, COUNT(*) AS cnt").
-			Where("userid IN ?", ids).Group("userid").Scan(&rows)
+			Select("userid AS user_id, ip").
+			Where("userid IN ? AND datetime >= ?", ids, time.Now().Unix()-90).
+			Scan(&rows)
+		// 节点 IP 集合 (排除中转节点自身)
+		nodeIPSet := map[string]bool{}
+		var nodeIPs []string
+		database.DB.Model(&model.Node{}).Where("node_ip != ''").Pluck("node_ip", &nodeIPs)
+		for _, nip := range nodeIPs {
+			for _, part := range strings.Split(nip, ",") {
+				if i := strings.Index(part, "#"); i >= 0 {
+					part = part[:i]
+				}
+				part = strings.TrimSpace(part)
+				if part != "" {
+					nodeIPSet[part] = true
+				}
+			}
+		}
+		uniq := map[int32]map[string]bool{}
 		for _, r := range rows {
-			ipCount[r.UserID] = r.Cnt
+			ip := strings.TrimPrefix(r.IP, "::ffff:") // getRealIp
+			if nodeIPSet[ip] {
+				continue
+			}
+			if uniq[r.UserID] == nil {
+				uniq[r.UserID] = map[string]bool{}
+			}
+			uniq[r.UserID][ip] = true
+		}
+		for uid, set := range uniq {
+			ipCount[uid] = int64(len(set))
 		}
 	}
 

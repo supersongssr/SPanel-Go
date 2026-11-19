@@ -9,12 +9,12 @@
   <link rel="stylesheet" href="/assets/css/spanel.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="tickets" data-sp-active="tickets" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="tickets" data-sp-active="tickets" class="sp-admin" x-data="ticketViewPage()">
   <main class="sp-content">
     <div class="sp-content-header">
       <div class="sp-container"><h1 class="sp-content-heading">工单 <span x-show="id" x-cloak>#<span x-text="id"></span></span></h1></div>
     </div>
-    <div class="sp-content-inner" x-data="ticketViewPage()" x-init="init()">
+    <div class="sp-content-inner" x-init="init()">
       <template x-if="!invalid && loaded">
         <div>
           <!-- 用户信息卡 -->
@@ -25,10 +25,14 @@
               <div class="sp-col-3"><div class="sp-dl-row"><dt>用户名</dt><dd x-text="user.user_name"></dd></div></div>
               <div class="sp-col-3"><div class="sp-dl-row"><dt>邮箱</dt><dd x-text="user.email"></dd></div></div>
               <div class="sp-col-3"><div class="sp-dl-row"><dt>等级/群组</dt><dd x-text="user.class + ' / ' + user.node_group"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>余额</dt><dd x-text="user.money"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>余额</dt><dd :class="parseFloat(user.money) < 0 ? 'sp-text-danger' : ''" x-text="user.money + ' 元'"></dd></div></div>
               <div class="sp-col-3"><div class="sp-dl-row"><dt>状态</dt><dd x-text="user.enable === 1 ? '可用' : '禁用'"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>已用流量</dt><dd x-text="fmtGB(user.used_traffic)"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>等级有效期</dt><dd :class="user.class_expire && user.class_expire.indexOf('0000') === 0 ? 'sp-text-danger' : ''" x-text="user.class_expire || '—'"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>账号过期时间</dt><dd x-text="user.expire_in || '—'"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>流量 (已用/总量)</dt><dd><span x-text="fmtGB(user.used_traffic)"></span> / <span x-text="fmtGB(user.transfer_enable)"></span> <span class="sp-text-hint" x-text="user.transfer_enable ? '(' + Math.min(100, (user.used_traffic / user.transfer_enable * 100).toFixed(1)) + '%)' : ''"></span></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>最后使用</dt><dd x-text="user.last_ss_time || '从未使用'"></dd></div></div>
               <div class="sp-col-3"><div class="sp-dl-row"><dt>备注</dt><dd x-text="user.remark || '—'"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>操作</dt><dd><button class="sp-btn sp-btn-sm" @click="maskUser()" :disabled="submitting"><i class="mi">switch_account</i>切换为该用户</button></dd></div></div>
             </div>
           </div>
 
@@ -106,6 +110,19 @@
             })
             .catch(e => SPUI.msg(e.message));
         },
+        /* 切换为该用户 (PHP view.tpl changetouser; 后端 masquerade 会还原身份) */
+        maskUser() {
+          SPUI.confirm('确认切换为该用户 <b>' + (this.user.user_name || ('#' + this.user.id)) + '</b>?<br>将以该用户身份进入用户中心, 可通过「返回管理台」还原。', () => {
+            SPanelAPI.request('/api/v2/admin/user/' + this.user.id + '/masquerade', { method: 'POST' })
+              .then(res => {
+                localStorage.setItem('spanel_user', JSON.stringify({
+                  user_name: res.data.user_name, email: res.data.email, isAdmin: 0
+                }));
+                window.location.href = '/user/';
+              })
+              .catch(e => SPUI.msg(e.message));
+          }, { okText: '切换' });
+        },
         submit(status) {
           this.submitting = true;
           SPanelAPI.request('/api/v2/admin/ticket/' + this.id, {
@@ -126,7 +143,18 @@
                 }
               }, 600);
             })
-            .catch(e => SPUI.msg(e.message))
+            .catch(e => {
+              // PHP 语义: ret=0 但带 nextid (工单被清理/发起人注销) 也要继续推进队列
+              const nid = e && e.data && e.data.nextid;
+              if (nid) {
+                SPUI.toast((e.message || '工单已失效') + '，继续下一张', 'error');
+                setTimeout(() => {
+                  window.location.replace('/admin/ticket-view.html?id=' + nid);
+                }, 900);
+                return;
+              }
+              SPUI.msg(e.message);
+            })
             .finally(() => { this.submitting = false; });
         }
       };

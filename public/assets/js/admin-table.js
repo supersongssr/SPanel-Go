@@ -45,13 +45,16 @@
     var hasOps = typeof opts.ops === 'function';
     var stateKey = opts.stateKey || ('at:' + opts.api);
     var pageSizeOpts = opts.pageSizes || [10, 25, 50, 100, 0];
-
     /* ---- 状态 (页大小/列显隐持久化; 未存过的列回退 opts.columns[].hide 默认) ---- */
     var defaults = {};
     cols.forEach(function (c) { if (c.hide) defaults[c.key] = true; });
+    var defaultPS = pageSizeOpts.indexOf(25) >= 0 ? 25 : pageSizeOpts[0];
     var st = {
       page: 1,
-      pageSize: store(stateKey + ':ps', 25),
+      pageSize: (function () {
+        var v = store(stateKey + ':ps', defaultPS);
+        return pageSizeOpts.indexOf(v) >= 0 ? v : defaultPS;
+      })(),
       order: opts.defaultOrder || [firstSortable(), 'asc'],
       search: '',
       hidden: (function () {
@@ -66,8 +69,8 @@
         return defaults;
       })()
     };
-    if (pageSizeOpts.indexOf(st.pageSize) < 0) st.pageSize = 25;
     if (!Array.isArray(st.order) || !st.order[0]) st.order = [firstSortable(), 'asc'];
+    if (pageSizeOpts.indexOf(st.pageSize) < 0) st.pageSize = defaultPS;
 
     function firstSortable() {
       for (var i = 0; i < cols.length; i++) if (cols[i].sortable) return cols[i].key;
@@ -326,4 +329,5 @@
   }
 
   window.AdminTable = AdminTable;
+  window.esc = esc; // 全局 HTML 转义工具 (各列表页 render/ops 复用)
 })();

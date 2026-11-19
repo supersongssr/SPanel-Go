@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>已封禁IP - SPanel</title>
+  <title>节点被封IP - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
   <link rel="stylesheet" href="/assets/css/spanel.css">
@@ -12,7 +12,7 @@
 <body data-sp-area="admin" data-sp-page="blockips" class="sp-admin">
   <main class="sp-content">
     <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">已封禁IP</h1></div>
+      <div class="sp-container"><h1 class="sp-content-heading">节点被封IP</h1></div>
     </div>
     <div class="sp-content-inner">
       <!-- 页内解封表单 (PHP POST /admin/unblock) -->
@@ -68,7 +68,7 @@
         { key: 'ip',       title: 'IP', tdClass: 'sp-num' },
         { key: 'datetime', title: '时间', sortable: true, render: r => fmtTs(r.datetime) },
       ],
-      ops: r => '<button class="sp-btn sp-btn-sm sp-btn-danger" data-unblock="' + r.ip + '">解封</button>'
+      ops: r => '<button class="sp-btn sp-btn-sm sp-btn-danger" data-unblock="' + esc(r.ip) + '">解封</button>'
     });
     document.getElementById('blockTable').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-unblock]');

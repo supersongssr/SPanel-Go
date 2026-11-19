@@ -114,17 +114,17 @@
         { key: 'created_at',   title: '时间', sortable: true },
         { key: 'level',        title: '级别', sortable: true, render: r => levelTag(r.level) },
         { key: 'category',     title: '分类', sortable: true },
-        { key: 'action',       title: '动作' },
-        { key: 'message',      title: '摘要' },
+        { key: 'action',       title: '动作', sortable: false },
+        { key: 'message',      title: '摘要', sortable: false },
         { key: 'user_id',      title: '用户', sortable: true,
           render: r => r.user_id ? '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a>' +
             (r.user_name ? '<br><span class="sp-text-hint">' + esc(r.user_name) + '</span>' : '') : '—' },
-        { key: 'operator_id',  title: '操作者',
+        { key: 'operator_id',  title: '操作者', sortable: false,
           render: r => r.operator_id === 0 ? '系统' :
             (r.operator_id + (r.operator_name ? ' (' + esc(r.operator_name) + ')' : '')) +
-            '<br><span class="sp-text-hint">' + ({0:'系统',1:'用户',2:'管理员',3:'API'}[r.operator_type] || '') + '</span>' },
-        { key: 'ip',           title: 'IP' },
-        { key: 'detail',       title: '详情', render: r => fmtDetail(r.detail) },
+            '<br><span class="sp-text-hint">' + ({0:'系统',1:'本人',2:'管理员',3:'API/节点'}[r.operator_type] || '') + '</span>' },
+        { key: 'ip',           title: 'IP', sortable: false },
+        { key: 'detail',       title: '详情', sortable: false, render: r => fmtDetail(r.detail) },
       ]
     });
 

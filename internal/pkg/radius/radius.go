@@ -154,6 +154,33 @@ func Add(ctx context.Context, userID int32, email, passwd string) {
 		Update("value", passwd).Error
 }
 
+// ChangeUserName 对齐 PHP Radius::ChangeUserName: 改邮箱时同步改名 radcheck/radusergroup;
+// 不存在 (从未建号) 则按 Add 语义补建 (含封禁检查); 存在则改名 + 更新密码。
+func ChangeUserName(ctx context.Context, userID int32, originEmail, newEmail, passwd string) {
+	db := DB()
+	if db == nil {
+		return
+	}
+	name1 := GetUserName(originEmail)
+	name2 := GetUserName(newEmail)
+	if name1 == name2 {
+		return
+	}
+	var exists radcheck
+	err := db.WithContext(ctx).Where("username = ?", name1).First(&exists).Error
+	if err == nil {
+		_ = db.WithContext(ctx).Model(&radcheck{}).
+			Where("username = ?", name1).
+			Updates(map[string]interface{}{"username": name2, "value": passwd}).Error
+		_ = db.WithContext(ctx).Model(&radusergroup{}).
+			Where("username = ?", name1).
+			Update("username", name2).Error
+		return
+	}
+	// 原名不存在 → 补建 (与 Add 一致, 含封禁检查)
+	Add(ctx, userID, newEmail, passwd)
+}
+
 // Delete 对齐 PHP Radius::Delete: radcheck 存在才删 (radcheck + radusergroup)。
 func Delete(ctx context.Context, email string) {
 	db := DB()

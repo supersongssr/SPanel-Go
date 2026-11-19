@@ -26,9 +26,14 @@ func shopContentText(content string) string {
 	if err := json.Unmarshal([]byte(content), &m); err != nil {
 		return ""
 	}
+	// PHP content 各分项为字符串数字 (表单原样入库), 需同时兼容 float64 与 string
 	g := func(k string) float64 {
-		if v, ok := m[k].(float64); ok {
+		switch v := m[k].(type) {
+		case float64:
 			return v
+		case string:
+			f, _ := strconv.ParseFloat(strings.TrimSpace(v), 64)
+			return f
 		}
 		return 0
 	}
@@ -47,9 +52,13 @@ func shopContentText(content string) string {
 	}
 	if v := g("speedlimit"); v != 0 {
 		parts = append(parts, "设置用户限速为 "+trimF(v)+" Mbps")
+	} else if _, ok := m["speedlimit"]; ok {
+		parts = append(parts, "用户端口不限速") // PHP Shop::content(): speedlimit=0 语义
 	}
 	if v := g("connector"); v != 0 {
 		parts = append(parts, "设置用户连接数为 "+trimF(v))
+	} else if _, ok := m["connector"]; ok {
+		parts = append(parts, "用户IP不限制") // PHP Shop::content(): connector=0 语义
 	}
 	if v, ok := m["content_extra"].(string); ok && v != "" {
 		parts = append(parts, v)
@@ -102,13 +111,9 @@ func (h *Handler) ListShops(c *gin.Context) {
 	items := make([]item, 0, len(shops))
 	now := time.Now().Unix()
 	for _, s := range shops {
-		period := int64(30 * 24 * 3600)
+		period := int64(30 * 24 * 3600) // PHP sales_period 默认 '30' (固定 30 天窗口)
 		var cm map[string]interface{}
-		if err := json.Unmarshal([]byte(s.Content), &cm); err == nil {
-			if v, ok := cm["class_expire"].(float64); ok && v > 0 {
-				period = int64(v) * 24 * 3600
-			}
-		}
+		_ = json.Unmarshal([]byte(s.Content), &cm)
 		var sales int64
 		database.DB.Model(&model.Bought{}).
 			Where("shopid = ? AND datetime > ?", s.ID, now-period).
@@ -167,9 +172,12 @@ func (f *shopForm) buildContent() string {
 	}
 	m["speedlimit"] = trimF(f.Speedlimit)
 	m["connector"] = trimF(f.Connector)
-	if f.ContentExtra != "" {
-		m["content_extra"] = f.ContentExtra
+	extra := strings.TrimSpace(f.ContentExtra)
+	if extra == "" || extra == "-" {
+		// PHP create/edit: 空或 '-' 时填默认服务标签, 避免清空用户侧展示
+		extra = "check-全球节点分布;check-快速客服响应;check-全平台客户端"
 	}
+	m["content_extra"] = extra
 	b, _ := json.Marshal(m)
 	return string(b)
 }
@@ -256,7 +264,12 @@ func (h *Handler) UpdateShop(c *gin.Context) {
 	s.Price = f.Price
 	s.Content = f.buildContent()
 	s.AutoRenew = f.AutoRenew
+	// PHP update(): auto_reset_bandwidth 由 1→0 时, 该商品全部 bought 停止续费
+	if s.AutoResetBandwidth == 1 && f.AutoResetBandwidth == 0 {
+		database.DB.Model(&model.Bought{}).Where("shopid = ?", s.ID).Update("renew", 0)
+	}
 	s.AutoResetBandwidth = f.AutoResetBandwidth
+	s.Status = 1 // PHP update(): 保存即重新上架 (编辑页无上架开关, 唯一恢复上架途径)
 	if err := database.DB.Save(&s).Error; err != nil {
 		RespondErr(c, "修改失败: "+err.Error())
 		return
@@ -288,7 +301,8 @@ func (h *Handler) DeleteShop(c *gin.Context) {
 var boughtSortable = map[string]string{
 	"id": "bought.id", "datetime": "bought.datetime", "price": "bought.price",
 	"userid": "bought.userid", "user_name": "user.user_name", "renew": "bought.renew",
-	"shopid": "bought.shopid",
+	"shopid":  "bought.shopid",
+	"user_id": "user.id", // 页面列 key
 }
 
 // ListBought 购买记录 (PHP ajax_bought: JOIN user/shop)

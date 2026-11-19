@@ -26,7 +26,7 @@ func (h *Handler) ListCodes(c *gin.Context) {
 	q := ParseListQuery(c, codeSortable, "id", "desc")
 	base := func() *gorm.DB {
 		db := database.DB.Table("code").
-			Select("code.id, code.code, code.type, code.number, code.isused, code.userid, code.usedatetime, user.user_name").
+			Select("code.id, code.code, code.type, code.number, code.isused, code.userid, code.usedatetime, COALESCE(user.user_name, '') AS user_name").
 			Joins("LEFT JOIN user ON user.id = code.userid")
 		if q.Search != "" {
 			like := "%" + q.Search + "%"
@@ -93,13 +93,20 @@ func (h *Handler) CreateCodes(c *gin.Context) {
 	}
 	ts := strconv.FormatInt(time.Now().Unix(), 10)
 	tail := strconv.FormatInt(int64(req.Number*100), 10)
+	// PHP CodeController::add: 未使用码写哨兵时间 1989-06-04 (零值时间在 MySQL 严格模式下 INSERT 失败)
+	sentinel := time.Date(1989, 6, 4, 2, 30, 0, 0, time.Local)
 	for i := int32(0); i < req.Amount; i++ {
 		code := model.Code{
-			Code:   ts + genCodeChars(8) + tail,
-			Type:   -1,
-			Number: strconv.FormatFloat(req.Number, 'f', -1, 64),
+			Code:        ts + genCodeChars(8) + tail,
+			Type:        -1,
+			Number:      strconv.FormatFloat(req.Number, 'f', -1, 64),
+			IsUsed:      0,
+			UseDatetime: sentinel,
 		}
-		database.DB.Create(&code)
+		if err := database.DB.Create(&code).Error; err != nil {
+			RespondErr(c, "充值码添加失败: "+err.Error())
+			return
+		}
 	}
 	RespondOK(c, "充值码添加成功")
 }
@@ -247,6 +254,8 @@ func (h *Handler) DeleteCoupon(c *gin.Context) {
 var inviteSortable = map[string]string{
 	"id": "payback.id", "total": "payback.total", "userid": "payback.userid",
 	"ref_by": "payback.ref_by", "ref_get": "payback.ref_get", "datetime": "payback.datetime",
+	"event_user_id": "payback.userid", // 页面列 key (消费者)
+	"ref_user_id":   "payback.ref_by", // 页面列 key (返利获得者)
 }
 
 // ListInvites 返利流水 (PHP ajax_payback: payback JOIN user×2)

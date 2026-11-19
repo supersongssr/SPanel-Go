@@ -44,8 +44,10 @@
           render: r => r.isused === 1 ? '<span class="sp-tag sp-tag-green">已使用</span>' : '<span class="sp-tag sp-tag-grey">未使用</span>' },
         { key: 'userid', title: '用户ID', sortable: true,
           render: r => r.userid === 0 ? '未使用' : '<a href="/admin/user-edit.html?id=' + r.userid + '">' + r.userid + '</a>' },
-        { key: 'user_name', title: '用户名' },
-        { key: 'usedatetime', title: '使用时间', sortable: true },
+        { key: 'user_name', title: '用户名',
+          render: r => r.userid === 0 || !r.user_name ? '<span class="sp-text-hint">未使用</span>' : r.user_name },
+        { key: 'usedatetime', title: '使用时间', sortable: true,
+          render: r => r.isused === 1 ? r.usedatetime : '<span class="sp-text-hint">未使用</span>' },
       ]
     });
   </script>

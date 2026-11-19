@@ -36,6 +36,7 @@
     var SORT_NAMES = { 0:'SS', 1:'VPN/Radius基础', 2:'SSH', 5:'Anyconnect', 9:'Sr-单多', 10:'Ss-中转', 11:'V2', 12:'CDN', 13:'Vl', 14:'Tr', 15:'Hy2' };
     function onoff(v) { return v === 1 ? '<span class="sp-tag sp-tag-green">启用</span>' : '<span class="sp-tag sp-tag-grey">关闭</span>'; }
     function nsColor(v) {
+      if (v <= -900) return '<span class="sp-text-danger" title="IP异常哨兵"><b>' + v + '</b></span>';
       if (v <= -40) return '<span class="sp-text-danger" title="疑似故障, 建议介入"><b>' + v + '</b></span>';
       if (v < -9) return '<span style="color:#b8860b" title="很可能不能用"><b>' + v + '</b></span>';
       if (v >= 30) return '<span class="sp-text-success">' + v + '</span>';

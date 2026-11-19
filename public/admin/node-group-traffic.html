@@ -125,15 +125,32 @@
             const groups = Object.keys(seriesMap).sort();
             let dates = [];
             if (groups.length) dates = (seriesMap[groups[0]] || []).map(p => p.date);
+            // 每组供给基准 (旧版: 同色虚线 supply_daily, 贴线/穿线 = 流量不够直观视图)
+            const supplyMap = {};
+            (this.summary || []).forEach(s => { supplyMap[s.group] = s.supply_daily_gb; });
+            const palette = ['#e53935', '#fb8c00', '#43a047', '#1e88e5', '#8e24aa', '#00897b'];
+            const lineSeries = [];
+            groups.forEach((g, i) => {
+              const color = palette[i % palette.length];
+              lineSeries.push({
+                name: 'G' + g, type: 'line', smooth: true, showSymbol: false,
+                itemStyle: { color }, lineStyle: { color },
+                data: (seriesMap[g] || []).map(p => +(p.used_lastday / 1073741824).toFixed(2))
+              });
+              if (supplyMap[g] !== undefined && supplyMap[g] !== null) {
+                lineSeries.push({
+                  name: 'G' + g + ' 供给', type: 'line', smooth: false, showSymbol: false,
+                  itemStyle: { color }, lineStyle: { color, type: 'dashed', width: 1, opacity: 0.75 },
+                  data: (seriesMap[g] || []).map(() => supplyMap[g]), tooltip: { show: false }
+                });
+              }
+            });
             line.setOption({
               tooltip: { trigger: 'axis' },
-              legend: { data: groups.map(g => 'G' + g) },
+              legend: { data: lineSeries.map(s => s.name) },
               xAxis: { type: 'category', data: dates },
               yAxis: { type: 'value', name: 'GB/天' },
-              series: groups.map(g => ({
-                name: 'G' + g, type: 'line', smooth: true, showSymbol: false,
-                data: (seriesMap[g] || []).map(p => +(p.used_lastday / 1073741824).toFixed(2))
-              }))
+              series: lineSeries
             });
             window.addEventListener('resize', () => { bar.resize(); line.resize(); });
           } catch (e) { console.warn('chart render failed', e); }

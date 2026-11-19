@@ -15,8 +15,9 @@
       <div class="sp-container"><h1 class="sp-content-heading">用户列表</h1></div>
     </div>
     <div class="sp-content-inner">
-      <div class="sp-card sp-mb-6">
-        系统中所有用户的列表。默认显示常用列, 可通过右上角「列显示」调整 (设置自动记忆)。
+      <div class="sp-mb-6" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center">
+        <div>系统中所有用户的列表。默认显示常用列, 可通过右上角「列显示」调整 (设置自动记忆)。</div>
+        <a class="sp-btn sp-btn-brand" href="/admin/user-create.html"><i class="mi">person_add</i>添加用户</a>
       </div>
       <div id="usersTable"></div>
     </div>
@@ -29,7 +30,7 @@
     function esc(s) {
       if (s === null || s === undefined) return '';
       return String(s).replace(/[&<>"']/g, function (c) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;" }[c];
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
       });
     }
     /* 联络方式映射 (PHP Admin\UserController::ajax 口径: 1微信 2QQ 3Google+ 默认 Telegram) */
@@ -43,7 +44,7 @@
       columns: [
         { key: 'id',                  title: 'ID', sortable: true },
         { key: 'user_name',           title: '用户名', sortable: true },
-        { key: 'remark',              title: '备注', sortable: true, hide: true },
+        { key: 'remark',              title: '备注', sortable: true },
         { key: 'email',               title: '邮箱', sortable: true },
         { key: 'money',               title: '金钱', sortable: true, hide: true },
         { key: 'im_type',             title: '联络方式类型', sortable: true, hide: true,

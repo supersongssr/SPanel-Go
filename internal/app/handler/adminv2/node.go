@@ -193,6 +193,7 @@ func (h *Handler) GetNode(c *gin.Context) {
 		"node_bandwidth_limit": float64(n.TrafficLimit) / gb,
 		"traffic_reset_day":    n.TrafficResetDay,
 		"node_sort":            n.NodeSort,
+		"api_token":            n.APIToken, // 旧 edit.tpl 只读展示 (节点后端 Bearer 凭据)
 		"traffic_used_gb":      float64(n.TrafficUsed) / gb,
 		"traffic_left_gb":      float64(n.TrafficLeft) / gb,
 		"server_uptime_days":   float64(n.ServerUptime) / 86400,
@@ -211,6 +212,11 @@ func (h *Handler) CreateNode(c *gin.Context) {
 	}
 	n := model.Node{}
 	f.apply(&n)
+	// ENUM('rx','tx','rxtx') NOT NULL: 零值 "" 在严格模式 MySQL 下 INSERT 失败, 置 DB 默认语义
+	n.NodeRxTx = "tx"
+	if n.NodeOnline == 0 {
+		n.NodeOnline = 1
+	}
 	service.MonthlyResetCycle(&n) // 流量字段初始化 (归零 used + 重算 left)
 	if err := database.DB.Create(&n).Error; err != nil {
 		RespondErr(c, "节点添加失败: "+err.Error())
@@ -336,6 +342,7 @@ func (h *Handler) NodeCtl(c *gin.Context) {
 		Name          string  `json:"name"`
 		Type          int32   `json:"type"`
 		Sort          int32   `json:"sort"`
+		NodeSort      int32   `json:"node_sort"`
 		TrafficRate   float32 `json:"traffic_rate"`
 		NodeCost      int32   `json:"node_cost"`
 		NodeOnline    int32   `json:"node_online"`
@@ -354,7 +361,7 @@ func (h *Handler) NodeCtl(c *gin.Context) {
 	items := make([]item, 0, len(nodes))
 	for _, n := range nodes {
 		items = append(items, item{
-			ID: n.ID, Name: n.Name, Type: n.Type, Sort: n.Sort, TrafficRate: n.TrafficRate,
+			ID: n.ID, Name: n.Name, Type: n.Type, Sort: n.Sort, NodeSort: n.NodeSort, TrafficRate: n.TrafficRate,
 			NodeCost: n.NodeCost, NodeOnline: n.NodeOnline, NodeOnCost: n.NodeOnCost,
 			NodeClass: n.NodeClass, NodeBandwidth: n.NodeBandwidth, CustomRSS: n.CustomRSS,
 			NodeHeartbeat: n.NodeHeartbeat, HeartbeatOk: now-n.NodeHeartbeat < 300,

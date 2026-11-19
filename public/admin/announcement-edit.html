@@ -9,12 +9,12 @@
   <link rel="stylesheet" href="/assets/css/spanel.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="announcements" data-sp-active="announcements" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="announcements" data-sp-active="announcements" class="sp-admin" x-data="annFormPage()">
   <main class="sp-content">
     <div class="sp-content-header">
       <div class="sp-container"><h1 class="sp-content-heading" x-text="isEdit ? '公告编辑 #' + (f.id||'') : '发布公告'"></h1></div>
     </div>
-    <div class="sp-content-inner" x-data="annFormPage()" x-init="init()">
+    <div class="sp-content-inner" x-init="init()
       <div class="sp-card sp-mb-6">
         <div class="sp-card-title"><i class="mi">announcement</i>内容</div>
         <div class="sp-form-row">

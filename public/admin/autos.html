@@ -76,7 +76,7 @@
         { key: 'datetime', title: '时间', sortable: true, render: r => fmtTs(r.datetime) },
         { key: 'type',     title: '类型', sortable: true,
           render: r => r.type === 1 ? '<span class="sp-tag sp-tag-blue">命令下发</span>' : '<span class="sp-tag sp-tag-green">命令被执行</span>' },
-        { key: 'value',    title: '内容', tdClass: 'sp-wrap' },
+        { key: 'value',    title: '内容', sortable: true, tdClass: 'sp-wrap' },
         { key: 'sign',     title: '签名' },
       ],
       ops: r => '<button class="sp-btn sp-btn-sm sp-btn-danger" data-del="' + r.id + '">删除</button>'

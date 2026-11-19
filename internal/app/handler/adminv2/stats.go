@@ -148,12 +148,15 @@ func (h *Handler) RechargeStats(c *gin.Context) {
 				stats[int(r.G)] = r.Cnt
 			}
 		}
-		pct := gin.H{}
+		// 合计口径对齐 PHP array_sum($stats): 覆盖数据中出现的全部分组 (含 >5 的自定义组)
 		var sum int64
+		for _, cnt := range stats {
+			sum += cnt
+		}
+		pct := gin.H{}
 		for _, g := range groups {
 			total := groupTotals[g]
 			cnt := stats[g]
-			sum += cnt
 			if total > 0 {
 				pct[strconv.Itoa(g)] = round1(float64(cnt) / float64(total) * 100)
 			} else {

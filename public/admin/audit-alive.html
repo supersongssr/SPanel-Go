@@ -49,7 +49,7 @@
         { key: 'ip',        title: 'IP', tdClass: 'sp-num' },
         { key: 'datetime',  title: '时间', sortable: true, render: r => fmtTs(r.datetime) },
         { key: 'is_node',   title: '是否为中转连接',
-          render: r => r.is_node ? '<span class="sp-tag sp-tag-orange">中转(节点)</span>' : '直连' },
+          render: r => r.is_node ? '<span class="sp-tag sp-tag-orange">是</span>' : '否' },
       ]
     });
   </script>

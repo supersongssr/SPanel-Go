@@ -55,7 +55,7 @@
         { key: 'rule_text',  title: '规则描述' },
         { key: 'rule_regex', title: '规则正则', tdClass: 'sp-num' },
         { key: 'rule_type',  title: '规则类型',
-          render: r => r.rule_type === 1 ? '明文匹配' : '十六进制匹配' },
+          render: r => r.rule_type === 1 ? '数据包明文匹配' : '数据包十六进制匹配' },
         { key: 'datetime',   title: '时间', sortable: true, render: r => fmtTs(r.datetime) },
       ]
     });

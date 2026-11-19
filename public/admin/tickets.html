@@ -54,7 +54,7 @@
         { key: 'userid',   title: '用户ID', sortable: true,
           render: r => '<a href="/admin/user-edit.html?id=' + r.userid + '">' + r.userid + '</a>' },
         { key: 'datetime', title: '时间', sortable: true, render: r => esc(fmtTs(r.datetime)) },
-        { key: 'sort',     title: '等级', sortable: true,
+        { key: 'sort',     title: '优先分', sortable: true,
           render: r => r.sort >= 5 ? '<span class="sp-tag sp-tag-red">' + r.sort + '</span>' : esc(r.sort) },
         { key: 'user_name', title: '用户名', sortable: true },
       ],

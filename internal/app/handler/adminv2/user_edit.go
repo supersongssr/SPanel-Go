@@ -8,6 +8,7 @@ import (
 	"spanel-go/internal/config"
 	"spanel-go/internal/model"
 	"spanel-go/internal/pkg/database"
+	"spanel-go/internal/pkg/radius"
 	"spanel-go/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -151,12 +152,19 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 
 	oldEnable := strconv.Itoa(int(user.Enable))
 	gb := int64(1024 * 1024 * 1024)
+	originEmail := user.Email
 
 	user.Email = req.Email
 	if req.Pass != "" {
 		user.Pass = service.DefaultAuthService.SHA256Hash(req.Pass, config.GlobalConfig.App.Salt)
 		// 密码修改 → 吊销旧登录态 (JWT tv 比对, 中间件即时失效)
 		user.TokenVersion++
+		// PHP update: 密码变更同时清订阅链接 (用户中心重新生成, 防止密码泄露后旧订阅仍有效)
+		database.DB.Where("userid = ?", user.ID).Delete(&model.Link{})
+	}
+	// PHP update: 邮箱变更同步 Radius 改名/重建 (旧邮箱凭据不再可用)
+	if originEmail != "" && originEmail != req.Email {
+		radius.ChangeUserName(c.Request.Context(), user.ID, originEmail, req.Email, user.Passwd)
 	}
 	user.AutoResetDay = req.AutoResetDay
 	user.AutoResetBandwidth = req.AutoResetBandwidth
@@ -187,14 +195,28 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 	user.Remark = req.Remark
 	user.Money = req.Money
 	user.Class = req.Class
-	if t, err := time.ParseInLocation("2006-01-02 15:04:05", req.ClassExpire, time.Local); err == nil {
-		user.ClassExpire = t
-	} else if t, err := time.ParseInLocation("2006-01-02", req.ClassExpire, time.Local); err == nil {
+	// 日期解析: 空 = 保持原值 (零日期用户编辑页本就回传空); 非空且非法 → 明确报错,
+	// 避免旧版静默吞掉造成「改了却没生效」的陷阱
+	parseDT := func(s string, field string) (time.Time, bool) {
+		if s == "" {
+			return time.Time{}, true
+		}
+		for _, layout := range []string{"2006-01-02 15:04:05", "2006-01-02"} {
+			if t, err := time.ParseInLocation(layout, s, time.Local); err == nil {
+				return t, true
+			}
+		}
+		RespondErr(c, field+" 日期格式无效: "+s+" (应为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS)")
+		return time.Time{}, false
+	}
+	if t, ok := parseDT(req.ClassExpire, "等级有效期"); !ok {
+		return
+	} else if req.ClassExpire != "" {
 		user.ClassExpire = t
 	}
-	if t, err := time.ParseInLocation("2006-01-02 15:04:05", req.ExpireIn, time.Local); err == nil {
-		user.ExpireIn = t
-	} else if t, err := time.ParseInLocation("2006-01-02", req.ExpireIn, time.Local); err == nil {
+	if t, ok := parseDT(req.ExpireIn, "账号过期时间"); !ok {
+		return
+	} else if req.ExpireIn != "" {
 		user.ExpireIn = t
 	}
 	user.ForbiddenIP = linesToCSV(req.ForbiddenIP)
@@ -249,8 +271,11 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 	}
 
 	// 级联删除 (对齐 jobs killUser / PHP kill_user: 保留 Ip/DetectLog 等审计表)
+	ctx := c.Request.Context()
 	email := user.Email
 	uid := int64(user.ID)
+	radius.Delete(ctx, email)                                                        // PHP: Radius::Delete
+	_ = database.DB.Exec("DELETE FROM user_action_log WHERE user_id = ?", uid).Error // PHP kill_user 同步删除
 	_ = database.DB.Exec("DELETE FROM radius_ban WHERE userid = ?", uid).Error
 	_ = database.DB.Exec("DELETE FROM disconnect_ip WHERE userid = ?", uid).Error
 	_ = database.DB.Exec("DELETE FROM bought WHERE userid = ?", uid).Error

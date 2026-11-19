@@ -69,10 +69,18 @@
         if (response.ok && data.status === 'success') {
           return data;
         } else {
-          throw new Error(data.message || '网络请求响应异常，请稍后再试。');
+          // 附带原始信封 (如 ret=0 + nextid 的工单队列推进场景需要读取附加字段)
+          const err = new Error(data.message || '网络请求响应异常，请稍后再试。');
+          err.data = data;
+          throw err;
         }
       } catch (err) {
-        console.error('[API Connection Error]:', err.message);
+        // 保持 err.data (上面手动构造的错误不应被覆盖)
+        if (!(err instanceof Error)) {
+          console.error('[API Connection Error]:', err && err.message);
+        } else {
+          console.error('[API Connection Error]:', err.message);
+        }
         throw err;
       }
     },

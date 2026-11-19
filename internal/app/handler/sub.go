@@ -48,6 +48,8 @@ func (h *SubHandler) GetSubscription(c *gin.Context) {
 
 	// 3. 校验用户是否可用
 	if user.Enable != 1 {
+		// 订阅请求抓取先于禁用判定 (PHP: 禁用账号的请求也记录, 便于排查"订阅为什么不通")
+		captureRssRequest(c, &user, token)
 		c.String(http.StatusForbidden, "account has been suspended")
 		return
 	}
@@ -91,10 +93,32 @@ func captureRssRequest(c *gin.Context, user *model.User, token string) {
 		headers[k] = c.Request.Header.Get(k)
 	}
 	headersJSON, _ := json.Marshal(headers)
+
+	// 客户端归属 (PHP resolveApp: ?app= → App 头 → X-App 头 → unknown; flag 为旧客户端兼容)
+	app := q.Get("app")
+	if app == "" {
+		app = c.GetHeader("App")
+	}
+	if app == "" {
+		app = c.GetHeader("X-App")
+	}
+	if app == "" {
+		app = q.Get("flag")
+	}
+	if app == "" {
+		app = "unknown"
+	}
+
+	// uri 带 query (PHP buildRow: path?query, 与旧列表展示一致)
+	uri := c.Request.URL.Path
+	if c.Request.URL.RawQuery != "" {
+		uri += "?" + c.Request.URL.RawQuery
+	}
+
 	row := model.RssRequestLog{
 		UserID: int64(user.ID), Email: user.Email, Token: token,
-		App: q.Get("flag"), IP: c.ClientIP(),
-		Method: c.Request.Method, URI: c.Request.URL.Path,
+		App: app, IP: c.ClientIP(),
+		Method: c.Request.Method, URI: uri,
 		Query: string(queryJSON), UserAgent: c.Request.UserAgent(),
 		Headers: string(headersJSON), CreatedAt: time.Now(),
 	}

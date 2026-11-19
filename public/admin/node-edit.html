@@ -109,11 +109,28 @@
             <div class="sp-col-3"><div class="sp-form-row">
               <label class="sp-form-label">单端口 (0/1)</label>
               <select class="sp-select" x-model.number="f.mu_only">
-                <option value="0">关闭</option><option value="1">启用</option>
+                <option value="-1">只启用普通端口</option>
+                <option value="0">普通端口与单端口并存</option>
+                <option value="1">只启用单端口多用户</option>
               </select>
             </div></div>
           </div>
         </div>
+
+        <template x-if="isEdit">
+          <div class="sp-card sp-mb-6">
+            <div class="sp-card-title"><i class="mi">analytics</i>遥测 (旧版编辑页数据条)</div>
+            <div class="sp-grid">
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>克隆属性</dt><dd>
+                <template x-if="f.is_clone > 0"><a :href="'/admin/node-edit.html?id=' + f.is_clone" title="跳转到主节点" style="text-decoration:underline">克隆 (主节点 #' + f.is_clone + ', 点击跳转)</a></template>
+                <template x-if="!(f.is_clone > 0)"><span>否 (真实节点)</span></template>
+              </dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>已用/剩余流量</dt><dd x-text="(f.traffic_used_gb||0).toFixed(2) + ' / ' + (f.traffic_left_gb||0).toFixed(2) + ' GB'"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>API Token</dt><dd><input class="sp-input sp-num" type="text" :value="f.api_token || '—'" readonly title="只读, 点击全选后可复制" @click="$el.select()" style="max-width:220px"></dd></div></div>
+              <div class="sp-col-3"><div class="sp-dl-row"><dt>运行天数</dt><dd x-text="(f.server_uptime_days||0).toFixed(1) + ' 天'"></dd></div></div>
+            </div>
+          </div>
+        </template>
 
         <template x-if="isEdit">
           <div class="sp-card sp-mb-6">
@@ -155,9 +172,10 @@
       const id = new URLSearchParams(location.search).get('id');
       return {
         isEdit: !!id, loaded: false, saving: false,
-        f: { name:'', server:'', node_ip:'', method:'', sort:0, status:'', type:1, info:'',
+        /* 新建默认值对齐旧版 create.tpl: method/status/info/custom_method/mu_only */
+        f: { name:'', server:'', node_ip:'', method:'aes-256-cfb', sort:0, status:'可用', type:1, info:'无描述',
              rate:1, cost:0, group:0, class:0, node_bandwidth:'0', node_bandwidth_limit:0,
-             traffic_reset_day:0, custom_method:0, custom_rss:1, mu_only:0,
+             traffic_reset_day:0, custom_method:1, custom_rss:1, mu_only:-1,
              node_sort:0, traffic_used_calibrate:'', server_uptime_days:'' },
         init() {
           if (!this.isEdit) { this.loaded = true; return; }

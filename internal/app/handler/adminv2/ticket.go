@@ -30,7 +30,7 @@ func nextOpenTicketId(excludeID int64) int64 {
 	var nextID int64
 	database.DB.Model(&model.Ticket{}).
 		Where("rootid = 0 AND id != ? AND status != 0 AND userid IN (SELECT id FROM user)", excludeID).
-		Order("sort DESC, id DESC").
+		Order("sort DESC, datetime ASC, id ASC"). // PHP: 同优先级 FIFO (先提交先处理)
 		Limit(1).
 		Pluck("id", &nextID)
 	return nextID
@@ -67,7 +67,11 @@ func (h *Handler) ListTickets(c *gin.Context) {
 		UserName string `json:"user_name" gorm:"column:user_name"`
 	}
 	var rows []row
-	dbq := query().Order(q.OrderBy + " " + q.OrderDir)
+	order := q.OrderBy + " " + q.OrderDir
+	if q.OrderBy == "ticket.sort" { // 默认序补齐 PHP DataTables 的次级键 (datetime asc, id asc)
+		order += ", ticket.datetime ASC, ticket.id ASC"
+	}
+	dbq := query().Order(order)
 	if q.Limit >= 0 {
 		dbq = dbq.Offset(q.Offset).Limit(q.Limit)
 	}
@@ -140,6 +144,9 @@ func (h *Handler) GetTicket(c *gin.Context) {
 			"class": ticketUser.Class, "node_group": ticketUser.NodeGroup,
 			"money": ticketUser.Money, "enable": ticketUser.Enable, "remark": ticketUser.Remark,
 			"used_traffic": ticketUser.U + ticketUser.D, "transfer_enable": ticketUser.TransferEnable,
+			"expire_in":    fmtDT(ticketUser.ExpireIn),    // 账号过期
+			"class_expire": fmtDT(ticketUser.ClassExpire), // 等级有效期
+			"last_ss_time": fmtTime(ticketUser.T),         // 最后使用 (t=0 → 从未使用)
 		},
 	})
 }

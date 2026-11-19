@@ -40,10 +40,6 @@
       stateKey: 'adm:audit-login',
       search: '搜索 IP/用户',
       defaultOrder: ['id', 'desc'],
-      params: function () {
-        const t = document.getElementById('f-type') ? document.getElementById('f-type').value : '';
-        return t !== '' ? { type: t } : {};
-      },
       columns: [
         { key: 'id',       title: 'ID', sortable: true },
         { key: 'userid',   title: '用户', sortable: true,

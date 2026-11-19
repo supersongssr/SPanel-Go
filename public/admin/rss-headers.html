@@ -16,7 +16,7 @@
     </div>
     <div class="sp-content-inner">
       <!-- 过滤 + 轮询 + 清空 (PHP rss_headers.tpl: ?user_id=&q= + 5s 自动刷新 + clear) -->
-      <div class="sp-card sp-mb-6" x-data="{ polling: true, timer: null }"
+      <div class="sp-card sp-mb-6" x-data="{ polling: false, timer: null }"
            x-init="timer = setInterval(() => { if (polling && window.__rssTbl) window.__rssTbl.reload(); }, 5000)">
         <div class="sp-grid" style="align-items:flex-end">
           <div class="sp-col-3"><div class="sp-form-row">
@@ -67,10 +67,10 @@
           render: r => (r.user_id
             ? '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a><br><span class="sp-text-hint">' + (r.email || '') + '</span>'
             : '匿名') },
-        { key: 'app',        title: '客户端' },
-        { key: 'ip',         title: 'IP', tdClass: 'sp-num' },
-        { key: 'uri',        title: '请求链接' },
-        { key: 'user_agent', title: 'UA', tdClass: 'sp-wrap' },
+        { key: 'app',        title: '客户端', sortable: false, render: r => r.app || '<span class="sp-text-hint">unknown</span>' },
+        { key: 'ip',         title: 'IP', sortable: false, tdClass: 'sp-num' },
+        { key: 'uri',        title: '请求链接', sortable: false },
+        { key: 'user_agent', title: 'UA', sortable: false, tdClass: 'sp-wrap' },
       ],
       ops: r => '<a class="sp-btn sp-btn-sm" href="/admin/rss-header-view.html?id=' + r.id + '">详情</a>'
     });

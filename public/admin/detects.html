@@ -42,7 +42,7 @@
       ],
       ops: r =>
         '<a class="sp-btn sp-btn-sm" href="/admin/detect-edit.html?id=' + r.id + '">编辑</a>' +
-        '<button class="sp-btn sp-btn-sm sp-btn-danger" data-del="' + r.id + '" data-name="' + r.name.replace(/"/g, '&quot;') + '">删除</button>'
+        '<button class="sp-btn sp-btn-sm sp-btn-danger" data-del="' + r.id + '" data-name="' + esc(r.name) + '">删除</button>'
     });
     document.getElementById('detectTable').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-del]');

@@ -39,19 +39,21 @@
         <div class="sp-card-title"><i class="mi">route</i>链路</div>
         <div class="sp-table-wrap">
           <table class="sp-table">
-            <thead><tr><th>链路</th><th>端口</th><th>状态</th></tr></thead>
+            <thead><tr><th>链路</th><th>端口</th><th>始发节点</th><th>终点节点</th><th>状态</th></tr></thead>
             <tbody>
               <template x-for="(p, i) in paths" :key="i">
                 <tr>
-                  <td class="sp-wrap" x-html="p.path"></td>
+                  <td class="sp-wrap" x-text="p.path"></td>
                   <td class="sp-num" x-text="p.port"></td>
+                  <td><a x-show="p.begin_node_id" :href="'/admin/node-edit.html?id=' + p.begin_node_id" x-text="'节点 #' + p.begin_node_id"></a><span x-show="!p.begin_node_id">—</span></td>
+                  <td><a x-show="p.end_node_id" :href="'/admin/node-edit.html?id=' + p.end_node_id" x-text="'节点 #' + p.end_node_id"></a><span x-show="!p.end_node_id">—</span></td>
                   <td>
                     <span x-show="p.status === '通畅'" class="sp-tag sp-tag-green">通畅</span>
                     <span x-show="p.status === '阻断'" class="sp-tag sp-tag-red">阻断</span>
                   </td>
                 </tr>
               </template>
-              <tr x-show="searched && !paths.length"><td colspan="3"><div class="sp-empty"><i class="mi">alt_route_off</i>该用户无可命中中转规则</div></td></tr>
+              <tr x-show="searched && !paths.length"><td colspan="5"><div class="sp-empty"><i class="mi">alt_route_off</i>该用户无可命中中转规则</div></td></tr>
             </tbody>
           </table>
         </div>
@@ -64,7 +66,7 @@
   <script>
     function pathSearchPage() {
       return {
-        uid: new URLSearchParams(location.search).get('uid') || '', loading: false, searched: false,
+        uid: (function () { const q = new URLSearchParams(location.search); return q.get('uid') || q.get('id') || ''; })(), loading: false, searched: false,
         user: null, paths: [],
         search() {
           if (!this.uid) { SPUI.toast('请输入用户 ID'); return; }

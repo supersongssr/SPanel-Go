@@ -88,6 +88,7 @@
           return 'sp-btn-flat';
         },
         nsColor(v) {
+          if (v <= -900) return '<span class="sp-text-danger" title="IP异常哨兵"><b>' + v + '</b></span>';
           if (v <= -40) return '<span class="sp-text-danger" title="疑似故障, 建议介入"><b>' + v + '</b></span>';
           if (v < -9) return '<span style="color:#b8860b" title="很可能不能用"><b>' + v + '</b></span>';
           if (v >= 30) return '<span class="sp-text-success">' + v + '</span>';

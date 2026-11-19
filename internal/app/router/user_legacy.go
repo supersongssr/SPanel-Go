@@ -9,7 +9,9 @@ package router
 //	  ③ /user 6 条副作用 GET → 直接服务 bridge.html (D5)
 //	  ④ /user 通用兜底 /user/<name> → /user/<name>.html (文件存在时)
 //	  ⑤ API 前缀 → JSON 404; 其余 → 404 页面
-//	/assets 与 /admin 无 legacy 需求, 保留 r.Static 高效挂载。
+//	/admin 同样走 NoRoute 托管 (gin 通配符无法与旧版无后缀路径 /admin/user 等共存),
+//	并叠加 adminLegacyMap: 旧版无后缀路径/书签 → 新版 .html 页 (302 灰度)。
+//	/assets 无 legacy 需求, 保留 r.Static 高效挂载。
 //
 //	灰度口径: legacyRedirectPermanent=false → 302 不缓存 (deploy 可回滚); 稳定后切 301。
 
@@ -52,8 +54,51 @@ func RegisterUserStatic(r *gin.Engine) {
 }
 
 // RegisterAdminStatic 挂载管理端前端静态页面 (public/admin)
+// 不用 r.StaticFS: 旧版管理台全部为无后缀路径 (/admin/user 等), gin 通配符与
+// 精确路由互斥 → 统一走 NoRoute 托管 + adminLegacyMap 重定向 (入口在 registerCommonPages)。
 func RegisterAdminStatic(r *gin.Engine) {
-	mountStatic(r, "admin")
+	// 管理台首页与旧路径重定向由 registerCommonPages 统一注册 (与 /auth /user 同层)
+	// 此处仅保留钩子, 便于后续单独追加 admin 专属静态路由。
+	_ = r
+}
+
+// adminLegacyMap /admin 旧版无后缀路径精确重定向表 (query 自动透传)
+var adminLegacyMap = map[string]string{
+	"/admin/user":                "/admin/users.html",
+	"/admin/userLog":             "/admin/user-log.html",
+	"/admin/node":                "/admin/nodes.html",
+	"/admin/node/create":         "/admin/node-edit.html", // 新版创建/编辑同页 (无 id)
+	"/admin/nodectl":             "/admin/node-ctl.html",
+	"/admin/nodeGroupTraffic":    "/admin/node-group-traffic.html",
+	"/admin/nodeDecision":        "/admin/node-decision.html",
+	"/admin/trafficlog":          "/admin/traffic-log.html",
+	"/admin/rss_headers":         "/admin/rss-headers.html",
+	"/admin/ticket":              "/admin/tickets.html",
+	"/admin/relay":               "/admin/relays.html",
+	"/admin/relay/create":        "/admin/relay-create.html",
+	"/admin/shop":                "/admin/shops.html",
+	"/admin/shop/create":         "/admin/shop-create.html",
+	"/admin/bought":              "/admin/boughts.html",
+	"/admin/announcement":        "/admin/announcements.html",
+	"/admin/announcement/create": "/admin/announcement-create.html",
+	"/admin/detect":              "/admin/detects.html",
+	"/admin/detect/create":       "/admin/detect-edit.html", // 新版创建/编辑同页 (无 id)
+	"/admin/detect/log":          "/admin/detect-log.html",
+	"/admin/auto":                "/admin/autos.html",
+	"/admin/auto/create":         "/admin/auto-create.html",
+	"/admin/block":               "/admin/blockips.html",
+	"/admin/unblock":             "/admin/unblockips.html",
+	"/admin/login":               "/admin/audit-login.html",
+	"/admin/alive":               "/admin/audit-alive.html",
+	"/admin/code":                "/admin/codes.html",
+	"/admin/code/create":         "/admin/code-create.html",
+	"/admin/donate/create":       "/admin/code-donate.html",
+	"/admin/coupon":              "/admin/coupons.html",
+	"/admin/profile":             "/admin/profile.html",
+	"/admin/invite":              "/admin/invites.html",
+	"/admin/rechargeStats":       "/admin/recharge-stats.html",
+	"/admin/sys":                 "/admin/sys.html",
+	"/admin/audits":              "/admin/audit-login.html", // 早期原型页已被三分页取代
 }
 
 // mountStatic 将 public/<name> 目录挂载至 /<name>/* 路径 (仅用于无 legacy 需求的目录)
@@ -78,6 +123,12 @@ func registerCommonPages(r *gin.Engine) {
 	staticPage("/404.html", "404.html")
 	// 用户中心首页 (方案 B: dashboard.html 重命名为 index.html, /user/ 直出免跳转)
 	staticPage("/user/", "user/index.html")
+
+	// 管理台首页: /admin → /admin/ (与旧 gin StaticFS 行为一致)
+	r.GET("/admin", func(c *gin.Context) {
+		legacyRedirectTo(c, "/admin/")
+	})
+	staticPage("/admin/", "admin/index.html")
 
 	r.NoRoute(func(c *gin.Context) {
 		p := c.Request.URL.Path
@@ -104,6 +155,51 @@ func registerCommonPages(r *gin.Engine) {
 			token := strings.TrimPrefix(p, "/auth/password/token/")
 			if token != "" && !strings.Contains(token, "/") {
 				legacyRedirectTo(c, "/auth/token.html?token="+token)
+				return
+			}
+		}
+
+		// ②' /admin 旧版无后缀路径 (精确表 + 带参形态, 旧书签/外链兼容)
+		if strings.HasPrefix(p, "/admin/") {
+			if to, ok := adminLegacyMap[p]; ok {
+				legacyRedirectTo(c, to)
+				return
+			}
+			// 旧形态 /admin/<res>/<id>/(edit|view) 等 → 新版 ?id= 查询串
+			if seg := matchSegments(p, "/admin/user/", "/edit"); len(seg) == 1 && seg[0] != "" {
+				legacyRedirectTo(c, "/admin/user-edit.html?id="+seg[0])
+				return
+			}
+			if seg := matchSegments(p, "/admin/node/", "/edit"); len(seg) == 1 && seg[0] != "" {
+				legacyRedirectTo(c, "/admin/node-edit.html?id="+seg[0])
+				return
+			}
+			if seg := matchSegments(p, "/admin/ticket/", "/view"); len(seg) == 1 && seg[0] != "" {
+				legacyRedirectTo(c, "/admin/ticket-view.html?id="+seg[0])
+				return
+			}
+			if seg := matchSegments(p, "/admin/relay/", "/edit"); len(seg) == 1 && seg[0] != "" {
+				legacyRedirectTo(c, "/admin/relay-edit.html?id="+seg[0])
+				return
+			}
+			if seg := matchSegments(p, "/admin/relay/path_search/", ""); len(seg) == 1 && seg[0] != "" {
+				legacyRedirectTo(c, "/admin/relay-search.html?id="+seg[0])
+				return
+			}
+			if seg := matchSegments(p, "/admin/shop/", "/edit"); len(seg) == 1 && seg[0] != "" {
+				legacyRedirectTo(c, "/admin/shop-edit.html?id="+seg[0])
+				return
+			}
+			if seg := matchSegments(p, "/admin/announcement/", "/edit"); len(seg) == 1 && seg[0] != "" {
+				legacyRedirectTo(c, "/admin/announcement-edit.html?id="+seg[0])
+				return
+			}
+			if seg := matchSegments(p, "/admin/detect/", "/edit"); len(seg) == 1 && seg[0] != "" {
+				legacyRedirectTo(c, "/admin/detect-edit.html?id="+seg[0])
+				return
+			}
+			if seg := matchSegments(p, "/admin/rss_headers/view/", ""); len(seg) == 1 && seg[0] != "" {
+				legacyRedirectTo(c, "/admin/rss-header-view.html?id="+seg[0])
 				return
 			}
 		}
@@ -164,8 +260,9 @@ func tryServeStatic(c *gin.Context, p string) bool {
 	if idx := strings.Index(rel, "/"); idx >= 0 {
 		first = rel[:idx]
 	}
-	// 白名单目录: user / auth / assets (admin 由 r.Static 挂载, 不会进 NoRoute)
-	if first != "user" && first != "auth" && first != "assets" && first != "images" && first != "tutorial" && first != "docs" && first != "download" && first != "jscdn" && first != "theme" && first != "favicon.ico" && first != "robots.txt" && first != "china.html" && first != "paolu.html" {
+	// 白名单目录: user / auth / admin / assets
+	// (admin 走 NoRoute 托管: 无后缀旧路径与静态文件共存, 见 adminLegacyMap)
+	if first != "user" && first != "auth" && first != "admin" && first != "assets" && first != "images" && first != "tutorial" && first != "docs" && first != "download" && first != "jscdn" && first != "theme" && first != "favicon.ico" && first != "robots.txt" && first != "china.html" && first != "paolu.html" {
 		return false
 	}
 

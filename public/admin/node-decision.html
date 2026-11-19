@@ -14,7 +14,7 @@
     .nd-sev-red td { background:#fdecea; }
     .nd-sev-yellow td { background:#fff8e1; }
     .nd-sev-green td { background:#e8f5e9; }
-    .nd-matrix th, .nd-matrix td { text-align:center; border:1px solid var(--sp-line) !important; }
+    .nd-matrix th, .nd-matrix td { text-align:center; border:1px solid var(--sp-divider) !important; }
     .nd-matrix th { white-space:nowrap; }
     .nd-matrix .nd-lv { text-align:left; white-space:nowrap; font-weight:600; }
     .nd-pool { font-size:18px; font-weight:700; line-height:1.15; }
@@ -38,8 +38,9 @@
     .nd-st-over, .nd-st-risk, .nd-st-cycle { color:#e65100; font-weight:700; }
     .nd-st-over { color:#b71c1c; }
     details.nd-drop { margin-bottom:10px; }
-    details.nd-drop summary { cursor:pointer; font-weight:600; padding:8px 0; color:var(--sp-ink); }
+    details.nd-drop summary { cursor:pointer; font-weight:600; padding:8px 0; color:var(--sp-text-2nd); }
     .nd-sub { font-size:12px; color:#90a4ae; margin:2px 0 10px; }
+    .nd-tbl th, .nd-tbl td { white-space:nowrap; } /* 旧版 .nd-tbl nowrap */
   </style>
 </head>
 <body data-sp-area="admin" data-sp-page="node-decision" class="sp-admin">
@@ -78,7 +79,7 @@
               <th>供给日均</th><th>需求日均</th><th>依据</th><th></th>
             </tr></thead>
             <tbody>
-              <template x-for="g in (d.group_ids||[])" :key="'v'+g">
+              <template x-for="g in (d.group_ids||[]).filter(g => vd(g))" :key="'v'+g">
                 <tr :class="vd(g) && vd(g).verdict === 'add' ? 'nd-sev-red' : (vd(g) && vd(g).verdict === 'watch' ? 'nd-sev-yellow' : (vd(g) && vd(g).verdict === 'trim' ? 'nd-sev-green' : ''))">
                   <td style="font-weight:700" x-text="'G' + g"></td>
                   <td><span :class="vClass(g)" x-text="vd(g) ? vd(g).label : '—'"></span></td>
@@ -95,6 +96,7 @@
                   <td><a class="sp-btn sp-btn-sm" :href="'/admin/node-ctl.html?group=' + g + '&class=10'">调整节点</a></td>
                 </tr>
               </template>
+              <tr x-show="!(d.group_ids||[]).some(g => vd(g))"><td colspan="13"><div class="sp-empty"><i class="mi">inbox</i>暂无裁决数据</div></td></tr>
             </tbody>
           </table>
         </div>
@@ -161,11 +163,11 @@
                   <td class="nd-lv" x-text="(d.class_labels||[])[c] || ('L' + c)"></td>
                   <template x-for="g in (d.group_ids||[])" :key="'c'+g+'_'+c">
                     <td :class="cell(g,c) && cell(g,c).users > 0 ? ('nd-c-' + cell(g,c).sev) : ''"
-                        :title="'G' + g + ' L' + c + ': 真实' + (cell(g,c)?cell(g,c).real:0) + ' + clone' + (cell(g,c)?cell(g,c).clone:0) + ' | 该级用户' + (cell(g,c)?cell(g,c).users:0) + '人(在线' + (cell(g,c)?cell(g,c).live30:0) + ') | 累计池' + (cell(g,c)?cell(g,c).pool:0) + ' / 需' + (cell(g,c)?cell(g,c).need:0)">
+                        :title="'G' + g + ' L' + c + ': 真实' + (cell(g,c)?cell(g,c).real:0) + ' + clone' + (cell(g,c)?cell(g,c).clone:0) + ' | 该级用户' + (cell(g,c)?cell(g,c).users:0) + '人(在线' + (cell(g,c)?cell(g,c).live30:0) + ') | 累计池' + (cell(g,c)?cell(g,c).pool:0) + ((cell(g,c) && cell(g,c).need !== null && cell(g,c).need !== undefined) ? ' / 需' + cell(g,c).need : '')">
                       <template x-if="cell(g,c) && cell(g,c).users > 0">
                         <div>
                           <div class="nd-pool" x-text="cell(g,c).pool"></div>
-                          <div class="nd-need" x-text="'需 ' + cell(g,c).need"></div>
+                          <div class="nd-need" x-show="cell(g,c).need !== null && cell(g,c).need !== undefined" x-text="'需 ' + cell(g,c).need"></div>
                         </div>
                       </template>
                       <template x-if="!cell(g,c) || cell(g,c).users <= 0">
@@ -224,8 +226,8 @@
               <tbody>
                 <template x-for="n in (d.g5_candidates||[])" :key="'g5_'+n.id">
                   <tr>
-                    <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="n.class"></td>
-                    <td x-text="'$' + n.cost"></td><td x-text="n.alive"></td><td x-text="n.used_lastday"></td>
+                    <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'L' + n.class"></td>
+                    <td x-text="'$' + n.cost"></td><td x-text="n.alive"></td><td x-text="(n.used_gb ?? n.used_lastday ?? '—') + (n.used_gb != null ? 'GB' : '')"></td>
                     <td><a class="sp-btn sp-btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
                   </tr>
                 </template>
@@ -244,8 +246,8 @@
               <tbody>
                 <template x-for="n in (d.node_alive_rows||[])" :key="'na_'+n.id">
                   <tr>
-                    <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="n.class"></td>
-                    <td x-text="n.alive"></td><td x-text="n.used_lastday"></td>
+                    <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="'L' + n.class"></td>
+                    <td x-text="n.alive"></td><td x-text="(n.used_gb ?? n.used_lastday ?? '—') + (n.used_gb != null ? 'GB' : '')"></td>
                     <td x-text="(n.today_gb || 0) + ' / ' + (n.quota_gb || 0) + 'GB' + (n.today_pct !== null ? ' (' + n.today_pct + '%)' : '')"></td>
                     <td><span :class="'nd-st-' + n.status" x-text="n.status_label"></span></td>
                   </tr>
@@ -358,7 +360,7 @@
           return { add: 'nd-v-add', broken: 'nd-v-broken', watch: 'nd-v-watch', trim: 'nd-v-trim', ok: 'nd-v-ok' }[v.verdict] || '';
         },
         fmtMin(m) {
-          if (m === null || m === undefined) return '—';
+          if (m === null || m === undefined || m < 0) return '从未心跳';
           if (m < 60) return m + ' 分钟';
           if (m < 1440) return (m / 60).toFixed(1) + ' 小时';
           return (m / 1440).toFixed(1) + ' 天';
@@ -371,17 +373,34 @@
           const groups = Object.keys(cd).sort((a, b) => parseInt(a.replace('G', '')) - parseInt(b.replace('G', '')));
           if (!groups.length) return;
           const dates = (cd[groups[0]] || []).map(p => p.label);
+          const supply = this.d.supply_lines || {};
+          const palette = ['#e53935', '#fb8c00', '#43a047', '#1e88e5', '#8e24aa', '#00897b'];
+          const series = [];
+          groups.forEach((g, i) => {
+            const color = palette[i % palette.length];
+            series.push({
+              name: g, type: 'line', smooth: true, showSymbol: false,
+              itemStyle: { color }, lineStyle: { color },
+              data: (cd[g] || []).map(p => p.y)
+            });
+            // 旧版: 每组叠加同色虚线 supply_daily 供给基准 (贴线/穿线 = 流量不够直观视图)
+            const s = supply && supply[g];
+            if (s !== undefined && s !== null) {
+              series.push({
+                name: g + ' 供给', type: 'line', smooth: false, showSymbol: false,
+                itemStyle: { color }, lineStyle: { color, type: 'dashed', width: 1, opacity: 0.75 },
+                data: (cd[g] || []).map(() => s), tooltip: { show: false }
+              });
+            }
+          });
           const chart = echarts.init(el);
           chart.setOption({
             tooltip: { trigger: 'axis' },
-            legend: { data: groups },
+            legend: { data: series.map(s => s.name) },
             grid: { left: 50, right: 20, top: 40, bottom: 30 },
             xAxis: { type: 'category', data: dates },
             yAxis: { type: 'value', name: 'GB/天' },
-            series: groups.map(g => ({
-              name: g, type: 'line', smooth: true, showSymbol: false,
-              data: (cd[g] || []).map(p => p.y)
-            }))
+            series: series
           });
           window.addEventListener('resize', () => chart.resize());
         }

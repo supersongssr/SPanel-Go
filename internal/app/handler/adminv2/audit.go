@@ -3,6 +3,7 @@ package adminv2
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	"spanel-go/internal/model"
@@ -133,6 +134,8 @@ func (h *Handler) DeleteDetectRule(c *gin.Context) {
 var detectLogSortable = map[string]string{
 	"id": "detect_log.id", "user_id": "detect_log.user_id", "node_id": "detect_log.node_id",
 	"list_id": "detect_log.list_id", "datetime": "detect_log.datetime",
+	"rule_id":   "detect_log.list_id", // 页面列 key (规则ID)
+	"rule_text": "detect_log.list_id", "rule_regex": "detect_log.list_id", "rule_type": "detect_log.list_id",
 }
 
 // ListDetectLogs 审计触发记录 (PHP ajax_log: 四表 JOIN)
@@ -185,7 +188,7 @@ func (h *Handler) ListDetectLogs(c *gin.Context) {
 
 // ==================== 自动命令 (auto) ====================
 
-var autoSortable = map[string]string{"id": "id", "datetime": "datetime", "type": "type"}
+var autoSortable = map[string]string{"id": "id", "datetime": "datetime", "type": "type", "value": "value", "sign": "sign"}
 
 // ListAutos 自动命令列表
 func (h *Handler) ListAutos(c *gin.Context) {
@@ -248,7 +251,7 @@ func (h *Handler) DeleteAuto(c *gin.Context) {
 
 // ==================== IP 管理 ====================
 
-var blockipSortable = map[string]string{"id": "blockip.id", "datetime": "blockip.datetime"}
+var blockipSortable = map[string]string{"id": "blockip.id", "datetime": "blockip.datetime", "name": "node.name", "nodeid": "blockip.nodeid", "ip": "blockip.ip"}
 
 // ListBlockIps 已封禁 IP (PHP ajax_block: JOIN 节点名; location 列不做 — R2 决议)
 func (h *Handler) ListBlockIps(c *gin.Context) {
@@ -286,7 +289,7 @@ func (h *Handler) ListBlockIps(c *gin.Context) {
 	RespondList(c, rows, total)
 }
 
-var unblockipSortable = map[string]string{"id": "unblockip.id", "datetime": "unblockip.datetime"}
+var unblockipSortable = map[string]string{"id": "unblockip.id", "datetime": "unblockip.datetime", "userid": "unblockip.userid", "user_name": "user.user_name", "ip": "unblockip.ip"}
 
 // ListUnblockIps 已解封 IP (PHP ajax_unblock: JOIN user)
 func (h *Handler) ListUnblockIps(c *gin.Context) {
@@ -401,7 +404,8 @@ func (h *Handler) ListAuditAlive(c *gin.Context) {
 		db := database.DB.Table("alive_ip").
 			Select("alive_ip.id, alive_ip.userid, user.user_name, alive_ip.nodeid, node.name AS node_name, alive_ip.ip, alive_ip.datetime").
 			Joins("JOIN user ON user.id = alive_ip.userid").
-			Joins("LEFT JOIN ss_node AS node ON node.id = alive_ip.nodeid")
+			Joins("LEFT JOIN ss_node AS node ON node.id = alive_ip.nodeid").
+			Where("alive_ip.datetime > ?", time.Now().Unix()-60) // PHP ajax_alive: 仅 60s 内在线
 		if q.Search != "" {
 			like := "%" + q.Search + "%"
 			db = db.Where("alive_ip.ip LIKE ? OR user.user_name LIKE ? OR node.name LIKE ?", like, like, like)
@@ -443,6 +447,8 @@ func (h *Handler) ListAuditAlive(c *gin.Context) {
 		return
 	}
 	for i := range raw {
+		// PHP getRealIp: 归一化 IPv6-mapped 地址后再展示/比对
+		raw[i].IP = strings.TrimPrefix(raw[i].IP, "::ffff:")
 		raw[i].IsNode = nodeIPSet[raw[i].IP]
 	}
 	RespondList(c, raw, total)
@@ -517,8 +523,8 @@ func (h *Handler) ListTrafficLogs(c *gin.Context) {
 		UserName      string  `json:"user_name" gorm:"column:user_name"`
 		NodeName      string  `json:"node_name" gorm:"column:node_name"`
 		Rate          float64 `json:"rate" gorm:"column:rate"`
-		OriginTraffic string  `json:"origin_traffic"` // 已人性化 (bytes → 可读)
-		Traffic       int64   `json:"traffic" gorm:"column:traffic"`
+		OriginTraffic string  `json:"origin_traffic"`                // 已人性化 (bytes → 可读)
+		Traffic       string  `json:"traffic" gorm:"column:traffic"` // varchar: PHP 写入 flowAutoShow 字符串, 与页面原样展示一致
 		LogTime       int64   `json:"log_time" gorm:"column:log_time"`
 	}
 	var raw []struct {
