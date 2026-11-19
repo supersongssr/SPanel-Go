@@ -32,6 +32,45 @@ func GetUserName(email string) string {
 	return strings.ReplaceAll(email, ".", "")
 }
 
+// RadiusNas freeradius nas 表 (对齐 PHP RadiusNas model; AddNas/DelNas 用)
+type RadiusNas struct {
+	NasName     string `gorm:"column:nasname;primaryKey"`
+	ShortName   string `gorm:"column:shortname"`
+	Type        string `gorm:"column:type"`
+	Secret      string `gorm:"column:secret"`
+	Description string `gorm:"column:description"`
+}
+
+func (RadiusNas) TableName() string { return "nas" }
+
+// AddNas 注册 VPN/Radius 节点 NAS (对齐 PHP Radius::AddNas: 存在即跳过; 未启用时 no-op)
+func AddNas(ip, name string) {
+	db := DB()
+	if db == nil {
+		return
+	}
+	var count int64
+	db.Model(&RadiusNas{}).Where("shortname = ?", ip).Count(&count)
+	if count > 0 {
+		return
+	}
+	nas := RadiusNas{NasName: ip, ShortName: ip, Type: "other", Secret: "", Description: ip}
+	if err := db.Create(&nas).Error; err != nil {
+		log.Printf("[Radius] AddNas failed %s: %v", ip, err)
+	}
+}
+
+// DelNas 删除 NAS 记录 (对齐 PHP Radius::DelNas; 未启用时 no-op)
+func DelNas(ip string) {
+	db := DB()
+	if db == nil {
+		return
+	}
+	if err := db.Where("shortname = ?", ip).Delete(&RadiusNas{}).Error; err != nil {
+		log.Printf("[Radius] DelNas failed %s: %v", ip, err)
+	}
+}
+
 // Enabled 总开关: enable_radius=true 且 host 已配置
 func Enabled() bool {
 	cfg := config.GlobalConfig

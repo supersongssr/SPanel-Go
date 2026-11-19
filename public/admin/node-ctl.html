@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>节点调整 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="node-ctl" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">节点调整</h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="nodeCtlPage()" x-init="load()">
+      <!-- 筛选 (PHP nodectl?group=&class=) -->
+      <div class="sp-card sp-mb-6">
+        <div class="sp-grid" style="align-items:flex-end">
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">分组</label>
+            <input class="sp-input" type="text" x-model="group" @keydown.enter="load()">
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">等级 (≤)</label>
+            <input class="sp-input" type="text" x-model="class" @keydown.enter="load()">
+          </div></div>
+          <div class="sp-col-3">
+            <button class="sp-btn sp-btn-brand" @click="load()"><i class="mi">search</i>筛选</button>
+          </div>
+        </div>
+        <p class="sp-text-hint" style="font-size:12px">
+          红行 = 检测型节点(type=0) 12 小时内被探测; 黄行 = 展示节点未开订阅(custom_rss=0);
+          健康分 ≤-40 红 (疑似故障建议介入) / &lt;-9 黄 (很可能不能用) / ≥30 绿 (满意)。
+        </p>
+      </div>
+
+      <div class="sp-table-wrap">
+        <table class="sp-table">
+          <thead><tr><th>编辑</th><th>名字</th><th>节点</th><th>sort (健康分)</th><th>表现</th><th>倍率/成本</th><th>流量</th></tr></thead>
+          <tbody>
+            <template x-for="n in nodes" :key="n.id">
+              <tr :style="rowStyle(n)">
+                <td>
+                  <a class="sp-btn sp-btn-sm" :class="btnClass(n)" :href="'/admin/node-edit.html?id=' + n.id" x-text="n.id"></a>
+                </td>
+                <td x-text="n.name"></td>
+                <td><span x-text="n.node_class + ' 级 ' + n.traffic_rate + ' 倍率 ' + n.node_online + ' 人'"></span></td>
+                <td x-html="nsColor(n.node_sort)"></td>
+                <td x-text="n.status"></td>
+                <td x-text="'R' + n.traffic_rate + ' / C' + n.node_cost + ' / 负载' + n.node_oncost"></td>
+                <td x-text="n.traffic_used_gb + ' / ' + n.traffic_limit_gb"></td>
+              </tr>
+            </template>
+            <tr x-show="!nodes.length" x-cloak><td colspan="7"><div class="sp-empty"><i class="mi">inbox</i>该筛选下无节点</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function nodeCtlPage() {
+      return {
+        group: new URLSearchParams(location.search).get('group') || '0',
+        class: new URLSearchParams(location.search).get('class') || '10',
+        nodes: [],
+        load() {
+          SPanelAPI.request('/api/v2/admin/node/nodectl?group=' + encodeURIComponent(this.group) + '&class=' + encodeURIComponent(this.class))
+            .then(res => { this.nodes = res.data.items || []; })
+            .catch(e => SPUI.msg(e.message));
+        },
+        rowStyle(n) {
+          // PHP nodectl.tpl: type=0 且 12h 内有心跳 → 红; type=1 且 custom_rss=0 → 黄
+          const hbAlert = n.type === 0 && n.node_heartbeat > 0 && n.node_heartbeat > Math.floor(Date.now()/1000) - 43200;
+          if (hbAlert) return 'background:#ffebee';
+          if (n.type === 1 && n.custom_rss === 0) return 'background:#fff8e1';
+          return '';
+        },
+        btnClass(n) {
+          const hbAlert = n.type === 0 && n.node_heartbeat > 0 && n.node_heartbeat > Math.floor(Date.now()/1000) - 43200;
+          if (hbAlert) return 'sp-btn-danger';
+          if (n.type === 1 && n.custom_rss === 1) return 'sp-btn-brand';
+          if (n.type === 1) return 'sp-btn-danger';
+          return 'sp-btn-flat';
+        },
+        nsColor(v) {
+          if (v <= -40) return '<span class="sp-text-danger" title="疑似故障, 建议介入"><b>' + v + '</b></span>';
+          if (v < -9) return '<span style="color:#b8860b" title="很可能不能用"><b>' + v + '</b></span>';
+          if (v >= 30) return '<span class="sp-text-success">' + v + '</span>';
+          return String(v);
+        }
+      };
+    }
+  </script>
+</body>
+</html>

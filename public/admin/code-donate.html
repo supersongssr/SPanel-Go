@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>添加捐赠/支出 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="codes" data-sp-active="codes" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">添加捐赠/支出</h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="donatePage()">
+      <div class="sp-card">
+        <div class="sp-card-title"><i class="mi">volunteer_activism</i>捐赠/支出记录</div>
+        <div class="sp-grid">
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">金额 (元)</label>
+            <input class="sp-input" type="text" x-model="amount">
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">类型</label>
+            <select class="sp-select" x-model.number="type">
+              <option value="-2">支出</option>
+            </select>
+          </div></div>
+          <div class="sp-col-6"><div class="sp-form-row">
+            <label class="sp-form-label">备注/摘要 (code 字段)</label>
+            <input class="sp-input" type="text" x-model="code" placeholder="如: 服务器续费 -XX 2026-11">
+          </div></div>
+          <div class="sp-col-3" style="display:flex;align-items:flex-end">
+            <button class="sp-btn sp-btn-brand" @click="add()" :disabled="saving"><i class="mi">save</i>添加</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function donatePage() {
+      return {
+        amount: '', type: -2, code: '', saving: false,
+        add() {
+          this.saving = true;
+          SPanelAPI.request('/api/v2/admin/donate', {
+            method: 'POST',
+            body: JSON.stringify({ amount: parseFloat(this.amount) || 0, type: this.type, code: this.code })
+          })
+            .then(res => SPUI.msg(res.msg || '添加成功', () => location.href = '/admin/codes.html'))
+            .catch(e => SPUI.msg(e.message))
+            .finally(() => { this.saving = false; });
+        }
+      };
+    }
+  </script>
+</body>
+</html>

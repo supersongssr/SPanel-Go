@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布公告 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="announcements" data-sp-active="announcements" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading" x-text="isEdit ? '公告编辑 #' + (f.id||'') : '发布公告'"></h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="annFormPage()" x-init="init()">
+      <div class="sp-card sp-mb-6">
+        <div class="sp-card-title"><i class="mi">announcement</i>内容</div>
+        <div class="sp-form-row">
+          <label class="sp-form-label">HTML 内容 (content, 公告弹窗/邮件用)</label>
+          <textarea class="sp-textarea" rows="5" x-model="f.content"></textarea>
+        </div>
+        <div class="sp-form-row">
+          <label class="sp-form-label">Markdown (公告页展示)</label>
+          <textarea class="sp-textarea" rows="10" x-model="f.markdown"></textarea>
+        </div>
+      </div>
+
+      <template x-if="!isEdit">
+        <div class="sp-card sp-mb-6">
+          <div class="sp-card-title"><i class="mi">mail</i>邮件群发 (可选)</div>
+          <div class="sp-form-row">
+            <label class="sp-check">
+              <input type="checkbox" x-model="issend" :true-value="1" :false-value="0">
+              同时邮件群发给用户 (分批 50/批, 断点自动续发)
+            </label>
+          </div>
+          <div class="sp-form-row" x-show="issend == 1" x-cloak>
+            <label class="sp-form-label">仅发送给等级 ≥ (VIP 等级)</label>
+            <input class="sp-input" type="text" x-model.number="f.vip" style="max-width:120px">
+          </div>
+          <div class="sp-alert sp-alert-info" x-show="issend == 1" x-cloak style="margin-top:8px">
+            <i class="mi">info</i>大用户量时单请求只发一批, 页面会提示进度并自动携带游标续发直至完成。
+          </div>
+          <div class="sp-progress sp-mt-4" x-show="sending" x-cloak><i :style="'width:' + progress + '%'"></i></div>
+          <p class="sp-text-hint" x-show="sending" x-cloak x-text="statusText"></p>
+        </div>
+      </template>
+
+      <div class="sp-mb-6" style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="sp-btn sp-btn-brand" @click="save()" :disabled="sending"><i class="mi">save</i>保存</button>
+        <a class="sp-btn sp-btn-flat" href="/admin/announcements.html">返回列表</a>
+      </div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function annFormPage() {
+      const id = new URLSearchParams(location.search).get('id');
+      return {
+        isEdit: !!id, issend: 0, sending: false, progress: 0, statusText: '',
+        f: { content: '', markdown: '', vip: 0, last_id: 0 },
+        init() {
+          if (!this.isEdit) return;
+          SPanelAPI.request('/api/v2/admin/announcement/' + id)
+            .then(res => { this.f = Object.assign({}, this.f, res.data); })
+            .catch(e => SPUI.msg(e.message));
+        },
+        /* 邮件游标续发循环: ret=2 + msg=lastId → 继续; SPanelAPI 归一化会把 ret=2 视为 error 抛出,
+           这里直接用原生 fetch 读原始信封, 保持 PHP 协议原样。 */
+        async save() {
+          this.sending = true;
+          this.statusText = this.isEdit ? '保存中…' : '提交中…';
+          try {
+            if (this.isEdit) {
+              const res = await SPanelAPI.request('/api/v2/admin/announcement/' + this.f.id, {
+                method: 'PUT',
+                body: JSON.stringify({ content: this.f.content, markdown: this.f.markdown })
+              });
+              SPUI.toast(res.msg || '修改成功', 'success');
+              setTimeout(() => location.href = '/admin/announcements.html', 600);
+              return;
+            }
+            if (this.issend !== 1) {
+              const res = await SPanelAPI.request('/api/v2/admin/announcement', {
+                method: 'POST',
+                body: JSON.stringify({ content: this.f.content, markdown: this.f.markdown, issend: 0 })
+              });
+              SPUI.msg(res.msg || '公告添加成功', () => location.href = '/admin/announcements.html');
+              return;
+            }
+            /* 群发循环 (游标协议: ret=2, msg=已发送到的最大用户ID) */
+            let lastId = 0, batch = 0;
+            for (;;) {
+              batch++;
+              this.statusText = '第 ' + batch + ' 批发送中… (游标 ' + lastId + ')';
+              const resp = await fetch('/api/v2/admin/announcement', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  content: this.f.content, markdown: this.f.markdown,
+                  issend: 1, vip: this.f.vip || 0, last_id: lastId
+                })
+              });
+              const data = await resp.json();
+              if (data.ret === 2) {
+                lastId = parseInt(data.msg) || 0;
+                this.progress = Math.min(90, this.progress + 10);
+                continue;
+              }
+              if (data.ret === 1) {
+                this.progress = 100;
+                SPUI.msg(data.msg || '公告添加成功，邮件发送成功', () => location.href = '/admin/announcements.html');
+                return;
+              }
+              throw new Error(data.msg || '发送失败');
+            }
+          } catch (e) {
+            SPUI.msg(e.message || '保存失败');
+          } finally {
+            this.sending = false;
+          }
+        }
+      };
+    }
+  </script>
+</body>
+</html>

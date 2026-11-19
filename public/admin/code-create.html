@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生成充值码 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="codes" data-sp-active="codes" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">生成充值码</h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="codeCreatePage()">
+      <div class="sp-card">
+        <div class="sp-card-title"><i class="mi">barcode</i>批量生成</div>
+        <div class="sp-grid">
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">生成数量 (个)</label>
+            <input class="sp-input" type="text" x-model="amount">
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">面额 (元)</label>
+            <input class="sp-input" type="text" x-model="number">
+          </div></div>
+          <div class="sp-col-3" style="display:flex;align-items:flex-end">
+            <button class="sp-btn sp-btn-brand" @click="gen()" :disabled="saving"><i class="mi">add</i>生成</button>
+          </div>
+        </div>
+        <p class="sp-text-hint" style="font-size:12px">码格式: 时间戳 + 8 位随机串 + 面额×100 (与旧版一致)</p>
+      </div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function codeCreatePage() {
+      return {
+        amount: 10, number: 10, saving: false,
+        gen() {
+          this.saving = true;
+          SPanelAPI.request('/api/v2/admin/code', {
+            method: 'POST',
+            body: JSON.stringify({ amount: parseInt(this.amount) || 0, number: parseFloat(this.number) || 0 })
+          })
+            .then(res => {
+              SPUI.msg(res.msg || '生成成功', () => location.href = '/admin/codes.html');
+            })
+            .catch(e => SPUI.msg(e.message))
+            .finally(() => { this.saving = false; });
+        }
+      };
+    }
+  </script>
+</body>
+</html>

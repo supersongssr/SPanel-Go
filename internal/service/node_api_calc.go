@@ -386,6 +386,9 @@ func monthlyApplyDerived(node *model.Node) {
 	node.TrafficLeftDaily = monthlyComputeDailyLeft(node)
 }
 
+// MonthlyApplyDerived exported 封装 (admin v2 节点编辑用): 重算 left + daily 派生字段。
+func MonthlyApplyDerived(node *model.Node) { monthlyApplyDerived(node) }
+
 // monthlyEnsureBaseline 对齐 PHP NodeMonthlyTraffic::ensureBaseline:
 // 仅当无基准 (=0) 时盖 traffic_last_reset_time = now (不覆盖更近期值), best-effort。
 func monthlyEnsureBaseline(nodeID int64) {

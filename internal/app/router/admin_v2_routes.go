@@ -28,6 +28,14 @@ func RegisterAdminV2Routes(r *gin.Engine) {
 		// 用户操作审计
 		g.GET("/user-log", h.ListUserLogs)
 
+		// 节点
+		g.GET("/node", h.ListNodes)
+		g.GET("/node/:id", h.GetNode)
+		g.POST("/node", h.CreateNode)
+		g.PUT("/node/:id", h.UpdateNode)
+		g.DELETE("/node/:id", h.DeleteNode)
+		g.GET("/node/nodectl", h.NodeCtl)
+
 		// 工单
 		g.GET("/ticket", h.ListTickets)
 		g.GET("/ticket/:id", h.GetTicket)
@@ -35,5 +43,35 @@ func RegisterAdminV2Routes(r *gin.Engine) {
 
 		// 个人资料
 		g.GET("/profile", h.GetProfile)
+
+		// 商品/购买
+		g.GET("/shop", h.ListShops)
+		g.GET("/shop/:id", h.GetShop)
+		g.POST("/shop", h.CreateShop)
+		g.PUT("/shop/:id", h.UpdateShop)
+		g.DELETE("/shop/:id", h.DeleteShop) // 下架
+		g.GET("/bought", h.ListBought)
+		g.DELETE("/bought/:id", h.DeleteBought) // 中止续费
+
+		// 充值码/捐赠
+		g.GET("/code", h.ListCodes)
+		g.POST("/code", h.CreateCodes)
+		g.POST("/donate", h.CreateDonate)
+
+		// 优惠码
+		g.GET("/coupon", h.ListCoupons)
+		g.POST("/coupon", h.CreateCoupon)
+		g.DELETE("/coupon/:id", h.DeleteCoupon)
+
+		// 邀请返利
+		g.GET("/invite", h.ListInvites)
+		g.POST("/invite/add", h.AddInviteQuota)
+
+		// 公告
+		g.GET("/announcement", h.ListAnnouncements)
+		g.GET("/announcement/:id", h.GetAnnouncement)
+		g.POST("/announcement", h.CreateAnnouncement)
+		g.PUT("/announcement/:id", h.UpdateAnnouncement)
+		g.DELETE("/announcement/:id", h.DeleteAnnouncement)
 	}
 }
