@@ -13,7 +13,7 @@ type RssRequestLog struct {
 	IP        string    `gorm:"column:ip" json:"ip"`
 	Method    string    `gorm:"column:method" json:"method"`
 	URI       string    `gorm:"column:uri" json:"uri"`
-	Query     string    `gorm:"column:query" json:"query"`     // JSON
+	Query     string    `gorm:"column:query" json:"query"` // JSON
 	UserAgent string    `gorm:"column:user_agent" json:"user_agent"`
 	Headers   string    `gorm:"column:headers" json:"headers"` // JSON
 	CreatedAt time.Time `gorm:"column:created_at;type:datetime" json:"created_at"`

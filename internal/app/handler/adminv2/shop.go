@@ -125,10 +125,10 @@ func (h *Handler) ListShops(c *gin.Context) {
 
 // shopForm PHP add/update 参数 (content 各分项 → JSON)
 type shopForm struct {
-	Name               string `json:"name"`
-	Price              string `json:"price"`
-	AutoRenew          int32  `json:"auto_renew"`
-	AutoResetBandwidth int32  `json:"auto_reset_bandwidth"`
+	Name               string  `json:"name"`
+	Price              string  `json:"price"`
+	AutoRenew          int32   `json:"auto_renew"`
+	AutoResetBandwidth int32   `json:"auto_reset_bandwidth"`
 	Bandwidth          float64 `json:"bandwidth"`
 	Expire             float64 `json:"expire"`
 	Class              float64 `json:"class"`
@@ -138,8 +138,8 @@ type shopForm struct {
 	ResetExp           float64 `json:"reset_exp"`
 	Speedlimit         float64 `json:"speedlimit"`
 	Connector          float64 `json:"connector"`
-	ContentExtra       string `json:"content_extra"`
-	Status             int32  `json:"status"`
+	ContentExtra       string  `json:"content_extra"`
+	Status             int32   `json:"status"`
 }
 
 func (f *shopForm) buildContent() string {
@@ -207,7 +207,7 @@ func (h *Handler) GetShop(c *gin.Context) {
 	RespondData(c, "获取成功", gin.H{
 		"id": s.ID, "name": s.Name, "price": s.Price,
 		"auto_renew": s.AutoRenew, "auto_reset_bandwidth": s.AutoResetBandwidth,
-		"status": s.Status,
+		"status":    s.Status,
 		"bandwidth": g("bandwidth"), "expire": g("expire"),
 		"class": g("class"), "class_expire": g("class_expire"),
 		"reset": g("reset"), "reset_value": g("reset_value"), "reset_exp": g("reset_exp"),

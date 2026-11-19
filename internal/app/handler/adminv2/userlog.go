@@ -75,7 +75,7 @@ func uaLog(c *gin.Context, userID int64, level, category, action, message string
 // uaDiff 字段级 diff (对齐 PHP UserActionLogger::diff): {field:{from,to}}, 凭据字段只记 changed
 func uaDiff(before map[string]interface{}, after map[string]interface{}, fields []string) map[string]interface{} {
 	result := map[string]interface{}{}
-norm := func(v interface{}) string {
+	norm := func(v interface{}) string {
 		if v == nil {
 			return ""
 		}

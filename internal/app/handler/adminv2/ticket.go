@@ -132,7 +132,7 @@ func (h *Handler) GetTicket(c *gin.Context) {
 	}
 
 	RespondData(c, "获取成功", gin.H{
-		"id": id,
+		"id":      id,
 		"tickets": items,
 		"next_id": nextID,
 		"user": gin.H{
@@ -209,8 +209,8 @@ func (h *Handler) ReplyTicket(c *gin.Context) {
 		baseURL := strings.TrimRight(requestBaseURL(c), "/")
 		text := fmt.Sprintf("您好，有人回复了<a href=\"%s/user/ticket/%d/view\">工单</a>，请您查看。", baseURL, root.ID)
 		m := mailer.Mail{
-			To:      ticketUser.Email,
-			Subject: subject,
+			To:       ticketUser.Email,
+			Subject:  subject,
 			HTMLBody: "<p>" + text + "</p>",
 		}
 		if err := mailer.Send(m); err != nil {

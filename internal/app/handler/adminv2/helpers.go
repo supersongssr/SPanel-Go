@@ -1,9 +1,10 @@
 // Package adminv2 管理端 v2 API (/api/v2/admin) — 方案 .plans/2026-11-18_admin移植方案
 // 与 v1 (/api/v1/admin) 双轨并存 (Owner 2026-11-18 决议 R5: v1 暂不下线)。
 // 统一契约:
-//   列表: GET ?page=1&page_size=25&order_by=id&order_dir=desc&search=xxx → {ret:1,data:{items,total}}
-//         page_size=0 表示全部 (对应 PHP DataTables length=-1)
-//   动作: {ret:1|0, msg:"..."}
+//
+//	列表: GET ?page=1&page_size=25&order_by=id&order_dir=desc&search=xxx → {ret:1,data:{items,total}}
+//	      page_size=0 表示全部 (对应 PHP DataTables length=-1)
+//	动作: {ret:1|0, msg:"..."}
 package adminv2
 
 import (
@@ -22,8 +23,8 @@ var Default = &Handler{}
 
 // ListQuery 统一列表查询契约 (admin-table.js 前端组件对接)
 type ListQuery struct {
-	Page     int    // 从 1 起
-	PageSize int    // 0 = 全部
+	Page     int // 从 1 起
+	PageSize int // 0 = 全部
 	Offset   int
 	Limit    int    // -1 = 不加 LIMIT
 	OrderBy  string // 已通过白名单校验的 DB 列名

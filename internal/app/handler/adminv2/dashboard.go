@@ -41,11 +41,11 @@ func (h *Handler) Dashboard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"ret": 1, "msg": "获取成功",
 		"data": gin.H{
-			"total_users":        totalUsers,
-			"online_30m":         online30m,
+			"total_users":         totalUsers,
+			"online_30m":          online30m,
 			"today_traffic_bytes": todayBytes,
-			"today_traffic":      tools.FlowAutoShow(float64(todayBytes)),
-			"real_nodes":         realNodes,
+			"today_traffic":       tools.FlowAutoShow(float64(todayBytes)),
+			"real_nodes":          realNodes,
 		},
 	})
 }

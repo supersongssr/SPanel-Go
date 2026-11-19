@@ -86,13 +86,13 @@ func emailVerifyIPLimit() int {
 // ---- 失败锁定 (PoW 移除后的等价替代, §6.1) ----
 
 const (
-	loginFailThreshold  = 5               // 同 email+ip 连续失败 5 次
-	loginFailLockSec    = 15 * 60         // 锁 15 分钟
-	loginIPFailMaxPerHr = 50              // 单 IP 每小时失败上限
+	loginFailThreshold  = 5       // 同 email+ip 连续失败 5 次
+	loginFailLockSec    = 15 * 60 // 锁 15 分钟
+	loginIPFailMaxPerHr = 50      // 单 IP 每小时失败上限
 )
 
-func loginFailKey(email, ip string) string  { return "login_fail:" + email + ":" + ip }
-func loginIPFailKey(ip string) string       { return "login_fail_ip:" + ip }
+func loginFailKey(email, ip string) string { return "login_fail:" + email + ":" + ip }
+func loginIPFailKey(ip string) string      { return "login_fail_ip:" + ip }
 
 // isLoginLocked 查询失败锁定状态 (Redis 不可用时放行, 与 captcha 降级口径一致)
 func isLoginLocked(ctx context.Context, email, ip string) bool {
@@ -413,30 +413,30 @@ func (h *PublicHandler) Register(c *gin.Context) {
 	hashedPassword := service.DefaultAuthService.SHA256Hash(req.Password, config.GlobalConfig.App.Salt)
 
 	user := model.User{
-		UserName:       userName,
-		Email:          req.Email,
-		Pass:           hashedPassword,
-		Passwd:         generateRandomStr(8),
-		Port:           findAvailablePort(),
-		TransferEnable: 100 * 1024 * 1024 * 1024, // 默认 100GB
-		Enable:         1,
-		Class:          1,
-		ExpireIn:       time.Now().AddDate(1, 0, 0),
-		ClassExpire:    time.Now().AddDate(1, 0, 0),
-		Money:          money,
-		RegDate:        time.Now(),
-		RefBy:          refBy,
-		Method:         "aes-256-gcm",
-		RegIP:          c.ClientIP(),
-		NodeSpeedlimit: "0.00",
-		V2rayUUID:      generateUUID(),
-		Protocol:       "origin",
-		Obfs:           "plain",
-		SubLimit:       0,
-		Theme:          "material",
-		GaToken:        generateBase32Secret(16),
-		GaEnable:       0,
-		IsEdu:          isEdu,
+		UserName:        userName,
+		Email:           req.Email,
+		Pass:            hashedPassword,
+		Passwd:          generateRandomStr(8),
+		Port:            findAvailablePort(),
+		TransferEnable:  100 * 1024 * 1024 * 1024, // 默认 100GB
+		Enable:          1,
+		Class:           1,
+		ExpireIn:        time.Now().AddDate(1, 0, 0),
+		ClassExpire:     time.Now().AddDate(1, 0, 0),
+		Money:           money,
+		RegDate:         time.Now(),
+		RefBy:           refBy,
+		Method:          "aes-256-gcm",
+		RegIP:           c.ClientIP(),
+		NodeSpeedlimit:  "0.00",
+		V2rayUUID:       generateUUID(),
+		Protocol:        "origin",
+		Obfs:            "plain",
+		SubLimit:        0,
+		Theme:           "material",
+		GaToken:         generateBase32Secret(16),
+		GaEnable:        0,
+		IsEdu:           isEdu,
 		RefRebateStatus: refRebateStatus,
 	}
 	if req.ImType > 0 {
@@ -675,7 +675,7 @@ func (h *PublicHandler) PasswordToken(c *gin.Context) {
 	newHash := service.DefaultAuthService.SHA256Hash(req.Password, config.GlobalConfig.App.Salt)
 	if err := database.DB.Model(&model.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
 		"pass":          newHash,
-		"ga_enable":     0, // PHP 语义: 重置密码即关闭 2FA (逃生通道)
+		"ga_enable":     0,                     // PHP 语义: 重置密码即关闭 2FA (逃生通道)
 		"token_version": user.TokenVersion + 1, // 旧登录态全端失效
 	}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"ret": 0, "msg": "重置失败，请稍后重试"})

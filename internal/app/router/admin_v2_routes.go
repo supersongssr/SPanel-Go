@@ -114,7 +114,6 @@ func RegisterAdminV2Routes(r *gin.Engine) {
 		// 统计
 		g.GET("/stats/recharge", h.RechargeStats)
 		g.GET("/stats/node-group-traffic", h.NodeGroupTraffic)
-		// 节点决策台 (Phase 3 子任务并行开发中, 文件落地后启用)
-		// g.GET("/stats/node-decision", h.NodeDecision)
+		g.GET("/stats/node-decision", h.NodeDecision)
 	}
 }

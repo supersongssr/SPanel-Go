@@ -47,34 +47,34 @@ type User struct {
 	IMType          int32     `gorm:"column:im_type" json:"im_type"`                     // IM 类型 (4=telegram)
 	IMValue         string    `gorm:"column:im_value" json:"im_value"`                   // IM 账号名
 	// —— 登录态/安全 (§4.0 方案 B + PHP 对齐列) ——
-	TokenVersion    int32     `gorm:"column:token_version" json:"-"`                     // 登录态版本号: +1 即吊销全部旧 JWT (cookie)
-	GaEnable        int32     `gorm:"column:ga_enable" json:"ga_enable"`                 // 2FA 开关 (0关 1开; 与 PHP 共列)
-	IsEdu           string    `gorm:"column:is_edu" json:"is_edu"`                       // edu.cn 邮箱标记 (PHP 库列为 varchar)
-	Pac             string    `gorm:"column:pac" json:"-"`                               // 自定义 PAC 文本
-	IsHide          int32     `gorm:"column:is_hide" json:"is_hide"`                     // 捐赠匿名开关
-	Cncdn           string    `gorm:"column:cncdn" json:"cncdn"`                         // 中转加速线路 (areaid)
-	CncdnCount      int32     `gorm:"column:cncdn_count" json:"cncdn_count"`             // 中转线路使用计数 (实际库列为 int)
-	Cfcdn           string    `gorm:"column:cfcdn" json:"cfcdn"`                         // 优选 IP
-	CfcdnCount      int32     `gorm:"column:cfcdn_count" json:"cfcdn_count"`             // 优选 IP 使用计数 (实际库列为 int)
+	TokenVersion int32  `gorm:"column:token_version" json:"-"`         // 登录态版本号: +1 即吊销全部旧 JWT (cookie)
+	GaEnable     int32  `gorm:"column:ga_enable" json:"ga_enable"`     // 2FA 开关 (0关 1开; 与 PHP 共列)
+	IsEdu        string `gorm:"column:is_edu" json:"is_edu"`           // edu.cn 邮箱标记 (PHP 库列为 varchar)
+	Pac          string `gorm:"column:pac" json:"-"`                   // 自定义 PAC 文本
+	IsHide       int32  `gorm:"column:is_hide" json:"is_hide"`         // 捐赠匿名开关
+	Cncdn        string `gorm:"column:cncdn" json:"cncdn"`             // 中转加速线路 (areaid)
+	CncdnCount   int32  `gorm:"column:cncdn_count" json:"cncdn_count"` // 中转线路使用计数 (实际库列为 int)
+	Cfcdn        string `gorm:"column:cfcdn" json:"cfcdn"`             // 优选 IP
+	CfcdnCount   int32  `gorm:"column:cfcdn_count" json:"cfcdn_count"` // 优选 IP 使用计数 (实际库列为 int)
 	// —— 后台任务 (dailyjob/checkjob) 依赖的周期/统计列 ——
-	Score           int32  `gorm:"column:score" json:"score"`                         // 积分 (活跃+1/违规-1)
-	BanTimes        int32  `gorm:"column:ban_times" json:"ban_times"`                 // 违规计数
-	AutoResetDay    int32  `gorm:"column:auto_reset_day" json:"auto_reset_day"`       // 自动重置日 (几号重置流量, 0=不重置; admin 列表/编辑)
+	Score              int32  `gorm:"column:score" json:"score"`                                                  // 积分 (活跃+1/违规-1)
+	BanTimes           int32  `gorm:"column:ban_times" json:"ban_times"`                                          // 违规计数
+	AutoResetDay       int32  `gorm:"column:auto_reset_day" json:"auto_reset_day"`                                // 自动重置日 (几号重置流量, 0=不重置; admin 列表/编辑)
 	AutoResetBandwidth string `gorm:"column:auto_reset_bandwidth;type:decimal(12,2)" json:"auto_reset_bandwidth"` // 自动重置带宽 (GB)
-	RenewTime       int32  `gorm:"column:renew_time" json:"renew_time"`               // 流量周期到期时间戳 (记账)
-	TransferLimit   int64  `gorm:"column:transfer_limit" json:"transfer_limit"`       // 周期下行配额 (bytes)
-	LastDayT        int64  `gorm:"column:last_day_t" json:"last_day_t"`               // 昨日快照 d (bytes)
-	RssCount        int32  `gorm:"column:rss_count" json:"rss_count"`                 // 订阅计数 (当日)
-	RssCountLastday int32  `gorm:"column:rss_count_lastday" json:"rss_count_lastday"` // 昨日订阅数快照
-	RssIpsCount     int32  `gorm:"column:rss_ips_count" json:"rss_ips_count"`         // 订阅 IP 来源计数 (当日)
-	RssIpsLastday   int32  `gorm:"column:rss_ips_lastday" json:"rss_ips_lastday"`     // 昨日 IP 来源快照
-	Warming         string `gorm:"column:warming" json:"warming"`                     // 禁用引导文案 (面板展示)
-	RssIP           string `gorm:"column:rss_ip" json:"rss_ip"`                       // 最近订阅来源 IP (admin 编辑页页头统计)
-	IsMultiUser     int32  `gorm:"column:is_multi_user" json:"is_multi_user"`         // 单端口多用户承载 (0非/1混淆式/2协议式; admin 编辑)
-	ForbiddenIP    string `gorm:"column:forbidden_ip" json:"forbidden_ip"`         // 禁访 IP 列表 (逗号分隔, admin 编辑)
-	ForbiddenPort  string `gorm:"column:forbidden_port" json:"forbidden_port"`     // 禁访端口列表 (逗号分隔, admin 编辑)
-	SendDailyMail   int32  `gorm:"column:sendDailyMail" json:"sendDailyMail"`         // 每日报告邮件订阅 (1=发)
-	Plan            string `gorm:"column:plan" json:"plan"`                           // 套餐标记 (createAdmin 用)
+	RenewTime          int32  `gorm:"column:renew_time" json:"renew_time"`                                        // 流量周期到期时间戳 (记账)
+	TransferLimit      int64  `gorm:"column:transfer_limit" json:"transfer_limit"`                                // 周期下行配额 (bytes)
+	LastDayT           int64  `gorm:"column:last_day_t" json:"last_day_t"`                                        // 昨日快照 d (bytes)
+	RssCount           int32  `gorm:"column:rss_count" json:"rss_count"`                                          // 订阅计数 (当日)
+	RssCountLastday    int32  `gorm:"column:rss_count_lastday" json:"rss_count_lastday"`                          // 昨日订阅数快照
+	RssIpsCount        int32  `gorm:"column:rss_ips_count" json:"rss_ips_count"`                                  // 订阅 IP 来源计数 (当日)
+	RssIpsLastday      int32  `gorm:"column:rss_ips_lastday" json:"rss_ips_lastday"`                              // 昨日 IP 来源快照
+	Warming            string `gorm:"column:warming" json:"warming"`                                              // 禁用引导文案 (面板展示)
+	RssIP              string `gorm:"column:rss_ip" json:"rss_ip"`                                                // 最近订阅来源 IP (admin 编辑页页头统计)
+	IsMultiUser        int32  `gorm:"column:is_multi_user" json:"is_multi_user"`                                  // 单端口多用户承载 (0非/1混淆式/2协议式; admin 编辑)
+	ForbiddenIP        string `gorm:"column:forbidden_ip" json:"forbidden_ip"`                                    // 禁访 IP 列表 (逗号分隔, admin 编辑)
+	ForbiddenPort      string `gorm:"column:forbidden_port" json:"forbidden_port"`                                // 禁访端口列表 (逗号分隔, admin 编辑)
+	SendDailyMail      int32  `gorm:"column:sendDailyMail" json:"sendDailyMail"`                                  // 每日报告邮件订阅 (1=发)
+	Plan               string `gorm:"column:plan" json:"plan"`                                                    // 套餐标记 (createAdmin 用)
 }
 
 // TableName 设置对应的数据表名

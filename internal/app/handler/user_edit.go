@@ -37,7 +37,7 @@ func userMaxPort() int {
 	return 55555
 }
 
-func userPortPrice() float64 { return config.GlobalConfig.User.PortPrice }       // <0 = 关闭
+func userPortPrice() float64        { return config.GlobalConfig.User.PortPrice }        // <0 = 关闭
 func userPortPriceSpecify() float64 { return config.GlobalConfig.User.PortPriceSpecify } // <0 = 关闭
 
 // chargeMoney 原子扣费 (条件更新防并发双花; 返回是否成功)
@@ -58,8 +58,8 @@ func (h *UserHandler) UpdateWechat(c *gin.Context) {
 	user := c.MustGet("user").(*model.User)
 
 	var req struct {
-		ImType  int    `json:"imtype"`
-		Wechat  string `json:"wechat"`
+		ImType int    `json:"imtype"`
+		Wechat string `json:"wechat"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil || strings.TrimSpace(req.Wechat) == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"ret": 0, "msg": "请输入有效的联络方式"})
@@ -537,9 +537,9 @@ func (h *UserHandler) Reactive(c *gin.Context) {
 	user := c.MustGet("user").(*model.User)
 
 	if err := database.DB.Model(user).Updates(map[string]interface{}{
-		"enable":     1,
-		"ban_times":  0,
-		"warming":    "",
+		"enable":    1,
+		"ban_times": 0,
+		"warming":   "",
 	}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"ret": 0, "msg": "解封失败，请稍后重试"})
 		return
@@ -578,10 +578,10 @@ func (h *UserHandler) Kill(c *gin.Context) {
 	}
 
 	if err := database.DB.Model(user).Updates(map[string]interface{}{
-		"enable":         0,
-		"ban_times":      user.BanTimes + 1,
-		"remark":         "用户自助注销",
-		"token_version":  user.TokenVersion + 1, // 全端下线
+		"enable":        0,
+		"ban_times":     user.BanTimes + 1,
+		"remark":        "用户自助注销",
+		"token_version": user.TokenVersion + 1, // 全端下线
 	}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"ret": 0, "msg": "注销失败，请稍后重试"})
 		return

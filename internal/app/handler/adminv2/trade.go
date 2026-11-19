@@ -95,8 +95,8 @@ func (h *Handler) CreateCodes(c *gin.Context) {
 	tail := strconv.FormatInt(int64(req.Number*100), 10)
 	for i := int32(0); i < req.Amount; i++ {
 		code := model.Code{
-			Code:  ts + genCodeChars(8) + tail,
-			Type:  -1,
+			Code:   ts + genCodeChars(8) + tail,
+			Type:   -1,
 			Number: strconv.FormatFloat(req.Number, 'f', -1, 64),
 		}
 		database.DB.Create(&code)
@@ -117,11 +117,11 @@ func (h *Handler) CreateDonate(c *gin.Context) {
 	}
 	adminUser := c.MustGet("user").(*model.User)
 	code := model.Code{
-		Code:       req.Code,
-		Type:       req.Type,
-		Number:     strconv.FormatFloat(req.Amount, 'f', -1, 64),
-		UserID:     int64(adminUser.ID),
-		IsUsed:     1,
+		Code:        req.Code,
+		Type:        req.Type,
+		Number:      strconv.FormatFloat(req.Amount, 'f', -1, 64),
+		UserID:      int64(adminUser.ID),
+		IsUsed:      1,
 		UseDatetime: time.Now(),
 	}
 	if err := database.DB.Create(&code).Error; err != nil {
@@ -173,8 +173,8 @@ func (h *Handler) ListCoupons(c *gin.Context) {
 	for _, cp := range coupons {
 		items = append(items, item{
 			ID: cp.ID, Code: cp.Code,
-			Expire:  time.Unix(cp.Expire, 0).Format("2006-01-02 15:04:05"),
-			Shop:    cp.Shop, Credit: cp.Credit, Onetime: cp.Onetime,
+			Expire: time.Unix(cp.Expire, 0).Format("2006-01-02 15:04:05"),
+			Shop:   cp.Shop, Credit: cp.Credit, Onetime: cp.Onetime,
 			Expired: cp.Expire < now,
 		})
 	}
@@ -293,8 +293,8 @@ func (h *Handler) ListInvites(c *gin.Context) {
 // AddInviteQuota 加邀请次数 (PHP addInvite; 修 uid=0 null 崩溃 bug: uid 为空/0 → 明确报错)
 func (h *Handler) AddInviteQuota(c *gin.Context) {
 	var req struct {
-		UID  string `json:"uid"` // 用户 ID 或邮箱
-		Num  int32  `json:"num"`
+		UID string `json:"uid"` // 用户 ID 或邮箱
+		Num int32  `json:"num"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil || req.Num == 0 {
 		RespondErr(c, "非法请求")

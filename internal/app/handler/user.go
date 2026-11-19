@@ -293,15 +293,15 @@ func (h *UserHandler) Dashboard(c *gin.Context) {
 				"can_checkin":       canCheckin,
 				"last_checkin_time": lastCheckinStr,
 			},
-			"announcements":  formattedList,
+			"announcements": formattedList,
 			"sub_token":     link.Token, // 专有订阅 token
 
 			// ── 旧版用户中心首页 (index.tpl) 对齐字段 ──
 			"expire_in":       user.ExpireIn.Format("2006-01-02 15:04:05"),
-			"node_connector":  user.NodeConnector,                              // 0 = 不限设备数
-			"node_speedlimit": user.NodeSpeedlimit,                             // "0.00" = 不限速 (Mbps)
-			"alive_ip_count":  len(seenAliveIPs),                              // 在线设备数
-			"last_use_time":   user.T,                                          // 最近一次流量上报 (0=从未使用)
+			"node_connector":  user.NodeConnector,  // 0 = 不限设备数
+			"node_speedlimit": user.NodeSpeedlimit, // "0.00" = 不限速 (Mbps)
+			"alive_ip_count":  len(seenAliveIPs),   // 在线设备数
+			"last_use_time":   user.T,              // 最近一次流量上报 (0=从未使用)
 		},
 	})
 }

@@ -61,7 +61,7 @@ type userListItem struct {
 
 func fmtTime(ts int64) string {
 	if ts <= 0 {
-	return ""
+		return ""
 	}
 	return time.Unix(ts, 0).Format("2006-01-02 15:04:05")
 }
@@ -190,20 +190,20 @@ func (h *Handler) ListUsers(c *gin.Context) {
 			Class: u.Class, ClassExpire: fmtDateTime(u.ClassExpire),
 			Passwd: u.Passwd, Port: u.Port, Method: u.Method,
 			Protocol: u.Protocol, Obfs: u.Obfs,
-			OnlineIPCount: ipCount[u.ID],
-			LastSSTime:   fmtTime(u.T),
-			UsedTraffic:  tools.FlowAutoShow(float64(u.U + u.D)),
-			EnableTraffic: tools.FlowAutoShow(float64(u.TransferEnable)),
-			LastCheckinTime: fmtTime(int64(u.LastCheckInTime)),
-			TodayTraffic:   tools.FlowAutoShow(float64(u.U + u.D - u.LastDayT)),
-			Enable:         int32(u.Enable),
-			RegDate:        fmtDateTime(u.RegDate),
-			RegIP:          u.RegIP,
-			AutoResetDay:   u.AutoResetDay,
+			OnlineIPCount:      ipCount[u.ID],
+			LastSSTime:         fmtTime(u.T),
+			UsedTraffic:        tools.FlowAutoShow(float64(u.U + u.D)),
+			EnableTraffic:      tools.FlowAutoShow(float64(u.TransferEnable)),
+			LastCheckinTime:    fmtTime(int64(u.LastCheckInTime)),
+			TodayTraffic:       tools.FlowAutoShow(float64(u.U + u.D - u.LastDayT)),
+			Enable:             int32(u.Enable),
+			RegDate:            fmtDateTime(u.RegDate),
+			RegIP:              u.RegIP,
+			AutoResetDay:       u.AutoResetDay,
 			AutoResetBandwidth: u.AutoResetBandwidth,
-			RefBy:          u.RefBy,
-			RefByUserName:  refNameStr,
-			TopUp:          tu,
+			RefBy:              u.RefBy,
+			RefByUserName:      refNameStr,
+			TopUp:              tu,
 		})
 	}
 

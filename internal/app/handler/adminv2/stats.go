@@ -354,7 +354,7 @@ func (h *Handler) NodeGroupTraffic(c *gin.Context) {
 		"total_used_lastday": totalUsedLastday, "total_supply_daily": totalSupplyDaily,
 		"total_used_lastday_gb": round1(float64(totalUsedLastday) / gb),
 		"total_supply_daily_gb": round1(float64(totalSupplyDaily) / gb),
-		"total_nodes": totalNodes,
-		"used_points": usedPoints, "supply_points": supplyPoints,
+		"total_nodes":           totalNodes,
+		"used_points":           usedPoints, "supply_points": supplyPoints,
 	})
 }

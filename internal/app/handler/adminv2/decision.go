@@ -38,22 +38,22 @@ type decisionThresholds struct {
 	minClonePerClass    int // L6~L10 每级最少 clone (R5)
 	poolMarginPct       int // R9 贴线预警余量 %
 	// ── v2 (.plans/2026-11-11-节点决策台v2-流量够用判定与扩容迁移裁决方案.md) ──
-	overNodeWarnPct   int  // R10 组内超/将超日配额节点比例告警 %
-	overNodeDangerPct int  // 同上红线 %
-	projOverMargin    int  // 节点全天外推超额风险余量 %
-	trimMaxPerNode    int  // R14 冗余判定: 人/台低于此值才可迁出
-	minKeepDefault    int  // R14 非 G5 组迁出后至少保留的可用节点数
-	trendDaysWarn     int  // R14 watch: 趋势外推距 95% 红线不足此天数
-	perClass          int  // PHP Config node_sub_limit_per_class (Go 配置无此键, 取 config.default.php 默认 8)
-	subBase           int  // PHP Config node_sub_limit_base (默认 10)
-	groupTarget       int  // PHP Config node_decision_group_user_target (默认 1000)
+	overNodeWarnPct   int // R10 组内超/将超日配额节点比例告警 %
+	overNodeDangerPct int // 同上红线 %
+	projOverMargin    int // 节点全天外推超额风险余量 %
+	trimMaxPerNode    int // R14 冗余判定: 人/台低于此值才可迁出
+	minKeepDefault    int // R14 非 G5 组迁出后至少保留的可用节点数
+	trendDaysWarn     int // R14 watch: 趋势外推距 95% 红线不足此天数
+	perClass          int // PHP Config node_sub_limit_per_class (Go 配置无此键, 取 config.default.php 默认 8)
+	subBase           int // PHP Config node_sub_limit_base (默认 10)
+	groupTarget       int // PHP Config node_decision_group_user_target (默认 1000)
 }
 
 var decisionPresets = decisionThresholds{
 	onlinePerNodeWarn: 150, onlinePerNodeDanger: 250,
 	utilWarn: 80, utilDanger: 95, utilIdle: 40,
 	g5MinKeep: 3, minRealPerClass: 1, minClonePerClass: 1,
-	poolMarginPct: 10,
+	poolMarginPct:   10,
 	overNodeWarnPct: 30, overNodeDangerPct: 50, projOverMargin: 10,
 	trimMaxPerNode: 80, minKeepDefault: 1, trendDaysWarn: 7,
 	perClass: 8, subBase: 10, groupTarget: 1000,
@@ -248,8 +248,8 @@ func fetchGroupTodayTraffic() map[int]int64 {
 		Today int64 `gorm:"column:today"`
 	}
 	database.DB.Raw(
-		"SELECT node_group AS g, SUM(CASE WHEN traffic_used >= traffic_used_lastday "+
-			"THEN traffic_used - traffic_used_lastday ELSE traffic_used END) AS today "+
+		"SELECT node_group AS g, SUM(CASE WHEN traffic_used >= traffic_used_lastday " +
+			"THEN traffic_used - traffic_used_lastday ELSE traffic_used END) AS today " +
 			"FROM ss_node WHERE is_clone = 0 GROUP BY node_group",
 	).Scan(&rows)
 	m := make(map[int]int64, len(rows))
@@ -406,8 +406,8 @@ func groupTraffic7dSeries(nodes []model.Node, windows map[int32][]int64, group i
 
 // ════════════════════════ PHP 数值/格式化语义辅助 ════════════════════════
 
-func round1(v float64) float64  { return math.Round(v*10) / 10 }  // PHP round(x,1)
-func round2f(v float64) float64 { return math.Round(v*100) / 100 } // PHP round(x,2)
+func ndRound1(v float64) float64  { return math.Round(v*10) / 10 }   // PHP round(x,1)
+func ndRound2f(v float64) float64 { return math.Round(v*100) / 100 } // PHP round(x,2)
 
 // phpFloatStr PHP 浮点转字符串语义 (无多余尾零: 87.5→"87.5", 95→"95")
 func phpFloatStr(v float64) string {
@@ -458,21 +458,21 @@ func pctOrNullF(v *float64) string {
 	return phpFloatStr(*v) + "%"
 }
 
-func maxInt(a, b int) int {
+func ndMaxInt(a, b int) int {
 	if a > b {
 		return a
 	}
 	return b
 }
 
-func minInt(a, b int) int {
+func ndMinInt(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
 }
 
-func maxI64(a, b int64) int64 {
+func ndMaxI64(a, b int64) int64 {
 	if a > b {
 		return a
 	}
@@ -513,14 +513,14 @@ type insightItem struct {
 
 type nodeRollT struct {
 	usable, serving, cold, over, risk, cycle, ok int
-	projDemand                                    int64
-	costUsable                                    int64
+	projDemand                                   int64
+	costUsable                                   int64
 }
 
 type groupRowT struct {
-	Users, Live30, Live24   int64
-	TodayTraffic            int64
-	RealAlive, RealAll      int64
+	Users, Live30, Live24    int64
+	TodayTraffic             int64
+	RealAlive, RealAll       int64
 	RealDead, CloneAll, Cost int64
 	SupplyDaily, UsedLastday int64
 	Util, PerNode            *float64
@@ -544,7 +544,7 @@ type verdictT struct {
 
 type insightsResult struct {
 	Insights     []insightItem
-	GroupIDs     []int          // 组序 (5..0 优先, 其余升序追加)
+	GroupIDs     []int // 组序 (5..0 优先, 其余升序追加)
 	Groups       map[string]gin.H
 	Cells        map[string]map[string]gin.H
 	Verdicts     map[string]verdictT
@@ -575,17 +575,17 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 	g5Keep := th.g5MinKeep
 	minReal := th.minRealPerClass
 	minClone := th.minClonePerClass
-	margin := maxInt(0, th.poolMarginPct)
+	margin := ndMaxInt(0, th.poolMarginPct)
 	overWarn := th.overNodeWarnPct
 	overDanger := th.overNodeDangerPct
-	projMargin := maxInt(0, th.projOverMargin)
+	projMargin := ndMaxInt(0, th.projOverMargin)
 	trimPerNode := th.trimMaxPerNode
 	keepDefault := th.minKeepDefault
 	trendDays := th.trendDaysWarn
 
 	// ---- 索引化: U[g][c] / N[g][c] ----
 	type uCell struct {
-		maxc              int
+		maxc                  int
 		users, live30, live24 int64
 	}
 	type nCell struct {
@@ -605,7 +605,7 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 				cur.maxc = r.Maxc
 			}
 		} else {
-			U[r.G][r.C] = &uCell{maxc: maxInt(r.C, r.Maxc), users: r.Users, live30: r.Live30, live24: r.Live24}
+			U[r.G][r.C] = &uCell{maxc: ndMaxInt(r.C, r.Maxc), users: r.Users, live30: r.Live30, live24: r.Live24}
 		}
 	}
 	N := map[int]map[int]*nCell{}
@@ -709,8 +709,8 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 
 	// ---- 每组聚合 + 前缀和(池/活跃真实) + 后缀和(用户/在线) ----
 	groupRows := map[int]*groupRowT{}
-	poolCum := map[int][11]int64{}       // [g][c] = Σ_{c'<=c} (real_all+clone_all) 与订阅可见池同口径
-	realAliveCum := map[int][11]int64{}  // [g][c] = Σ_{c'<=c} real_alive
+	poolCum := map[int][11]int64{}        // [g][c] = Σ_{c'<=c} (real_all+clone_all) 与订阅可见池同口径
+	realAliveCum := map[int][11]int64{}   // [g][c] = Σ_{c'<=c} real_alive
 	usersAtOrAbove := map[int][11]int64{} // [g][c] = Σ_{c'>=c} users
 	live30AtOrAbove := map[int][11]int64{}
 	for _, g := range groups {
@@ -739,11 +739,11 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 		sum.SupplyDaily = supply
 		sum.UsedLastday = used
 		if supply > 0 {
-			v := round1(float64(used) / float64(supply) * 100)
+			v := ndRound1(float64(used) / float64(supply) * 100)
 			sum.Util = &v
 		}
 		if sum.RealAlive > 0 {
-			v := round1(float64(sum.Live30) / float64(sum.RealAlive))
+			v := ndRound1(float64(sum.Live30) / float64(sum.RealAlive))
 			sum.PerNode = &v
 		}
 		// v2 字段: 可用层/超额比例/今日外推/每$覆盖 (nodeRows 为空时全为 0/null, 与 v1 同形)
@@ -753,24 +753,24 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 			sum.OverDen = roll.serving
 			sum.OverCnt = roll.over + roll.risk
 			if roll.serving > 0 {
-				v := round1(float64(roll.over+roll.risk) / float64(roll.serving) * 100)
+				v := ndRound1(float64(roll.over+roll.risk) / float64(roll.serving) * 100)
 				sum.OverPct = &v
 			}
 			sum.CycleCnt = roll.cycle
 			sum.ColdCnt = roll.cold
 			sum.ProjDemand = roll.projDemand
 			if supply > 0 {
-				v := round1(float64(roll.projDemand) / float64(supply) * 100)
+				v := ndRound1(float64(roll.projDemand) / float64(supply) * 100)
 				sum.ProjUtil = &v
 			}
 			costU := roll.costUsable
 			if costU > 0 {
-				v := round1(float64(sum.Live24) / float64(costU))
+				v := ndRound1(float64(sum.Live24) / float64(costU))
 				sum.CovLive = &v
-				v2 := round1(float64(sum.Users) / float64(costU))
+				v2 := ndRound1(float64(sum.Users) / float64(costU))
 				sum.CovTotal = &v2
 				if sum.Live24 > 0 {
-					v3 := round2f(float64(costU) / float64(sum.Live24))
+					v3 := ndRound2f(float64(costU) / float64(sum.Live24))
 					sum.CostPerLive = &v3
 				}
 			}
@@ -778,23 +778,29 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 		groupRows[g] = sum
 
 		var pool, ra int64
-		for _, c := range classes {
+		var poolArr, raArr [11]int64
+		for ci, c := range classes {
 			if n := N[g][c]; n != nil {
 				pool += n.realAll + n.cloneAll
 				ra += n.realAlive
 			}
-			poolCum[g][c] = pool
-			realAliveCum[g][c] = ra
+			poolArr[ci] = pool
+			raArr[ci] = ra
 		}
+		poolCum[g] = poolArr
+		realAliveCum[g] = raArr
 		var ua, la int64
+		var uaArr, laArr [11]int64
 		for i := 10; i >= 0; i-- {
 			if u := U[g][i]; u != nil {
 				ua += u.users
 				la += u.live30
 			}
-			usersAtOrAbove[g][i] = ua
-			live30AtOrAbove[g][i] = la
+			uaArr[i] = ua
+			laArr[i] = la
 		}
+		usersAtOrAbove[g] = uaArr
+		live30AtOrAbove[g] = laArr
 	}
 
 	// ---- 节点池矩阵 cells ----
@@ -808,7 +814,7 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 			if u := U[g][c]; u != nil {
 				users = u.users
 				live30 = u.live30
-				maxc = maxInt(c, u.maxc)
+				maxc = ndMaxInt(c, u.maxc)
 			}
 			pool := poolCum[g][c]
 			// need 展示口径 = 等级×per_class (不含隐藏保底基数 base, 实际生效上限
@@ -930,7 +936,7 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 			la := live30AtOrAbove[g][c]
 			rc := realAliveCum[g][c]
 			if rc > 0 && float64(la)/float64(rc) > float64(warnNode) {
-				ratio := round1(float64(la) / float64(rc))
+				ratio := ndRound1(float64(la) / float64(rc))
 				push("yellow", "R8", fmt.Sprintf("G%d L%d+ 在线 %d 人 / 累计活跃真实节点 %d 台 ≈ %s 人/台 —— 建议该组加节点或从 G5 迁入", g, c, la, rc, phpFloatStr(ratio)))
 			}
 		}
@@ -1011,7 +1017,8 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 	//   P(单台日供给)=supply/usable;  need=max(昨日, 今日外推, 7天日均);
 	//   gap=ceil((need-supply)/P);    spare=min(usable-keep, floor((supply-need/util_idle)/P))
 	//   判定按序短路: broken(无可用) > add(红线信号) > watch(黄线/趋势) > trim(闲置) > ok
-	verdicts := map[string]verdictT{}
+	verdicts := map[string]verdictT{} // key: g (string)
+	orderedVerdictGs := make([]int, 0, len(groups))
 	orderedVerdicts := make([]verdictT, 0, len(groups))
 	totGap, totSpare := 0, 0
 	addGroups, trimGroups := []string{}, []string{}
@@ -1033,7 +1040,7 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 			if usable > 0 && supply > 0 {
 				P = float64(supply) / float64(usable)
 			}
-			need := maxI64(row.UsedLastday, maxI64(row.ProjDemand, avg7d))
+			need := ndMaxI64(row.UsedLastday, ndMaxI64(row.ProjDemand, avg7d))
 			gap := 0
 			if need > supply {
 				// P=0(冷启动/供给未统计): 只知缺, 至少缺 1 台
@@ -1050,8 +1057,8 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 			spare := 0
 			if P > 0 && usable > keep {
 				// 迁走 k 台后组 util 升至刚好 idle% 为上限 —— 只捐真正闲的供给
-				kUtil := int(math.Floor((float64(supply) - float64(need)*100/float64(maxInt(1, utilIdle))) / P))
-				spare = maxInt(0, minInt(usable-keep, kUtil))
+				kUtil := int(math.Floor((float64(supply) - float64(need)*100/float64(ndMaxInt(1, utilIdle))) / P))
+				spare = ndMaxInt(0, ndMinInt(usable-keep, kUtil))
 			}
 
 			reasons := []string{}
@@ -1115,9 +1122,9 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 					// R4 付费级缺口按缺一级补一台计
 					verdict = "add"
 					if len(r4Missing) > 0 {
-						gap = maxInt(gap, len(r4Missing))
+						gap = ndMaxInt(gap, len(r4Missing))
 					} else {
-						gap = maxInt(gap, 1)
+						gap = ndMaxInt(gap, 1)
 					}
 					reasons = addHit
 					if P > 0 {
@@ -1171,6 +1178,7 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 				},
 			}
 			verdicts[strconv.Itoa(g)] = v
+			orderedVerdictGs = append(orderedVerdictGs, g)
 			orderedVerdicts = append(orderedVerdicts, v)
 			if verdict == "add" {
 				totGap += gap
@@ -1184,7 +1192,7 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 
 	// R14 裁决条目 (排在 R9 防墙红线之后, 见下方 ruleRank)
 	for i, v := range orderedVerdicts {
-		g := groups[i+1] // orderedVerdicts 与 groups 中 g != 0 的子序列一一对应
+		g := orderedVerdictGs[i]
 		why := strings.Join(v.Reasons, " · ")
 		switch v.Verdict {
 		case "broken":
@@ -1229,9 +1237,9 @@ func buildInsights(in buildInsightsInputs) *insightsResult {
 			}
 		}
 		if tc > 0 && tl > 0 {
-			v := round1(float64(tl) / float64(tc))
+			v := ndRound1(float64(tl) / float64(tc))
 			covLive = &v
-			v2 := round2f(float64(tc) / float64(tl))
+			v2 := ndRound2f(float64(tc) / float64(tl))
 			covPerLive = &v2
 		}
 	}
@@ -1470,9 +1478,9 @@ func (h *Handler) NodeDecision(c *gin.Context) {
 			Alive:        aliveMap[n.ID],
 			HeartbeatMin: heartbeatMin,
 			UsedLastday:  n.TrafficUsedLastday,
-			UsedGB:       round1(float64(n.TrafficUsedLastday) / 1073741824),
-			TodayGB:      round1(float64(todayUsed) / 1073741824),
-			QuotaGB:      round1(float64(quota) / 1073741824),
+			UsedGB:       ndRound1(float64(n.TrafficUsedLastday) / 1073741824),
+			TodayGB:      ndRound1(float64(todayUsed) / 1073741824),
+			QuotaGB:      ndRound1(float64(quota) / 1073741824),
 			TodayPct:     todayPct,
 		}
 		if n.NodeHeartbeat <= h7 {
@@ -1543,8 +1551,8 @@ func (h *Handler) NodeDecision(c *gin.Context) {
 		disabledNodes = append(disabledNodes, disabledNodeRow{
 			ID: n.ID, Name: n.Name, Group: n.NodeGroup, Class: n.NodeClass,
 			HeartbeatMin: heartbeatMin,
-			UsedGB:       round1(float64(n.TrafficUsed) / 1073741824),
-			LimitGB:      round1(float64(n.TrafficLimit) / 1073741824),
+			UsedGB:       ndRound1(float64(n.TrafficUsed) / 1073741824),
+			LimitGB:      ndRound1(float64(n.TrafficLimit) / 1073741824),
 		})
 	}
 

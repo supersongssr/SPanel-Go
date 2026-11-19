@@ -68,11 +68,11 @@ func (h *UserHandler) CodeHistory(c *gin.Context) {
 			typeDesc = "支出"
 		}
 		items = append(items, gin.H{
-			"id":         cd.ID,
-			"code":       cd.Code,
-			"type":       cd.Type,
-			"type_desc":  typeDesc,
-			"number":     cd.Number,
+			"id":          cd.ID,
+			"code":        cd.Code,
+			"type":        cd.Type,
+			"type_desc":   typeDesc,
+			"number":      cd.Number,
 			"usedatetime": cd.UseDatetime.Format("2006-01-02 15:04:05"),
 		})
 	}
@@ -98,7 +98,8 @@ func (h *UserHandler) CodeHistory(c *gin.Context) {
 
 // buildClonepayPayURL 拼装 clonepay 多站点跳转签名 URL
 // (PHP 口径: code=站点key, sign=md5(email & Ymd & logintoken); 具体 query 形态随站点配置,
-//  Go 侧以 payment.clonepay_apis 首站点 + JWT 作为 logintoken 等价物)
+//
+//	Go 侧以 payment.clonepay_apis 首站点 + JWT 作为 logintoken 等价物)
 func buildClonepayPayURL(c *gin.Context, user *model.User) string {
 	if len(config.GlobalConfig.Payment.ClonepayAPIs) == 0 {
 		return ""
@@ -135,8 +136,8 @@ func (h *UserHandler) CodeActivate(c *gin.Context) {
 	res := database.DB.Model(&model.Code{}).
 		Where("id = ? AND isused = 0", codeRow.ID).
 		Updates(map[string]interface{}{
-			"isused":     1,
-			"userid":     user.ID,
+			"isused":      1,
+			"userid":      user.ID,
 			"usedatetime": time.Now(),
 		})
 	if res.Error != nil || res.RowsAffected == 0 {
@@ -307,10 +308,10 @@ func (h *UserHandler) ShopList(c *gin.Context) {
 	for _, s := range shops {
 		content := parseShopContent(s.Content)
 		items = append(items, gin.H{
-			"id":     s.ID,
-			"name":   s.Name,
-			"price":  s.Price,
-			"content": content,
+			"id":         s.ID,
+			"name":       s.Name,
+			"price":      s.Price,
+			"content":    content,
 			"auto_renew": s.AutoRenew,
 		})
 	}
@@ -483,14 +484,14 @@ func (h *UserHandler) BoughtList(c *gin.Context) {
 		shop := shopMap[b.ShopID]
 		content := parseShopContent(shop.Content)
 		items = append(items, gin.H{
-			"id":       b.ID,
-			"shop_id":  b.ShopID,
+			"id":        b.ID,
+			"shop_id":   b.ShopID,
 			"shop_name": shop.Name,
-			"price":    b.Price,
-			"coupon":   b.Coupon,
-			"datetime": time.Unix(b.DateTime, 0).Format("2006-01-02 15:04:05"),
-			"renew":    b.Renew,
-			"content":  content,
+			"price":     b.Price,
+			"coupon":    b.Coupon,
+			"datetime":  time.Unix(b.DateTime, 0).Format("2006-01-02 15:04:05"),
+			"renew":     b.Renew,
+			"content":   content,
 		})
 	}
 
@@ -597,9 +598,9 @@ func (h *UserHandler) VipApply(c *gin.Context) {
 	if topup < 230 {
 		// 封号保护 (PHP 原样保留语义)
 		database.DB.Model(&model.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
-			"enable":      0,
-			"ban_times":   user.BanTimes + 3,
-			"warming":     "检测到异常的 VIP10 申请行为，账户已被暂时锁定，请联系客服解封",
+			"enable":        0,
+			"ban_times":     user.BanTimes + 3,
+			"warming":       "检测到异常的 VIP10 申请行为，账户已被暂时锁定，请联系客服解封",
 			"token_version": user.TokenVersion + 1,
 		})
 		service.DefaultAuthService.ClearAuthCookie(c)
@@ -749,11 +750,11 @@ func (h *UserHandler) DonateList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"ret": 1, "msg": "获取成功",
 		"data": gin.H{
-			"items":    items,
-			"total":    total,
-			"income":   income,
-			"expense":  expense,
-			"is_hide":  user.IsHide,
+			"items":   items,
+			"total":   total,
+			"income":  income,
+			"expense": expense,
+			"is_hide": user.IsHide,
 		},
 	})
 }

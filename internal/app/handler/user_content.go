@@ -40,7 +40,7 @@ func (h *UserHandler) Announcements(c *gin.Context) {
 			"ret": 1, "msg": "获取成功",
 			"data": gin.H{
 				"id": ann.ID, "title": title,
-				"date": ann.Date.Format("2006-01-02 15:04:05"),
+				"date":    ann.Date.Format("2006-01-02 15:04:05"),
 				"content": ann.Content, "markdown": ann.Markdown,
 			},
 		})
@@ -61,7 +61,7 @@ func (h *UserHandler) Announcements(c *gin.Context) {
 		}
 		items = append(items, gin.H{
 			"id": a.ID, "title": title,
-			"date": a.Date.Format("2006-01-02 15:04:05"),
+			"date":     a.Date.Format("2006-01-02 15:04:05"),
 			"markdown": a.Markdown,
 		})
 	}
@@ -167,9 +167,9 @@ func (h *UserHandler) LookingGlass(c *gin.Context) {
 	items := make([]gin.H, 0, len(tests))
 	for _, t := range tests {
 		items = append(items, gin.H{
-			"id":     t.ID,
-			"node":   nodeMap[t.NodeID],
-			"time":   time.Unix(t.DateTime, 0).Format("2006-01-02 15:04:05"),
+			"id":      t.ID,
+			"node":    nodeMap[t.NodeID],
+			"time":    time.Unix(t.DateTime, 0).Format("2006-01-02 15:04:05"),
 			"telecom": gin.H{"ping": t.Telecomping, "up": t.Telecomeupload, "down": t.Telecomedownload},
 			"unicom":  gin.H{"ping": t.Unicomping, "up": t.Unicomupload, "down": t.Unicomdownload},
 			"cmcc":    gin.H{"ping": t.Cmccping, "up": t.Cmccupload, "down": t.Cmccdownload},
@@ -238,10 +238,10 @@ func (h *UserHandler) NodeUnlock(c *gin.Context) {
 	}
 
 	type nodeUnlockRow struct {
-		ID          int32  `json:"id"`
-		Name        string `json:"name"`
-		Status      string `json:"status"`
-		NodeUnlock  string `json:"node_unlock_raw"`
+		ID          int32   `json:"id"`
+		Name        string  `json:"name"`
+		Status      string  `json:"status"`
+		NodeUnlock  string  `json:"node_unlock_raw"`
 		TrafficRate float32 `json:"traffic_rate"`
 	}
 	var rows []nodeUnlockRow
@@ -323,9 +323,9 @@ func (h *UserHandler) TrafficLog(c *gin.Context) {
 
 	// 2. N 天日粒度汇总
 	type dailyRow struct {
-		LogTime string  `json:"date"`
-		U       int64   `json:"u"`
-		D       int64   `json:"d"`
+		LogTime string `json:"date"`
+		U       int64  `json:"u"`
+		D       int64  `json:"d"`
 	}
 	var dailies []dailyRow
 	database.DB.Table("user_traffic_log").
@@ -411,12 +411,12 @@ func (h *UserHandler) RelayList(c *gin.Context) {
 	items := make([]gin.H, 0, len(relays))
 	for _, r := range relays {
 		items = append(items, gin.H{
-			"id":         r.ID,
+			"id":          r.ID,
 			"source_node": gin.H{"id": r.SourceNodeID, "name": nodeNameMap[r.SourceNodeID]},
 			"dist_node":   gin.H{"id": r.DistNodeID, "name": nodeNameMap[r.DistNodeID]},
-			"dist_ip":    r.DistIP,
-			"port":       r.Port,
-			"priority":   r.Priority,
+			"dist_ip":     r.DistIP,
+			"port":        r.Port,
+			"priority":    r.Priority,
 		})
 	}
 
@@ -585,9 +585,9 @@ func (h *UserHandler) RssList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"ret": 1, "msg": "获取成功",
 		"data": gin.H{
-			"items":      items,
-			"max":        5,
-			"sub_limit":  user.SubLimit,
+			"items":     items,
+			"max":       5,
+			"sub_limit": user.SubLimit,
 		},
 	})
 }
@@ -669,4 +669,3 @@ func (h *UserHandler) GetIosConf(c *gin.Context) {
 	c.Header("Content-Disposition", "attachment; filename=allinone.conf")
 	c.Data(http.StatusOK, "application/octet-stream", []byte(b.String()))
 }
-

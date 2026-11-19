@@ -48,7 +48,7 @@ func (h *Handler) GetUser(c *gin.Context) {
 		"obfs": user.Obfs, "obfs_param": user.ObfsParam,
 		"transfer_enable_gb": float64(user.TransferEnable) / gb, // 表单单位 GB (PHP enableTrafficInGB)
 		"transfer_limit":     user.TransferLimit,
-		"auto_reset_day": user.AutoResetDay, "auto_reset_bandwidth": user.AutoResetBandwidth,
+		"auto_reset_day":     user.AutoResetDay, "auto_reset_bandwidth": user.AutoResetBandwidth,
 		"invite_num": user.InviteNum, "ref_by": user.RefBy,
 		"node_group": user.NodeGroup, "class": user.Class,
 		"class_expire": fmtDT(user.ClassExpire), "expire_in": fmtDT(user.ExpireIn),
@@ -101,34 +101,34 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 	}
 
 	var req struct {
-		Email              string `json:"email"`
-		Pass               string `json:"pass"` // 不修改留空
-		AutoResetDay       int32  `json:"auto_reset_day"`
-		AutoResetBandwidth string `json:"auto_reset_bandwidth"`
-		Port               int32  `json:"port"`
-		Passwd             string `json:"passwd"`
-		Protocol           string `json:"protocol"`
-		ProtocolParam      string `json:"protocol_param"`
-		Obfs               string `json:"obfs"`
-		ObfsParam          string `json:"obfs_param"`
-		IsMultiUser        int32  `json:"is_multi_user"`
+		Email              string  `json:"email"`
+		Pass               string  `json:"pass"` // 不修改留空
+		AutoResetDay       int32   `json:"auto_reset_day"`
+		AutoResetBandwidth string  `json:"auto_reset_bandwidth"`
+		Port               int32   `json:"port"`
+		Passwd             string  `json:"passwd"`
+		Protocol           string  `json:"protocol"`
+		ProtocolParam      string  `json:"protocol_param"`
+		Obfs               string  `json:"obfs"`
+		ObfsParam          string  `json:"obfs_param"`
+		IsMultiUser        int32   `json:"is_multi_user"`
 		TransferEnableGB   float64 `json:"transfer_enable"` // 单位 GB (PHP Tools::toGB)
-		TransferLimit      int64  `json:"transfer_limit"`
-		InviteNum          int32  `json:"invite_num"`
-		Method             string `json:"method"`
-		NodeSpeedlimit     string `json:"node_speedlimit"`
-		NodeConnector      int32  `json:"node_connector"`
-		Enable             int32  `json:"enable"`
-		GaEnable           int32  `json:"ga_enable"`
-		NodeGroup          int32  `json:"group"` // PHP 参数名 group
-		RefBy              int32  `json:"ref_by"`
-		Remark             string `json:"remark"`
-		Money              string `json:"money"`
-		Class              int32  `json:"class"`
-		ClassExpire        string `json:"class_expire"` // "2006-01-02 15:04:05"
-		ExpireIn           string `json:"expire_in"`
-		ForbiddenIP        string `json:"forbidden_ip"`   // 多行, 存时转逗号
-		ForbiddenPort      string `json:"forbidden_port"` // 多行, 存时转逗号
+		TransferLimit      int64   `json:"transfer_limit"`
+		InviteNum          int32   `json:"invite_num"`
+		Method             string  `json:"method"`
+		NodeSpeedlimit     string  `json:"node_speedlimit"`
+		NodeConnector      int32   `json:"node_connector"`
+		Enable             int32   `json:"enable"`
+		GaEnable           int32   `json:"ga_enable"`
+		NodeGroup          int32   `json:"group"` // PHP 参数名 group
+		RefBy              int32   `json:"ref_by"`
+		Remark             string  `json:"remark"`
+		Money              string  `json:"money"`
+		Class              int32   `json:"class"`
+		ClassExpire        string  `json:"class_expire"` // "2006-01-02 15:04:05"
+		ExpireIn           string  `json:"expire_in"`
+		ForbiddenIP        string  `json:"forbidden_ip"`   // 多行, 存时转逗号
+		ForbiddenPort      string  `json:"forbidden_port"` // 多行, 存时转逗号
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		RespondErr(c, "参数有误: "+err.Error())
@@ -239,7 +239,7 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 	}
 
 	// v5 注册返利回收 (仅旧口径 ref_rebate_status=0 且从未充值; 失败不阻断删除)
-_, _ = service.ClawbackLegacy(c.Request.Context(), id)
+	_, _ = service.ClawbackLegacy(c.Request.Context(), id)
 
 	// kill_user 幽灵保护: 未过期且配额有余量 → 拒绝 (节点上会留幽灵账号)
 	now := time.Now()

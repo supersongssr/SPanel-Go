@@ -112,7 +112,7 @@ func RegisterUserRoutes(r *gin.Engine) {
 		// 工单
 		userGroup.GET("/ticket", tk.GetTickets)
 		userGroup.POST("/ticket", tk.CreateTicket)
-		userGroup.GET("/ticket/open", tk.OpenTickets)       // 公开工单板块
+		userGroup.GET("/ticket/open", tk.OpenTickets) // 公开工单板块
 		userGroup.GET("/ticket/open/:id", tk.OpenTicketDetail)
 		userGroup.GET("/ticket/:id", tk.GetTicketDetail)
 		userGroup.PUT("/ticket/:id", tk.ReplyTicket)

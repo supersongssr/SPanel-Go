@@ -28,11 +28,11 @@ var legacyRedirectPermanent = false
 
 // authLegacyMap /auth 旧路径精确重定向表 (query 自动透传)
 var authLegacyMap = map[string]string{
-	"/auth/login":           "/auth/login.html",
-	"/auth/register":        "/auth/register.html", // ?code=/?ref= 由页面双兼容
-	"/auth/logout":          "/auth/logout.html",
-	"/auth/password/reset":  "/auth/reset.html",
-	"/auth/token":           "/auth/token.html",
+	"/auth/login":          "/auth/login.html",
+	"/auth/register":       "/auth/register.html", // ?code=/?ref= 由页面双兼容
+	"/auth/logout":         "/auth/logout.html",
+	"/auth/password/reset": "/auth/reset.html",
+	"/auth/token":          "/auth/token.html",
 }
 
 // userLegacyBridge /user 副作用 GET → bridge 页 (直接服务, 无跳转垫跃)
@@ -57,19 +57,27 @@ func RegisterAdminStatic(r *gin.Engine) {
 }
 
 // mountStatic 将 public/<name> 目录挂载至 /<name>/* 路径 (仅用于无 legacy 需求的目录)
+// (staticFS: 磁盘 public/ 优先, 不存在时回退内嵌 —— 见 staticfs.go)
 func mountStatic(r *gin.Engine, names ...string) {
 	for _, n := range names {
-		r.Static("/"+n, filepath.Join("public", n))
+		r.StaticFS("/"+n, ginSubFS(n))
 	}
 }
 
 // registerCommonPages 根页面 + NoRoute 统一入口 (auth/user 静态 + legacy + 404)
 func registerCommonPages(r *gin.Engine) {
-	r.StaticFile("/", "public/index.html")
-	r.StaticFile("/index.html", "public/index.html")
-	r.StaticFile("/404.html", "public/404.html")
+	staticPage := func(route, rel string) {
+		r.GET(route, func(c *gin.Context) {
+			if !serveStaticFSFile(c, rel) {
+				c.Status(http.StatusNotFound)
+			}
+		})
+	}
+	staticPage("/", "index.html")
+	staticPage("/index.html", "index.html")
+	staticPage("/404.html", "404.html")
 	// 用户中心首页 (方案 B: dashboard.html 重命名为 index.html, /user/ 直出免跳转)
-	r.StaticFile("/user/", "public/user/index.html")
+	staticPage("/user/", "user/index.html")
 
 	r.NoRoute(func(c *gin.Context) {
 		p := c.Request.URL.Path
@@ -162,16 +170,19 @@ func tryServeStatic(c *gin.Context, p string) bool {
 	}
 
 	full := filepath.Join("public", filepath.FromSlash(rel))
-	if !fileExists(full) {
+	if first == "download" {
+		// download 不入内嵌 (1.2GB 安装包), 始终磁盘服务
+		if !fileExists(full) {
+			return false
+		}
+		c.Header("Cache-Control", "max-age=86400")
+		c.File(full)
+		return true
+	}
+	if _, err := staticStat(rel); err != nil {
 		return false
 	}
-	if strings.HasSuffix(full, ".html") {
-		c.Header("Cache-Control", "no-cache")
-	} else {
-		c.Header("Cache-Control", "max-age=86400")
-	}
-	c.File(full)
-	return true
+	return serveStaticFSFile(c, rel)
 }
 
 // matchSegments 匹配 /prefix/<seg>/<suffix> 形态, 返回中间段
@@ -205,7 +216,9 @@ func querySuffix(c *gin.Context) string {
 // bridgePage 服务通用副作用 bridge 页
 func bridgePage(c *gin.Context) {
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-	c.File(filepath.Join("public", "user", "bridge.html"))
+	if !serveStaticFSFile(c, "user/bridge.html") {
+		c.Status(http.StatusNotFound)
+	}
 }
 
 func fileExists(path string) bool {
@@ -216,7 +229,7 @@ func fileExists(path string) bool {
 func serveNotFound(c *gin.Context) {
 	c.Status(http.StatusNotFound)
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	body, err := os.ReadFile("public/404.html")
+	body, err := staticReadFile("404.html")
 	if err != nil {
 		_, _ = c.Writer.WriteString("<h1>404 Not Found</h1>")
 		return

@@ -53,7 +53,7 @@ func (h *Handler) GetProfile(c *gin.Context) {
 		ID       int64  `json:"id"`
 		UserID   int64  `json:"userid"`
 		UserName string `json:"user_name"`
-		Total    string `json:"total"`  // 订单金额
+		Total    string `json:"total"`   // 订单金额
 		RefGet   string `json:"ref_get"` // 返利金额
 		DateTime string `json:"datetime"`
 		Callback int32  `json:"callback"`
@@ -112,9 +112,9 @@ func (h *Handler) GetProfile(c *gin.Context) {
 			"class": user.Class, "class_expire": fmtDT(user.ClassExpire),
 			"money": user.Money, "invite_num": user.InviteNum, "ref_by": user.RefBy,
 		},
-		"rebates":    rebates,
+		"rebates":      rebates,
 		"rebate_total": total,
-		"online_ips": onlineIPs,
-		"logins":     logins,
+		"online_ips":   onlineIPs,
+		"logins":       logins,
 	})
 }

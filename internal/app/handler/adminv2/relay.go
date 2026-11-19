@@ -193,7 +193,7 @@ func (h *Handler) CreateRelay(c *gin.Context) {
 	}
 	rule := model.Relay{
 		UserID: f.UserID, DistNodeID: f.DistNodeID,
-		DistIP: getRelayNodeIp(&sourceNode, &distNode),
+		DistIP:       getRelayNodeIp(&sourceNode, &distNode),
 		SourceNodeID: f.SourceNodeID, Port: f.Port, Priority: f.Priority,
 	}
 	var ruleset []model.Relay

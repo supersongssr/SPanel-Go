@@ -121,7 +121,7 @@ func (h *Handler) CreateAnnouncement(c *gin.Context) {
 	}
 
 	if req.Issend == 1 {
-		const sendPageLimit = 50   // 每批用户数
+		const sendPageLimit = 50    // 每批用户数
 		const sendTimeBudget = 55e9 // 单请求发信时间预算 (55s, ns)
 
 		var users []model.User
@@ -137,8 +137,8 @@ func (h *Handler) CreateAnnouncement(c *gin.Context) {
 				continue
 			}
 			m := mailer.Mail{
-				To:      u.Email,
-				Subject: appName + "-公告",
+				To:       u.Email,
+				Subject:  appName + "-公告",
 				HTMLBody: "<p>" + req.Content + "</p>",
 			}
 			_ = mailer.Send(m) // 失败跳过 (PHP try/catch continue 同口径)
@@ -203,4 +203,3 @@ func (h *Handler) DeleteAnnouncement(c *gin.Context) {
 	}
 	RespondOK(c, "删除成功")
 }
-

@@ -109,9 +109,9 @@ func (h *Handler) ListNodes(c *gin.Context) {
 			Status: n.Status, Server: n.Server, NodeIP: n.NodeIP, TrafficRate: n.TrafficRate,
 			NodeCost: n.NodeCost, NodeOnline: n.NodeOnline, NodeOnCost: n.NodeOnCost,
 			NodeGroup: n.NodeGroup, NodeClass: n.NodeClass, NodeSpeedlimit: n.NodeSpeedlimit,
-			NodeBandwidth: n.NodeBandwidth,
-			TrafficUsed:  tools.FlowAutoShow(float64(n.TrafficUsed)),
-			TrafficLimit: tools.FlowAutoShow(float64(n.TrafficLimit)),
+			NodeBandwidth:   n.NodeBandwidth,
+			TrafficUsed:     tools.FlowAutoShow(float64(n.TrafficUsed)),
+			TrafficLimit:    tools.FlowAutoShow(float64(n.TrafficLimit)),
 			TrafficResetDay: n.TrafficResetDay, NodeHeartbeat: hb,
 			CustomMethod: n.CustomMethod, CustomRSS: n.CustomRSS, MuOnly: n.MuOnly,
 			Info: n.Info, HeartbeatOk: now-n.NodeHeartbeat < 300,
@@ -141,7 +141,7 @@ type nodeForm struct {
 	NodeBandwidthLimit float64 `json:"node_bandwidth_limit"` // 月流量限额 GB
 	TrafficResetDay    int32   `json:"traffic_reset_day"`
 	// 仅编辑
-	NodeSort             int32   `json:"node_sort"`
+	NodeSort             int32    `json:"node_sort"`
 	TrafficUsedCalibrate *float64 `json:"traffic_used_calibrate"` // GB
 	ServerUptimeDays     *float64 `json:"server_uptime_days"`
 }
@@ -332,23 +332,23 @@ func (h *Handler) NodeCtl(c *gin.Context) {
 		Find(&nodes)
 
 	type item struct {
-		ID             int32   `json:"id"`
-		Name           string  `json:"name"`
-		Type           int32   `json:"type"`
-		Sort           int32   `json:"sort"`
-		TrafficRate    float32 `json:"traffic_rate"`
-		NodeCost       int32   `json:"node_cost"`
-		NodeOnline     int32   `json:"node_online"`
-		NodeOnCost     float32 `json:"node_oncost"`
-		NodeClass      int32   `json:"node_class"`
-		NodeBandwidth  string  `json:"node_bandwidth"`
-		CustomRSS      int32   `json:"custom_rss"`
-		NodeHeartbeat  int64   `json:"node_heartbeat"`
-		HeartbeatOk    bool    `json:"heartbeat_ok"`     // 红色: 5 分钟无心跳
-		Status         string  `json:"status"`
-		TrafficUsed    string  `json:"traffic_used_gb"`
-		TrafficLimit   string  `json:"traffic_limit_gb"`
-		Info           string  `json:"info"`
+		ID            int32   `json:"id"`
+		Name          string  `json:"name"`
+		Type          int32   `json:"type"`
+		Sort          int32   `json:"sort"`
+		TrafficRate   float32 `json:"traffic_rate"`
+		NodeCost      int32   `json:"node_cost"`
+		NodeOnline    int32   `json:"node_online"`
+		NodeOnCost    float32 `json:"node_oncost"`
+		NodeClass     int32   `json:"node_class"`
+		NodeBandwidth string  `json:"node_bandwidth"`
+		CustomRSS     int32   `json:"custom_rss"`
+		NodeHeartbeat int64   `json:"node_heartbeat"`
+		HeartbeatOk   bool    `json:"heartbeat_ok"` // 红色: 5 分钟无心跳
+		Status        string  `json:"status"`
+		TrafficUsed   string  `json:"traffic_used_gb"`
+		TrafficLimit  string  `json:"traffic_limit_gb"`
+		Info          string  `json:"info"`
 	}
 	now := time.Now().Unix()
 	items := make([]item, 0, len(nodes))
@@ -358,10 +358,10 @@ func (h *Handler) NodeCtl(c *gin.Context) {
 			NodeCost: n.NodeCost, NodeOnline: n.NodeOnline, NodeOnCost: n.NodeOnCost,
 			NodeClass: n.NodeClass, NodeBandwidth: n.NodeBandwidth, CustomRSS: n.CustomRSS,
 			NodeHeartbeat: n.NodeHeartbeat, HeartbeatOk: now-n.NodeHeartbeat < 300,
-			Status: n.Status,
+			Status:       n.Status,
 			TrafficUsed:  tools.FlowAutoShow(float64(n.TrafficUsed)),
 			TrafficLimit: tools.FlowAutoShow(float64(n.TrafficLimit)),
-			Info: n.Info,
+			Info:         n.Info,
 		})
 	}
 	RespondData(c, "获取成功", gin.H{"items": items})

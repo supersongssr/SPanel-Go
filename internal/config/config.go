@@ -10,22 +10,22 @@ import (
 
 // Config 全局配置结构体
 type Config struct {
-	App        AppConfig        `yaml:"app"`
-	Security   SecurityConfig   `yaml:"security"`
-	Database   DatabaseConfig   `yaml:"database"`
-	Redis      RedisConfig      `yaml:"redis"`
-	JWT        JWTConfig        `yaml:"jwt"`
-	Pow        PowConfig        `yaml:"pow"`
-	Payment    PaymentConfig    `yaml:"payment"`
-	Telegram   TelegramConfig   `yaml:"telegram"`
-	Invite     InviteConfig     `yaml:"invite"`
-	Cloudflare CloudflareConfig `yaml:"cloudflare"`
-	Node       NodeConfig       `yaml:"node"`
-	Jobs       JobsConfig       `yaml:"jobs"`
-	SMTP       SMTPConfig       `yaml:"smtp"`
-	Radius     RadiusConfig     `yaml:"radius"`
-	Backup     BackupConfig     `yaml:"backup"`
-	User       UserConfig       `yaml:"user"` // 用户端业务开关 (对齐 PHP min_port/max_port/port_price*/enable_kill/enable_user_custom_group)
+	App              AppConfig              `yaml:"app"`
+	Security         SecurityConfig         `yaml:"security"`
+	Database         DatabaseConfig         `yaml:"database"`
+	Redis            RedisConfig            `yaml:"redis"`
+	JWT              JWTConfig              `yaml:"jwt"`
+	Pow              PowConfig              `yaml:"pow"`
+	Payment          PaymentConfig          `yaml:"payment"`
+	Telegram         TelegramConfig         `yaml:"telegram"`
+	Invite           InviteConfig           `yaml:"invite"`
+	Cloudflare       CloudflareConfig       `yaml:"cloudflare"`
+	Node             NodeConfig             `yaml:"node"`
+	Jobs             JobsConfig             `yaml:"jobs"`
+	SMTP             SMTPConfig             `yaml:"smtp"`
+	Radius           RadiusConfig           `yaml:"radius"`
+	Backup           BackupConfig           `yaml:"backup"`
+	User             UserConfig             `yaml:"user"`               // 用户端业务开关 (对齐 PHP min_port/max_port/port_price*/enable_kill/enable_user_custom_group)
 	RssHeaderCapture RssHeaderCaptureConfig `yaml:"rss_header_capture"` // 订阅请求抓取 (对齐 PHP 同名开关, admin 后台查询)
 }
 
@@ -281,8 +281,8 @@ type SecurityConfig struct {
 	EnableRegCaptcha   bool   `yaml:"enable_reg_captcha"`
 	EnableLoginCaptcha bool   `yaml:"enable_login_captcha"`
 	EnableEmailVerify  bool   `yaml:"enable_email_verify"`
-	RegisterMode       string `yaml:"register_mode"`      // open | invite | close (PHP 同名键, 默认 open)
-	EmailVerifyTTL     int    `yaml:"email_verify_ttl"`   // EV 验证码有效期秒, 默认 600
+	RegisterMode       string `yaml:"register_mode"`        // open | invite | close (PHP 同名键, 默认 open)
+	EmailVerifyTTL     int    `yaml:"email_verify_ttl"`     // EV 验证码有效期秒, 默认 600
 	EmailVerifyIPLimit int    `yaml:"email_verify_iplimit"` // 同 IP 在途验证码上限, 默认 5
 }
 

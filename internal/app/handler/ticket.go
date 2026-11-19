@@ -94,7 +94,7 @@ func (h *TicketHandler) CreateTicket(c *gin.Context) {
 		UserID:   int64(user.ID),
 		Sort:     user.Class, // PHP: sort += class, 等级优先队列
 		DateTime: now,
-		Status:   1,          // 1 为 open (待处理)
+		Status:   1, // 1 为 open (待处理)
 	}
 
 	if err := database.DB.Create(&ticket).Error; err != nil {
@@ -240,7 +240,6 @@ func (h *TicketHandler) ReplyTicket(c *gin.Context) {
 		"msg": "回复提交成功",
 	})
 }
-
 
 // CloseTicket 用户关闭自己的工单 (status=0)
 func (h *TicketHandler) CloseTicket(c *gin.Context) {
