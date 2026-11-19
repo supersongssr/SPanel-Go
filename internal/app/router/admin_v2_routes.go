@@ -73,5 +73,48 @@ func RegisterAdminV2Routes(r *gin.Engine) {
 		g.POST("/announcement", h.CreateAnnouncement)
 		g.PUT("/announcement/:id", h.UpdateAnnouncement)
 		g.DELETE("/announcement/:id", h.DeleteAnnouncement)
+
+		// 订阅抓取
+		g.GET("/rss-headers", h.ListRssHeaders)
+		g.GET("/rss-headers/:id", h.GetRssHeader)
+		g.POST("/rss-headers/clear", h.ClearRssHeaders)
+
+		// 中转规则
+		g.GET("/relay", h.ListRelays)
+		g.GET("/relay/options", h.RelayNodeOptions)
+		g.GET("/relay/:id", h.GetRelay)
+		g.POST("/relay", h.CreateRelay)
+		g.PUT("/relay/:id", h.UpdateRelay)
+		g.DELETE("/relay/:id", h.DeleteRelay)
+		g.GET("/relay/path-search/:id", h.RelayPathSearch)
+
+		// 审计规则/记录
+		g.GET("/detect", h.ListDetectRules)
+		g.GET("/detect/:id", h.GetDetectRule)
+		g.POST("/detect", h.CreateDetectRule)
+		g.PUT("/detect/:id", h.UpdateDetectRule)
+		g.DELETE("/detect/:id", h.DeleteDetectRule)
+		g.GET("/detect-log", h.ListDetectLogs)
+
+		// 自动命令
+		g.GET("/auto", h.ListAutos)
+		g.POST("/auto", h.CreateAuto)
+		g.DELETE("/auto/:id", h.DeleteAuto)
+
+		// IP 管理
+		g.GET("/blockip", h.ListBlockIps)
+		g.GET("/unblockip", h.ListUnblockIps)
+		g.POST("/unblockip/unblock", h.DoUnblock)
+
+		// 记录: 登录/在线/流量
+		g.GET("/audit/login", h.ListAuditLogins)
+		g.GET("/audit/alive", h.ListAuditAlive)
+		g.GET("/traffic-log", h.ListTrafficLogs)
+
+		// 统计
+		g.GET("/stats/recharge", h.RechargeStats)
+		g.GET("/stats/node-group-traffic", h.NodeGroupTraffic)
+		// 节点决策台 (Phase 3 子任务并行开发中, 文件落地后启用)
+		// g.GET("/stats/node-decision", h.NodeDecision)
 	}
 }

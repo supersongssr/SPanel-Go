@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中转链路推导 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="relays" data-sp-active="relays" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">中转链路推导</h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="pathSearchPage()">
+      <div class="sp-card sp-mb-6">
+        <div class="sp-card-title"><i class="mi">alt_route</i>按用户推导</div>
+        <div class="sp-grid" style="align-items:flex-end">
+          <div class="sp-col-4"><div class="sp-form-row">
+            <label class="sp-form-label">用户 ID</label>
+            <input class="sp-input" type="text" x-model="uid" @keydown.enter="search()">
+          </div></div>
+          <div class="sp-col-3">
+            <button class="sp-btn sp-btn-brand" @click="search()" :disabled="loading"><i class="mi">search</i>推导</button>
+          </div>
+        </div>
+        <p class="sp-text-hint" style="font-size:12px">根据用户的端口与可见节点, 按优先级选中转规则并拼接链路; ❌ 标记 = 节点不可达 (超额/离线/未展示), 状态「阻断」。</p>
+      </div>
+
+      <div class="sp-card" x-show="user" x-cloak>
+        <div class="sp-card-title"><i class="mi">person</i>用户</div>
+        <div class="sp-dl-row"><dt>ID / 用户名</dt><dd x-text="(user ? user.id : '') + ' / ' + (user ? user.user_name : '')"></dd></div>
+        <div class="sp-dl-row"><dt>端口 / 等级 / 分组</dt><dd x-text="(user ? user.port : '') + ' / ' + (user ? user.class : '') + ' / ' + (user ? user.node_group : '')"></dd></div>
+      </div>
+
+      <div class="sp-card sp-mt-6" x-show="searched" x-cloak>
+        <div class="sp-card-title"><i class="mi">route</i>链路</div>
+        <div class="sp-table-wrap">
+          <table class="sp-table">
+            <thead><tr><th>链路</th><th>端口</th><th>状态</th></tr></thead>
+            <tbody>
+              <template x-for="(p, i) in paths" :key="i">
+                <tr>
+                  <td class="sp-wrap" x-html="p.path"></td>
+                  <td class="sp-num" x-text="p.port"></td>
+                  <td>
+                    <span x-show="p.status === '通畅'" class="sp-tag sp-tag-green">通畅</span>
+                    <span x-show="p.status === '阻断'" class="sp-tag sp-tag-red">阻断</span>
+                  </td>
+                </tr>
+              </template>
+              <tr x-show="searched && !paths.length"><td colspan="3"><div class="sp-empty"><i class="mi">alt_route_off</i>该用户无可命中中转规则</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function pathSearchPage() {
+      return {
+        uid: new URLSearchParams(location.search).get('uid') || '', loading: false, searched: false,
+        user: null, paths: [],
+        search() {
+          if (!this.uid) { SPUI.toast('请输入用户 ID'); return; }
+          this.loading = true;
+          SPanelAPI.request('/api/v2/admin/relay/path-search/' + this.uid)
+            .then(res => { this.user = res.data.user; this.paths = res.data.paths || []; this.searched = true; })
+            .catch(e => SPUI.msg(e.message))
+            .finally(() => { this.loading = false; });
+        }
+      };
+    }
+  </script>
+</body>
+</html>

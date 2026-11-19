@@ -26,6 +26,13 @@ type Config struct {
 	Radius     RadiusConfig     `yaml:"radius"`
 	Backup     BackupConfig     `yaml:"backup"`
 	User       UserConfig       `yaml:"user"` // 用户端业务开关 (对齐 PHP min_port/max_port/port_price*/enable_kill/enable_user_custom_group)
+	RssHeaderCapture RssHeaderCaptureConfig `yaml:"rss_header_capture"` // 订阅请求抓取 (对齐 PHP 同名开关, admin 后台查询)
+}
+
+// RssHeaderCaptureConfig 订阅请求抓取开关 (PHP config['rss_header_capture'])
+type RssHeaderCaptureConfig struct {
+	Enabled    bool `yaml:"enabled"`     // 是否采集 /link 请求
+	RetainDays int  `yaml:"retain_days"` // 保留天数 (清理任务用, 0=永久)
 }
 
 // UserConfig 用户端业务开关 (缺省值在 Usage 侧内联回退, 未配置时全部取 PHP 默认)

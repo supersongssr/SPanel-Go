@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>已封禁IP - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="blockips" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">已封禁IP</h1></div>
+    </div>
+    <div class="sp-content-inner">
+      <!-- 页内解封表单 (PHP POST /admin/unblock) -->
+      <div class="sp-card sp-mb-6" x-data="unblockPage()">
+        <div class="sp-card-title"><i class="mi">lock_open</i>解封</div>
+        <div class="sp-grid" style="align-items:flex-end">
+          <div class="sp-col-4"><div class="sp-form-row">
+            <label class="sp-form-label">IP</label>
+            <input class="sp-input" type="text" x-model="ip" placeholder="1.2.3.4" @keydown.enter="unblock()">
+          </div></div>
+          <div class="sp-col-3">
+            <button class="sp-btn sp-btn-brand" @click="unblock()" :disabled="sending"><i class="mi">lock_open</i>发送解封命令</button>
+          </div>
+        </div>
+      </div>
+      <div id="blockTable"></div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script src="/assets/js/admin-table.js"></script>
+  <script>
+    function fmtTs(ts) {
+      if (!ts) return '';
+      const d = new Date(ts * 1000);
+      const p = n => String(n).padStart(2, '0');
+      return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+    var tbl;
+    function unblockPage() {
+      return {
+        ip: '', sending: false,
+        unblock() {
+          if (!this.ip) { SPUI.toast('请输入 IP'); return; }
+          this.sending = true;
+          SPanelAPI.request('/api/v2/admin/unblockip/unblock', { method: 'POST', body: JSON.stringify({ ip: this.ip.trim() }) })
+            .then(res => { SPUI.msg(res.msg || '解封成功'); this.ip = ''; tbl.reload(); })
+            .catch(e => SPUI.msg(e.message))
+            .finally(() => { this.sending = false; });
+        }
+      };
+    }
+    tbl = AdminTable('#blockTable', {
+      api: '/api/v2/admin/blockip',
+      stateKey: 'adm:blockips',
+      search: '搜索 IP/节点',
+      defaultOrder: ['id', 'desc'],
+      columns: [
+        { key: 'id',       title: 'ID', sortable: true },
+        { key: 'name',     title: '节点名称' },
+        { key: 'nodeid',   title: '节点ID' },
+        { key: 'ip',       title: 'IP', tdClass: 'sp-num' },
+        { key: 'datetime', title: '时间', sortable: true, render: r => fmtTs(r.datetime) },
+      ],
+      ops: r => '<button class="sp-btn sp-btn-sm sp-btn-danger" data-unblock="' + r.ip + '">解封</button>'
+    });
+    document.getElementById('blockTable').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-unblock]');
+      if (!btn) return;
+      SPUI.confirm('确认解封 <b>' + btn.getAttribute('data-unblock') + '</b>?', function () {
+        SPanelAPI.request('/api/v2/admin/unblockip/unblock', { method: 'POST', body: JSON.stringify({ ip: btn.getAttribute('data-unblock') }) })
+          .then(res => { SPUI.toast(res.msg || '解封成功', 'success'); tbl.reload(); })
+          .catch(err => SPUI.msg(err.message));
+      }, { okText: '解封' });
+    });
+  </script>
+</body>
+</html>

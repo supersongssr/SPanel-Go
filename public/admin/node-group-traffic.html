@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>流量统计 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+  <script src="/assets/js/vendor/echarts.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="node-group-traffic" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">流量统计</h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="groupTrafficPage()" x-init="load()">
+      <!-- 合计卡 -->
+      <div class="sp-grid sp-mb-6">
+        <div class="sp-col-4"><div class="sp-card sp-adm-stat">
+          <div class="sp-adm-stat-num c-orange" x-text="d.total_used_lastday_gb ?? '—'"></div>
+          <div class="sp-adm-stat-label">昨日用量合计 (GB/天)</div>
+        </div></div>
+        <div class="sp-col-4"><div class="sp-card sp-adm-stat">
+          <div class="sp-adm-stat-num c-blue" x-text="d.total_supply_daily_gb ?? '—'"></div>
+          <div class="sp-adm-stat-label">可供日均合计 (GB/天)</div>
+        </div></div>
+        <div class="sp-col-4"><div class="sp-card sp-adm-stat">
+          <div class="sp-adm-stat-num c-dark" x-text="d.total_nodes ?? '—'"></div>
+          <div class="sp-adm-stat-label">活跃节点数 (7h 心跳)</div>
+        </div></div>
+      </div>
+
+      <!-- 分组表 -->
+      <div class="sp-card sp-mb-6">
+        <div class="sp-card-title"><i class="mi">show_chart</i>分组汇总</div>
+        <div class="sp-table-wrap">
+          <table class="sp-table">
+            <thead><tr>
+              <th>分组</th><th>节点</th><th>在线(90s)</th><th>不限量</th>
+              <th>昨日用量</th><th>可供日均</th><th>周期累计</th><th>利用率</th>
+            </tr></thead>
+            <tbody>
+              <template x-for="g in summary" :key="g.group">
+                <tr>
+                  <td><b x-text="'G' + g.group"></b></td>
+                  <td x-text="g.node_count"></td>
+                  <td><span class="sp-dot" :class="g.online_count > 0 ? 'green' : 'red'"></span><span x-text="g.online_count"></span></td>
+                  <td x-text="g.unlimited_count"></td>
+                  <td x-text="(g.used_lastday_gb || 0) + ' GB'"></td>
+                  <td x-text="(g.supply_daily_gb || 0) + ' GB'"></td>
+                  <td x-text="fmtGB(g.used_total)"></td>
+                  <td>
+                    <span class="sp-tag" :class="utilClass(g)" x-text="utilPct(g) + '%'"></span>
+                  </td>
+                </tr>
+              </template>
+              <tr x-show="!summary.length"><td colspan="8"><div class="sp-empty"><i class="mi">inbox</i>暂无数据</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 对比图 -->
+      <div class="sp-card sp-mb-6">
+        <div class="sp-card-title"><i class="mi">bar_chart</i>各分组对比 (昨日 vs 可供日均, GB/天)</div>
+        <div id="barChart" style="height:320px"></div>
+      </div>
+
+      <!-- 7 天趋势 -->
+      <div class="sp-card">
+        <div class="sp-card-title"><i class="mi">timeline</i>过去 7 天每日用量 (GB/天)</div>
+        <div id="lineChart" style="height:380px"></div>
+      </div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function groupTrafficPage() {
+      return {
+        d: {}, summary: [],
+        fmtGB(b) {
+          const gb = (b || 0) / 1073741824;
+          if (gb >= 1024) return (gb / 1024).toFixed(2) + ' TB';
+          return gb.toFixed(2) + ' GB';
+        },
+        utilPct(g) {
+          if (!g.supply_daily_gb) return 0;
+          return Math.min(999, Math.round((g.used_lastday_gb || 0) / g.supply_daily_gb * 100));
+        },
+        utilClass(g) {
+          const p = this.utilPct(g);
+          if (p >= 95) return 'sp-tag-red';
+          if (p >= 80) return 'sp-tag-orange';
+          return 'sp-tag-green';
+        },
+        load() {
+          SPanelAPI.request('/api/v2/admin/stats/node-group-traffic')
+            .then(res => {
+              this.d = res.data;
+              this.summary = res.data.summary || [];
+              this.$nextTick(() => this.renderCharts());
+            })
+            .catch(e => SPUI.msg(e.message));
+        },
+        renderCharts() {
+          if (typeof echarts === 'undefined') return;
+          try {
+            const bar = echarts.init(document.getElementById('barChart'));
+            bar.setOption({
+              tooltip: { trigger: 'axis' },
+              legend: { data: ['昨日用量', '可供日均'] },
+              xAxis: { type: 'category', data: (this.d.used_points || []).map(p => p.label) },
+              yAxis: { type: 'value', name: 'GB/天' },
+              series: [
+                { name: '昨日用量', type: 'bar', data: (this.d.used_points || []).map(p => p.y), itemStyle: { color: '#e65100' } },
+                { name: '可供日均', type: 'bar', data: (this.d.supply_points || []).map(p => p.y), itemStyle: { color: '#3f51b5' } },
+              ]
+            });
+            const line = echarts.init(document.getElementById('lineChart'));
+            const seriesMap = this.d.series || {};
+            const groups = Object.keys(seriesMap).sort();
+            let dates = [];
+            if (groups.length) dates = (seriesMap[groups[0]] || []).map(p => p.date);
+            line.setOption({
+              tooltip: { trigger: 'axis' },
+              legend: { data: groups.map(g => 'G' + g) },
+              xAxis: { type: 'category', data: dates },
+              yAxis: { type: 'value', name: 'GB/天' },
+              series: groups.map(g => ({
+                name: 'G' + g, type: 'line', smooth: true, showSymbol: false,
+                data: (seriesMap[g] || []).map(p => +(p.used_lastday / 1073741824).toFixed(2))
+              }))
+            });
+            window.addEventListener('resize', () => { bar.resize(); line.resize(); });
+          } catch (e) { console.warn('chart render failed', e); }
+        }
+      };
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中转规则编辑 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="relays" data-sp-active="relays" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading" x-text="isEdit ? '规则编辑 #' + (f.id||'') : '添加中转规则'"></h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="relayFormPage()" x-init="init()">
+      <div class="sp-card" x-show="loaded">
+        <div class="sp-grid">
+          <div class="sp-col-6"><div class="sp-form-row">
+            <label class="sp-form-label">用户 ID (0 = 全体用户)</label>
+            <input class="sp-input" type="text" x-model="f.user_id">
+          </div></div>
+          <div class="sp-col-6"><div class="sp-form-row">
+            <label class="sp-form-label">起源节点 (中转节点)</label>
+            <select class="sp-select" x-model.number="f.source_node">
+              <template x-for="n in sourceNodes" :key="n.id">
+                <option :value="n.id" x-text="n.id + ' - ' + (n.name || '(未命名)')"></option>
+              </template>
+            </select>
+          </div></div>
+          <div class="sp-col-6"><div class="sp-form-row">
+            <label class="sp-form-label">目标节点</label>
+            <select class="sp-select" x-model.number="f.dist_node">
+              <template x-for="n in distNodes" :key="n.id">
+                <option :value="n.id" x-text="n.id + ' - ' + (n.name || '(未命名)')"></option>
+              </template>
+            </select>
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">端口</label>
+            <input class="sp-input" type="text" x-model="f.port">
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">优先级</label>
+            <input class="sp-input" type="text" x-model="f.priority">
+          </div></div>
+        </div>
+        <p class="sp-text-hint" style="font-size:12px">目标 IP 按目标节点的 node_ip 自动推导 (支持 ip#起源ID 定向格式); 保存时进行环回/冲突检测。</p>
+        <div class="sp-mt-4" style="display:flex;gap:8px">
+          <button class="sp-btn sp-btn-brand" @click="save()" :disabled="saving"><i class="mi">save</i>保存</button>
+          <a class="sp-btn sp-btn-flat" href="/admin/relays.html">返回列表</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function relayFormPage() {
+      const id = new URLSearchParams(location.search).get('id');
+      return {
+        isEdit: !!id, loaded: false, saving: false,
+        f: { user_id: 0, source_node: 0, dist_node: 0, port: '', priority: 0 },
+        sourceNodes: [], distNodes: [],
+        init() {
+          if (this.isEdit) {
+            SPanelAPI.request('/api/v2/admin/relay/' + id)
+              .then(res => {
+                const d = res.data;
+                this.sourceNodes = d.source_nodes || [];
+                this.distNodes = d.dist_nodes || [];
+                this.f = { id: d.id, user_id: d.user_id, source_node: d.source_node_id, dist_node: d.dist_node_id, port: d.port, priority: d.priority };
+                this.loaded = true;
+              })
+              .catch(e => SPUI.msg(e.message));
+          } else {
+            SPanelAPI.request('/api/v2/admin/relay/options')
+              .then(res => {
+                this.sourceNodes = res.data.source_nodes || [];
+                this.distNodes = res.data.dist_nodes || [];
+                if (this.sourceNodes.length) this.f.source_node = this.sourceNodes[0].id;
+                if (this.distNodes.length) this.f.dist_node = this.distNodes[0].id;
+                this.loaded = true;
+              })
+              .catch(e => SPUI.msg(e.message));
+          }
+        },
+        save() {
+          this.saving = true;
+          const p = {
+            user_id: parseInt(this.f.user_id) || 0,
+            source_node: parseInt(this.f.source_node) || 0,
+            dist_node: parseInt(this.f.dist_node) || 0,
+            port: parseInt(this.f.port) || 0,
+            priority: parseInt(this.f.priority) || 0,
+          };
+          const req = this.isEdit
+            ? SPanelAPI.request('/api/v2/admin/relay/' + this.f.id, { method: 'PUT', body: JSON.stringify(p) })
+            : SPanelAPI.request('/api/v2/admin/relay', { method: 'POST', body: JSON.stringify(p) });
+          req.then(res => { SPUI.toast(res.msg || '保存成功', 'success'); if (!this.isEdit) setTimeout(() => location.href = '/admin/relays.html', 600); })
+            .catch(e => SPUI.msg(e.message))
+            .finally(() => { this.saving = false; });
+        }
+      };
+    }
+  </script>
+</body>
+</html>

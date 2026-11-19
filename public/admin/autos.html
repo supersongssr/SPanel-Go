@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>下发命令 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="autos" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">下发命令</h1></div>
+    </div>
+    <div class="sp-content-inner">
+      <!-- 下发表单 (PHP auto/create 页内联) -->
+      <div class="sp-card sp-mb-6" x-data="autoCreatePage()">
+        <div class="sp-card-title"><i class="mi">flash_auto</i>新命令</div>
+        <div class="sp-grid">
+          <div class="sp-col-6"><div class="sp-form-row">
+            <label class="sp-form-label">命令内容 (value)</label>
+            <textarea class="sp-textarea" rows="3" x-model="content" placeholder="节点侧执行的命令"></textarea>
+          </div></div>
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">签名 (sign)</label>
+            <input class="sp-input" type="text" x-model="sign">
+          </div></div>
+          <div class="sp-col-3" style="display:flex;align-items:flex-end">
+            <button class="sp-btn sp-btn-brand" @click="create()" :disabled="saving"><i class="mi">send</i>下发</button>
+          </div>
+        </div>
+      </div>
+      <div id="autoTable"></div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script src="/assets/js/admin-table.js"></script>
+  <script>
+    function esc(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function fmtTs(ts) {
+      if (!ts) return '';
+      const d = new Date(ts * 1000);
+      const p = n => String(n).padStart(2, '0');
+      return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+    var tbl;
+    function autoCreatePage() {
+      return {
+        content: '', sign: '', saving: false,
+        create() {
+          if (!this.content) { SPUI.toast('请输入命令内容'); return; }
+          this.saving = true;
+          SPanelAPI.request('/api/v2/admin/auto', { method: 'POST', body: JSON.stringify({ content: this.content, sign: this.sign }) })
+            .then(res => { SPUI.toast(res.msg || '添加成功', 'success'); this.content = ''; this.sign = ''; tbl.reload(); })
+            .catch(e => SPUI.msg(e.message))
+            .finally(() => { this.saving = false; });
+        }
+      };
+    }
+    tbl = AdminTable('#autoTable', {
+      api: '/api/v2/admin/auto',
+      stateKey: 'adm:autos',
+      search: '搜索内容/签名',
+      defaultOrder: ['id', 'desc'],
+      columns: [
+        { key: 'id',       title: 'ID', sortable: true },
+        { key: 'datetime', title: '时间', sortable: true, render: r => fmtTs(r.datetime) },
+        { key: 'type',     title: '类型', sortable: true,
+          render: r => r.type === 1 ? '<span class="sp-tag sp-tag-blue">命令下发</span>' : '<span class="sp-tag sp-tag-green">命令被执行</span>' },
+        { key: 'value',    title: '内容', tdClass: 'sp-wrap' },
+        { key: 'sign',     title: '签名' },
+      ],
+      ops: r => '<button class="sp-btn sp-btn-sm sp-btn-danger" data-del="' + r.id + '">删除</button>'
+    });
+    document.getElementById('autoTable').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-del]');
+      if (!btn) return;
+      SPUI.confirm('确认删除该命令?', function () {
+        SPanelAPI.request('/api/v2/admin/auto/' + btn.getAttribute('data-del'), { method: 'DELETE' })
+          .then(res => { SPUI.toast(res.msg || '删除成功', 'success'); tbl.reload(); })
+          .catch(err => SPUI.msg(err.message));
+      }, { danger: true, okText: '删除' });
+    });
+  </script>
+</body>
+</html>

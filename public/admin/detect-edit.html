@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>审计规则编辑 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="detects" data-sp-active="detects" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading" x-text="isEdit ? '规则编辑 #' + (f.id||'') : '添加审计规则'"></h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="detectFormPage()" x-init="init()">
+      <div class="sp-card" x-show="loaded || !isEdit">
+        <div class="sp-grid">
+          <div class="sp-col-6"><div class="sp-form-row">
+            <label class="sp-form-label">名称</label>
+            <input class="sp-input" type="text" x-model="f.name">
+          </div></div>
+          <div class="sp-col-6"><div class="sp-form-row">
+            <label class="sp-form-label">介绍</label>
+            <input class="sp-input" type="text" x-model="f.text">
+          </div></div>
+          <div class="sp-col-8"><div class="sp-form-row">
+            <label class="sp-form-label">正则表达式</label>
+            <input class="sp-input" type="text" x-model="f.regex" placeholder="如 BitTorrent protocol">
+          </div></div>
+          <div class="sp-col-4"><div class="sp-form-row">
+            <label class="sp-form-label">类型</label>
+            <select class="sp-select" x-model.number="f.type">
+              <option value="1">数据包明文匹配</option>
+              <option value="2">数据包十六进制匹配</option>
+            </select>
+          </div></div>
+        </div>
+        <div class="sp-mt-4" style="display:flex;gap:8px">
+          <button class="sp-btn sp-btn-brand" @click="save()" :disabled="saving"><i class="mi">save</i>保存</button>
+          <a class="sp-btn sp-btn-flat" href="/admin/detects.html">返回列表</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function detectFormPage() {
+      const id = new URLSearchParams(location.search).get('id');
+      return {
+        isEdit: !!id, loaded: false, saving: false,
+        f: { name: '', text: '', regex: '', type: 1 },
+        init() {
+          if (!this.isEdit) { this.loaded = true; return; }
+          SPanelAPI.request('/api/v2/admin/detect/' + id)
+            .then(res => { this.f = Object.assign({}, this.f, res.data); this.loaded = true; })
+            .catch(e => SPUI.msg(e.message));
+        },
+        save() {
+          this.saving = true;
+          const req = this.isEdit
+            ? SPanelAPI.request('/api/v2/admin/detect/' + this.f.id, { method: 'PUT', body: JSON.stringify(this.f) })
+            : SPanelAPI.request('/api/v2/admin/detect', { method: 'POST', body: JSON.stringify(this.f) });
+          req.then(res => { SPUI.toast(res.msg || '保存成功', 'success'); if (!this.isEdit) setTimeout(() => location.href = '/admin/detects.html', 600); })
+            .catch(e => SPUI.msg(e.message))
+            .finally(() => { this.saving = false; });
+        }
+      };
+    }
+  </script>
+</body>
+</html>

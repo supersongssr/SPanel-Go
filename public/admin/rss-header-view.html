@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>订阅请求详情 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="rss-headers" data-sp-active="rss-headers" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">订阅请求详情 <span x-show="d.id" x-cloak>#<span x-text="d.id"></span></span></h1></div>
+    </div>
+    <div class="sp-content-inner" x-data="rssViewPage()" x-init="init()">
+      <div class="sp-card sp-mb-6">
+        <div class="sp-card-title"><i class="mi">content_paste</i>请求</div>
+        <div class="sp-grid">
+          <div class="sp-col-4"><div class="sp-dl-row"><dt>用户</dt><dd x-text="(d.user_id || '匿名') + ' / ' + (d.email || '—')"></dd></div></div>
+          <div class="sp-col-4"><div class="sp-dl-row"><dt>客户端 (app)</dt><dd x-text="d.app || '—'"></dd></div></div>
+          <div class="sp-col-4"><div class="sp-dl-row"><dt>IP / 时间</dt><dd x-text="(d.ip || '—') + ' / ' + (d.created_at || '')"></dd></div></div>
+          <div class="sp-col-12"><div class="sp-dl-row"><dt>Token</dt><dd class="sp-num sp-break-all" x-text="d.token || '—'"></dd></div></div>
+          <div class="sp-col-12"><div class="sp-dl-row"><dt>URI</dt><dd class="sp-break-all" x-text="(d.method || 'GET') + ' ' + (d.uri || '')"></dd></div></div>
+          <div class="sp-col-12"><div class="sp-dl-row"><dt>User-Agent</dt><dd class="sp-break-all" x-text="d.user_agent || '—'"></dd></div></div>
+        </div>
+      </div>
+
+      <div class="sp-grid">
+        <div class="sp-col-6">
+          <div class="sp-card">
+            <div class="sp-card-title"><i class="mi">list_alt</i>查询参数 (query)</div>
+            <div class="sp-table-wrap" style="max-height:420px">
+              <table class="sp-table">
+                <thead><tr><th>Key</th><th>Value</th></tr></thead>
+                <tbody>
+                  <template x-for="(v, k) in flatObj(d.query)" :key="k">
+                    <tr><td class="sp-num" x-text="k"></td><td class="sp-wrap sp-num" x-text="v"></td></tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="sp-col-6">
+          <div class="sp-card">
+            <div class="sp-card-title"><i class="mi">http</i>请求头 (headers)</div>
+            <div class="sp-table-wrap" style="max-height:420px">
+              <table class="sp-table">
+                <thead><tr><th>Header</th><th>Value</th></tr></thead>
+                <tbody>
+                  <template x-for="(v, k) in flatObj(d.headers)" :key="k">
+                    <tr><td class="sp-num" x-text="k"></td><td class="sp-wrap sp-num" x-text="v"></td></tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sp-mt-4"><a class="sp-btn sp-btn-flat" href="/admin/rss-headers.html"><i class="mi">arrow_back</i>返回列表</a></div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script>
+    function rssViewPage() {
+      return {
+        d: {},
+        init() {
+          const id = new URLSearchParams(location.search).get('id');
+          if (!id) { SPUI.msg('缺少记录 ID'); return; }
+          SPanelAPI.request('/api/v2/admin/rss-headers/' + id)
+            .then(res => { this.d = res.data; })
+            .catch(e => SPUI.msg(e.message));
+        },
+        /* headers 的值可能是数组 (Go http.Header JSON), 拍平为逗号串 */
+        flatObj(o) {
+          const out = {};
+          if (!o || typeof o !== 'object') return out;
+          Object.keys(o).forEach(k => {
+            const v = o[k];
+            out[k] = Array.isArray(v) ? v.join(', ') : String(v);
+          });
+          return out;
+        }
+      };
+    }
+  </script>
+</body>
+</html>

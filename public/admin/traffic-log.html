@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>流量记录 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="traffic-log" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">流量记录</h1></div>
+    </div>
+    <div class="sp-content-inner">
+      <div id="trafficTable"></div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script src="/assets/js/admin-table.js"></script>
+  <script>
+    function esc(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function fmtTs(ts) {
+      if (!ts) return '';
+      const d = new Date(ts * 1000);
+      const p = n => String(n).padStart(2, '0');
+      return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+    AdminTable('#trafficTable', {
+      api: '/api/v2/admin/traffic-log',
+      stateKey: 'adm:traffic-log',
+      search: '搜索用户/节点',
+      defaultOrder: ['id', 'desc'],
+      params: function () {
+        const uid = new URLSearchParams(location.search).get('user_id');
+        return uid ? { user_id: uid } : {};
+      },
+      columns: [
+        { key: 'id',         title: 'ID', sortable: true },
+        { key: 'user_id',    title: '用户', sortable: true,
+          render: r => '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a><br><span class="sp-text-hint">' + esc(r.user_name) + '</span>' },
+        { key: 'node_name',  title: '使用节点' },
+        { key: 'rate',       title: '倍率', sortable: true },
+        { key: 'origin_traffic', title: '实际使用流量' },
+        { key: 'traffic',    title: '结算流量' },
+        { key: 'log_time',   title: '记录时间', sortable: true, render: r => fmtTs(r.log_time) },
+      ]
+    });
+  </script>
+</body>
+</html>

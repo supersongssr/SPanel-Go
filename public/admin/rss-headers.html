@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>订阅请求记录 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="rss-headers" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">订阅请求记录</h1></div>
+    </div>
+    <div class="sp-content-inner">
+      <!-- 过滤 + 轮询 + 清空 (PHP rss_headers.tpl: ?user_id=&q= + 5s 自动刷新 + clear) -->
+      <div class="sp-card sp-mb-6" x-data="{ polling: true, timer: null }"
+           x-init="timer = setInterval(() => { if (polling && window.__rssTbl) window.__rssTbl.reload(); }, 5000)">
+        <div class="sp-grid" style="align-items:flex-end">
+          <div class="sp-col-3"><div class="sp-form-row">
+            <label class="sp-form-label">用户 ID</label>
+            <input class="sp-input" id="f-user" type="text" placeholder="user_id">
+          </div></div>
+          <div class="sp-col-3">
+            <button class="sp-btn sp-btn-brand sp-btn-sm" id="f-apply"><i class="mi">search</i>应用</button>
+          </div>
+          <div class="sp-col-3">
+            <label class="sp-check">
+              <input type="checkbox" x-model="polling">
+              5s 自动刷新
+            </label>
+          </div>
+          <div class="sp-col-3" style="text-align:right">
+            <button class="sp-btn sp-btn-danger sp-btn-sm" id="f-clear"><i class="mi">delete_sweep</i>清空记录</button>
+          </div>
+        </div>
+        <p class="sp-text-hint" style="font-size:12px">采集开关: config.yaml rss_header_capture.enabled (当前采集 /link/:token 订阅请求)。</p>
+      </div>
+      <div id="rssTable"></div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script src="/assets/js/admin-table.js"></script>
+  <script>
+    (function () {
+      const p = new URLSearchParams(location.search);
+      if (p.get('user_id')) document.getElementById('f-user').value = p.get('user_id');
+    })();
+    window.__rssTbl = AdminTable('#rssTable', {
+      api: '/api/v2/admin/rss-headers',
+      stateKey: 'adm:rss-headers',
+      pageSizes: [25, 50, 100, 0],
+      search: '搜索邮箱/UA/链接/app/token',
+      defaultOrder: ['id', 'desc'],
+      params: function () {
+        const uid = document.getElementById('f-user').value.trim();
+        return uid ? { user_id: uid } : {};
+      },
+      columns: [
+        { key: 'id',         title: 'ID', sortable: true },
+        { key: 'created_at', title: '时间', sortable: true },
+        { key: 'user_id',    title: '用户', sortable: true,
+          render: r => (r.user_id
+            ? '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a><br><span class="sp-text-hint">' + (r.email || '') + '</span>'
+            : '匿名') },
+        { key: 'app',        title: '客户端' },
+        { key: 'ip',         title: 'IP', tdClass: 'sp-num' },
+        { key: 'uri',        title: '请求链接' },
+        { key: 'user_agent', title: 'UA', tdClass: 'sp-wrap' },
+      ],
+      ops: r => '<a class="sp-btn sp-btn-sm" href="/admin/rss-header-view.html?id=' + r.id + '">详情</a>'
+    });
+    document.getElementById('f-apply').addEventListener('click', function () { window.__rssTbl.reload(); });
+    document.getElementById('f-clear').addEventListener('click', function () {
+      SPUI.confirm('确认清空全部订阅抓取记录?', function () {
+        SPanelAPI.request('/api/v2/admin/rss-headers/clear', { method: 'POST' })
+          .then(res => { SPUI.toast(res.msg || '已清空', 'success'); window.__rssTbl.reload(); })
+          .catch(e => SPUI.msg(e.message));
+      }, { danger: true, okText: '清空' });
+    });
+  </script>
+</body>
+</html>

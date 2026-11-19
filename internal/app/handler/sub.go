@@ -1,8 +1,12 @@
 package handler
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
+	"time"
 
+	"spanel-go/internal/config"
 	"spanel-go/internal/model"
 	"spanel-go/internal/pkg/database"
 	"spanel-go/internal/service"
@@ -55,6 +59,10 @@ func (h *SubHandler) GetSubscription(c *gin.Context) {
 		query = query.Where("(node_group = ? OR node_group = 0)", user.NodeGroup)
 	}
 
+	// 3.5 订阅请求抓取 (rss_header_capture.enabled 开关, 对齐 PHP RssHeaderCapture;
+	// 异步写入不阻断订阅链路, 任何失败仅记日志)
+	captureRssRequest(c, &user, token)
+
 	if err := query.Order("sort ASC").Find(&nodes).Error; err != nil {
 		c.String(http.StatusInternalServerError, "failed to compile node list")
 		return
@@ -67,4 +75,33 @@ func (h *SubHandler) GetSubscription(c *gin.Context) {
 	c.Header("Content-Type", "text/yaml; charset=utf-8")
 	c.Header("Cache-Control", "no-store, no-cache, must-revalidate")
 	c.String(http.StatusOK, clashYaml)
+}
+
+// captureRssRequest 订阅请求抓取埋点 (rss_request_log 表; PHP RssHeaderCapture::capture 等价)。
+// enabled=false 或 DB 异常时静默跳过, 绝不影响订阅响应。
+func captureRssRequest(c *gin.Context, user *model.User, token string) {
+	cfg := config.GlobalConfig
+	if cfg == nil || !cfg.RssHeaderCapture.Enabled || database.DB == nil {
+		return
+	}
+	q := c.Request.URL.Query()
+	queryJSON, _ := json.Marshal(q)
+	headers := map[string]string{}
+	for k := range c.Request.Header {
+		headers[k] = c.Request.Header.Get(k)
+	}
+	headersJSON, _ := json.Marshal(headers)
+	row := model.RssRequestLog{
+		UserID: int64(user.ID), Email: user.Email, Token: token,
+		App: q.Get("flag"), IP: c.ClientIP(),
+		Method: c.Request.Method, URI: c.Request.URL.Path,
+		Query: string(queryJSON), UserAgent: c.Request.UserAgent(),
+		Headers: string(headersJSON), CreatedAt: time.Now(),
+	}
+	go func() {
+		defer func() { _ = recover() }()
+		if err := database.DB.Create(&row).Error; err != nil {
+			log.Printf("[RssCapture] write failed user=%d: %v", user.ID, err)
+		}
+	}()
 }

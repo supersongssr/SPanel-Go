@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中转规则 - SPanel</title>
+  <script src="/assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/assets/css/material-icons.css">
+  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <script defer src="/assets/js/alpine.min.js"></script>
+</head>
+<body data-sp-area="admin" data-sp-page="relays" class="sp-admin">
+  <main class="sp-content">
+    <div class="sp-content-header">
+      <div class="sp-container"><h1 class="sp-content-heading">中转规则</h1></div>
+    </div>
+    <div class="sp-content-inner">
+      <div class="sp-mb-6" style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="sp-btn sp-btn-brand" href="/admin/relay-edit.html"><i class="mi">add</i>添加规则</a>
+        <a class="sp-btn sp-btn-flat" href="/admin/relay-search.html"><i class="mi">alt_route</i>链路推导</a>
+      </div>
+      <div id="relayTable"></div>
+    </div>
+  </main>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/sp-ui.js"></script>
+  <script src="/assets/js/sp-shell.js"></script>
+  <script src="/assets/js/admin-table.js"></script>
+  <script>
+    var tbl = AdminTable('#relayTable', {
+      api: '/api/v2/admin/relay',
+      stateKey: 'adm:relays',
+      search: '搜索用户/节点名',
+      defaultOrder: ['id', 'asc'],
+      columns: [
+        { key: 'id',             title: 'ID', sortable: true },
+        { key: 'user_id',        title: '用户ID', sortable: true,
+          render: r => r.user_id === 0 ? '<span class="sp-tag sp-tag-blue">全体用户</span>' :
+            '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a><br><span class="sp-text-hint">' + esc2(r.user_name) + '</span>' },
+        { key: 'source_node_name', title: '起源节点' },
+        { key: 'dist_node_name',   title: '目标节点' },
+        { key: 'dist_ip',          title: '目标 IP', tdClass: 'sp-num' },
+        { key: 'port',             title: '端口', sortable: true },
+        { key: 'priority',         title: '优先级', sortable: true },
+      ],
+      ops: r =>
+        '<a class="sp-btn sp-btn-sm" href="/admin/relay-edit.html?id=' + r.id + '">编辑</a>' +
+        '<button class="sp-btn sp-btn-sm sp-btn-danger" data-del="' + r.id + '">删除</button>'
+    });
+    function esc2(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    document.getElementById('relayTable').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-del]');
+      if (!btn) return;
+      SPUI.confirm('确认删除该中转规则?', function () {
+        SPanelAPI.request('/api/v2/admin/relay/' + btn.getAttribute('data-del'), { method: 'DELETE' })
+          .then(res => { SPUI.toast(res.msg || '删除成功', 'success'); tbl.reload(); })
+          .catch(err => SPUI.msg(err.message));
+      }, { danger: true, okText: '删除' });
+    });
+  </script>
+</body>
+</html>

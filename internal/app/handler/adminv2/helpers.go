@@ -9,6 +9,8 @@ package adminv2
 import (
 	"strconv"
 
+	"spanel-go/internal/pkg/tools"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -78,4 +80,9 @@ func RespondOK(c *gin.Context, msg string) {
 // RespondErr 动作失败响应 (HTTP 200 + ret=0, 与 v1/PHP 信封一致)
 func RespondErr(c *gin.Context, msg string) {
 	c.JSON(200, gin.H{"ret": 0, "msg": msg})
+}
+
+// flowAuto bytes → 可读字符串 (tools.FlowAutoShow 包装, 避免 audit.go 引入新依赖)
+func flowAuto(b int64) string {
+	return tools.FlowAutoShow(float64(b))
 }
