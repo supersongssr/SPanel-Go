@@ -6,160 +6,187 @@
   <title>节点编辑 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="nodes" data-sp-active="nodes" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="nodes" data-sp-active="nodes">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading" x-text="isEdit ? '节点编辑 #' + (f.id||'') : '添加节点'"></h1></div>
-    </div>
-    <div class="sp-content-inner" x-data="nodeFormPage()" x-init="init()">
+    <div x-data="nodeFormPage()" x-init="init()">
+      <div class="page-header d-print-none">
+        <div class="row align-items-center">
+          <div class="col">
+            <h2 class="page-title" x-text="isEdit ? '节点编辑 #' + (f.id||'') : '添加节点'"></h2>
+          </div>
+        </div>
+      </div>
       <form @submit.prevent="save()" x-show="loaded || !isEdit" x-cloak>
-        <div class="sp-card sp-mb-6">
-          <div class="sp-card-title"><i class="mi">router</i>基本</div>
-          <div class="sp-grid">
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">名称</label>
-              <input class="sp-input" type="text" x-model="f.name">
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">节点配置 (地址[:端口])</label>
-              <input class="sp-input" type="text" x-model="f.server">
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">节点 IP (留空 = 同节点配置)</label>
-              <input class="sp-input" type="text" x-model="f.node_ip" placeholder="留空自动取 server">
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">加密方式</label>
-              <input class="sp-input" type="text" x-model="f.method">
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">类型 (协议)</label>
-              <select class="sp-select" x-model.number="f.sort">
-                <option value="0">SS</option><option value="1">VPN/Radius基础</option>
-                <option value="2">SSH</option><option value="5">Anyconnect</option>
-                <option value="9">Sr-单多</option><option value="10">Ss-中转</option>
-                <option value="11">V2</option><option value="12">CDN</option>
-                <option value="13">Vl (VLESS)</option><option value="14">Tr (Trojan)</option>
-                <option value="15">Hy2 (Hysteria2)</option>
-              </select>
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">状态 (表现备注)</label>
-              <input class="sp-input" type="text" x-model="f.status">
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">显示 (1 显示 / 0 不显示)</label>
-              <select class="sp-select" x-model.number="f.type">
-                <option value="1">显示</option><option value="0">不显示</option>
-              </select>
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">节点信息 (订阅页展示)</label>
-              <input class="sp-input" type="text" x-model="f.info">
-            </div></div>
+        <div class="card mb-3">
+          <div class="card-header"><h3 class="card-title"><i class="mi me-2">router</i>基本</h3></div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">名称</label>
+                <input class="form-control" type="text" x-model="f.name">
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">节点配置 (地址[:端口])</label>
+                <input class="form-control" type="text" x-model="f.server">
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">节点 IP (留空 = 同节点配置)</label>
+                <input class="form-control" type="text" x-model="f.node_ip" placeholder="留空自动取 server">
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">加密方式</label>
+                <input class="form-control" type="text" x-model="f.method">
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">类型 (协议)</label>
+                <select class="form-select" x-model.number="f.sort">
+                  <option value="0">SS</option><option value="1">VPN/Radius基础</option>
+                  <option value="2">SSH</option><option value="5">Anyconnect</option>
+                  <option value="9">Sr-单多</option><option value="10">Ss-中转</option>
+                  <option value="11">V2</option><option value="12">CDN</option>
+                  <option value="13">Vl (VLESS)</option><option value="14">Tr (Trojan)</option>
+                  <option value="15">Hy2 (Hysteria2)</option>
+                </select>
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">状态 (表现备注)</label>
+                <input class="form-control" type="text" x-model="f.status">
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">显示 (1 显示 / 0 不显示)</label>
+                <select class="form-select" x-model.number="f.type">
+                  <option value="1">显示</option><option value="0">不显示</option>
+                </select>
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">节点信息 (订阅页展示)</label>
+                <input class="form-control" type="text" x-model="f.info">
+              </div></div>
+            </div>
           </div>
         </div>
 
-        <div class="sp-card sp-mb-6">
-          <div class="sp-card-title"><i class="mi">tune</i>参数</div>
-          <div class="sp-grid">
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">流量倍率 R</label>
-              <input class="sp-input" type="text" x-model="f.rate">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">成本 C</label>
-              <input class="sp-input" type="text" x-model.number="f.cost">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">群组 G</label>
-              <input class="sp-input" type="text" x-model.number="f.group">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">等级 L</label>
-              <input class="sp-input" type="text" x-model.number="f.class">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">标称带宽 Mbps</label>
-              <input class="sp-input" type="text" x-model="f.node_bandwidth">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">月流量限额 GB</label>
-              <input class="sp-input" type="text" x-model="f.node_bandwidth_limit">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">流量重置日 (几号)</label>
-              <input class="sp-input" type="text" x-model.number="f.traffic_reset_day">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">自定义加密 (0/1)</label>
-              <select class="sp-select" x-model.number="f.custom_method">
-                <option value="0">关闭</option><option value="1">启用</option>
-              </select>
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">订阅展示 (0/1)</label>
-              <select class="sp-select" x-model.number="f.custom_rss">
-                <option value="1">启用</option><option value="0">关闭</option>
-              </select>
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">单端口 (0/1)</label>
-              <select class="sp-select" x-model.number="f.mu_only">
-                <option value="-1">只启用普通端口</option>
-                <option value="0">普通端口与单端口并存</option>
-                <option value="1">只启用单端口多用户</option>
-              </select>
-            </div></div>
+        <div class="card mb-3">
+          <div class="card-header"><h3 class="card-title"><i class="mi me-2">tune</i>参数</h3></div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">流量倍率 R</label>
+                <input class="form-control" type="text" x-model="f.rate">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">成本 C</label>
+                <input class="form-control" type="text" x-model.number="f.cost">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">群组 G</label>
+                <input class="form-control" type="text" x-model.number="f.group">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">等级 L</label>
+                <input class="form-control" type="text" x-model.number="f.class">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">标称带宽 Mbps</label>
+                <input class="form-control" type="text" x-model="f.node_bandwidth">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">月流量限额 GB</label>
+                <input class="form-control" type="text" x-model="f.node_bandwidth_limit">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">流量重置日 (几号)</label>
+                <input class="form-control" type="text" x-model.number="f.traffic_reset_day">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">自定义加密 (0/1)</label>
+                <select class="form-select" x-model.number="f.custom_method">
+                  <option value="0">关闭</option><option value="1">启用</option>
+                </select>
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">订阅展示 (0/1)</label>
+                <select class="form-select" x-model.number="f.custom_rss">
+                  <option value="1">启用</option><option value="0">关闭</option>
+                </select>
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">单端口 (0/1)</label>
+                <select class="form-select" x-model.number="f.mu_only">
+                  <option value="-1">只启用普通端口</option>
+                  <option value="0">普通端口与单端口并存</option>
+                  <option value="1">只启用单端口多用户</option>
+                </select>
+              </div></div>
+            </div>
           </div>
         </div>
 
         <template x-if="isEdit">
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">analytics</i>遥测 (旧版编辑页数据条)</div>
-            <div class="sp-grid">
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>克隆属性</dt><dd>
-                <template x-if="f.is_clone > 0"><a :href="'/admin/node-edit.html?id=' + f.is_clone" title="跳转到主节点" style="text-decoration:underline">克隆 (主节点 #' + f.is_clone + ', 点击跳转)</a></template>
-                <template x-if="!(f.is_clone > 0)"><span>否 (真实节点)</span></template>
-              </dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>已用/剩余流量</dt><dd x-text="(f.traffic_used_gb||0).toFixed(2) + ' / ' + (f.traffic_left_gb||0).toFixed(2) + ' GB'"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>API Token</dt><dd><input class="sp-input sp-num" type="text" :value="f.api_token || '—'" readonly title="只读, 点击全选后可复制" @click="$el.select()" style="max-width:220px"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>运行天数</dt><dd x-text="(f.server_uptime_days||0).toFixed(1) + ' 天'"></dd></div></div>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">analytics</i>遥测 (旧版编辑页数据条)</h3></div>
+            <div class="card-body">
+              <div class="datagrid">
+                <div class="datagrid-item">
+                  <div class="datagrid-title">克隆属性</div>
+                  <div class="datagrid-content">
+                    <template x-if="f.is_clone > 0"><a :href="'/admin/node-edit.html?id=' + f.is_clone" title="跳转到主节点" class="text-decoration-underline">克隆 (主节点 #' + f.is_clone + ', 点击跳转)</a></template>
+                    <template x-if="!(f.is_clone > 0)"><span>否 (真实节点)</span></template>
+                  </div>
+                </div>
+                <div class="datagrid-item">
+                  <div class="datagrid-title">已用/剩余流量</div>
+                  <div class="datagrid-content" x-text="(f.traffic_used_gb||0).toFixed(2) + ' / ' + (f.traffic_left_gb||0).toFixed(2) + ' GB'"></div>
+                </div>
+                <div class="datagrid-item">
+                  <div class="datagrid-title">API Token</div>
+                  <div class="datagrid-content">
+                    <input class="form-control form-control-sm font-monospace" type="text" :value="f.api_token || '—'" readonly title="只读, 点击全选后可复制" @click="$el.select()">
+                  </div>
+                </div>
+                <div class="datagrid-item">
+                  <div class="datagrid-title">运行天数</div>
+                  <div class="datagrid-content" x-text="(f.server_uptime_days||0).toFixed(1) + ' 天'"></div>
+                </div>
+              </div>
             </div>
           </div>
         </template>
 
         <template x-if="isEdit">
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">speed</i>运行数据 (编辑专属)</div>
-            <div class="sp-grid">
-              <div class="sp-col-3"><div class="sp-form-row">
-                <label class="sp-form-label">健康分 node_sort</label>
-                <input class="sp-input" type="text" x-model.number="f.node_sort">
-              </div></div>
-              <div class="sp-col-3"><div class="sp-form-row">
-                <label class="sp-form-label">流量校准 GB (覆盖已用)</label>
-                <input class="sp-input" type="text" x-model="f.traffic_used_calibrate" :placeholder="'当前 ' + (f.traffic_used_gb||0).toFixed(2) + ' GB'">
-              </div></div>
-              <div class="sp-col-3"><div class="sp-form-row">
-                <label class="sp-form-label">运行天数校准 (天)</label>
-                <input class="sp-input" type="text" x-model="f.server_uptime_days" :placeholder="'当前 ' + (f.server_uptime_days||0).toFixed(1) + ' 天'">
-              </div></div>
-              <div class="sp-col-3"><div class="sp-form-row">
-                <label class="sp-form-label">心跳</label>
-                <input class="sp-input" type="text" :value="(f.heartbeat_ok ? '● 在线' : '○ 无心跳') + ' (' + (f.node_heartbeat||0) + ')'" readonly>
-              </div></div>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">speed</i>运行数据 (编辑专属)</h3></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                  <label class="form-label">健康分 node_sort</label>
+                  <input class="form-control" type="text" x-model.number="f.node_sort">
+                </div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                  <label class="form-label">流量校准 GB (覆盖已用)</label>
+                  <input class="form-control" type="text" x-model="f.traffic_used_calibrate" :placeholder="'当前 ' + (f.traffic_used_gb||0).toFixed(2) + ' GB'">
+                </div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                  <label class="form-label">运行天数校准 (天)</label>
+                  <input class="form-control" type="text" x-model="f.server_uptime_days" :placeholder="'当前 ' + (f.server_uptime_days||0).toFixed(1) + ' 天'">
+                </div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                  <label class="form-label">心跳</label>
+                  <input class="form-control" type="text" :value="(f.heartbeat_ok ? '● 在线' : '○ 无心跳') + ' (' + (f.node_heartbeat||0) + ')'" readonly>
+                </div></div>
+              </div>
             </div>
           </div>
         </template>
 
-        <div class="sp-mb-6" style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="submit" class="sp-btn sp-btn-brand" :disabled="saving"><i class="mi">save</i>保存</button>
-          <a class="sp-btn sp-btn-flat" href="/admin/nodes.html">返回列表</a>
-          <button type="button" class="sp-btn sp-btn-danger sp-pull-right" x-show="isEdit && f.sort !== 999" x-cloak @click="del()"><i class="mi">delete</i>删除节点</button>
+        <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+          <button type="submit" class="btn btn-primary" :disabled="saving"><i class="mi">save</i>保存</button>
+          <a class="btn" href="/admin/nodes.html">返回列表</a>
+          <button type="button" class="btn btn-danger ms-auto" x-show="isEdit && f.sort !== 999" x-cloak @click="del()"><i class="mi">delete</i>删除节点</button>
         </div>
       </form>
     </div>

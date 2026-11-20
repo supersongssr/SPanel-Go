@@ -1,0 +1,133 @@
+/* ============================================================================
+ * SPanel Admin 品牌覆写层 — 方案 D "Tabler 面板框架换肤" (2026-11-20)
+ * ----------------------------------------------------------------------------
+ * 加载顺序: material-icons.css → tabler.min.css → 本文件 (仅 admin 页加载)
+ * 职责: tokens 品牌化 (靛蓝主色) + SPanel 专属组件 + 少量骨架修正。
+ * 铁律: admin 页面内禁止内联颜色 style / <style> 块 / 外链字体 / alert();
+ *       新样式需求一律扩充本文件。user/auth 页样式见 spanel.css (互不加载)。
+ * ========================================================================== */
+
+/* ---------- 1. 品牌 tokens (靛蓝, 承接旧版 indigo 500 语义) ---------- */
+:root {
+  --tblr-primary: #3f51b5;
+  --tblr-primary-fg: #ffffff;
+  --tblr-link-color: #3f51b5;
+  --tblr-link-hover-color: #303f9f;
+  --tblr-font-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------- 2. 基础共存修正 ---------- */
+[x-cloak] { display: none !important; }
+
+/* Material Icons 连字与 Tabler 共存 (flex 容器内不收缩) */
+.mi { flex: none; }
+.mi.nav-link-icon {
+  width: 1.25rem; height: 1.25rem;
+  font-size: 1.25rem; line-height: 1.25rem;
+  color: var(--tblr-nav-link-icon-color, currentColor);
+}
+.btn .mi, .dropdown-item .mi { font-size: 1.125rem; }
+.dropdown-item .mi { width: 1.25rem; }
+
+/* 页面内容根: 骨架把 main.sp-content 移入 page-body 的 container-xl, 令其布局透明 */
+main.sp-content { display: contents; }
+
+/* ---------- 3. 骨架: 深色侧栏 + 顶栏 (sp-shell.js admin 分支注入) ---------- */
+/* 侧栏品牌行 */
+#spDrawer .navbar-brand {
+  gap: .5rem; font-size: 1.05rem; font-weight: var(--tblr-font-weight-normal);
+}
+#spDrawer .navbar-brand .mi { font-size: 1.5rem; opacity: .9; }
+/* 分组标题 (中文: 取消大写转换, 轻间距) */
+.sp-menu-group { text-transform: none; letter-spacing: .08em; font-weight: 500; }
+
+/* 移动端 (<992px): 侧栏 off-canvas + 遮罩 (自研 .open, 不依赖 bootstrap JS) */
+.sp-drawer-mask {
+  position: fixed; inset: 0; z-index: 1054; background: rgba(0, 0, 0, .45);
+  display: none;
+}
+@media (max-width: 991.98px) {
+  body { overflow-x: hidden; }
+  #spDrawer {
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 1055;
+    width: var(--tblr-sidebar-width); max-width: 84vw;
+    display: flex; flex-direction: column;
+    transform: translateX(-102%);
+    transition: transform .25s ease;
+    box-shadow: var(--tblr-box-shadow-lg, 0 1rem 4rem rgba(0, 0, 0, .3));
+  }
+  #spDrawer.open { transform: none; }
+  #spDrawer > .container-fluid {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch;
+  }
+  #spDrawer .navbar-collapse {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    display: block;
+  }
+  #spDrawer .navbar-footer { margin-top: auto; }
+  .sp-drawer-mask.show { display: block; }
+}
+/* 顶栏 (admin) 移动端菜单钮 */
+#spDrawerToggle { font-size: 1.25rem; padding: .25rem .5rem; }
+#spDrawerToggle .mi { font-size: 1.5rem; }
+/* 用户下拉: .dropdown-menu.show 由自研 JS 切换 (无 bootstrap JS) */
+#spUserMenu .dropdown-item { display: flex; align-items: center; }
+
+/* ---------- 4. 页脚 marquee (复刻旧 ui-footer 滚动条) ---------- */
+.sp-marquee {
+  white-space: nowrap; display: inline-block; padding-left: 100%;
+  animation: spMarquee 24s linear infinite;
+  color: var(--tblr-secondary); font-size: .8125rem;
+}
+.sp-marquee a { color: var(--tblr-secondary); }
+@keyframes spMarquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) { .sp-marquee { animation: none; padding-left: 0; } }
+
+/* ---------- 5. 反馈层 (SPUI, Tabler 风格) ---------- */
+/* Tabler/BS5 modal 展示依赖其 JS 设内联 display; 自研开合只切 .show → 品牌层补齐 */
+.modal.show { display: block; }
+
+/* Toast 轻提示 (节点 #spToast 由 sp-shell 注入) */
+.sp-toast {
+  position: fixed; left: 50%; bottom: 48px; z-index: 1090;
+  transform: translateX(-50%) translateY(16px);
+  display: flex; align-items: center; gap: .5rem;
+  max-width: 86vw; padding: .625rem 1rem;
+  background: rgba(var(--tblr-dark-rgb, 32 41 54), .95); color: #f3f5f5;
+  font-size: .875rem; border-radius: var(--tblr-border-radius-lg, .5rem);
+  box-shadow: rgba(0, 0, 0, .2) 0 8px 24px;
+  opacity: 0; pointer-events: none; transition: .25s;
+}
+.sp-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.sp-toast .mi { font-size: 1.125rem; }
+.sp-toast.success .mi { color: #4bd296; }
+.sp-toast.error .mi { color: #ec6b6b; }
+
+/* ---------- 6. AdminTable 组件 (admin-table.js 输出的 Tabler 结构) ---------- */
+/* 加载遮罩 */
+.sp-adm-loading {
+  position: absolute; inset: 0; z-index: 5;
+  display: none; align-items: center; justify-content: center; gap: .5rem;
+  background: color-mix(in oklab, var(--tblr-card-bg, #fff) 60%, transparent);
+  color: var(--tblr-secondary);
+}
+.sp-adm-loading.show { display: flex; }
+/* 行操作列 */
+.sp-adm-ops { display: flex; flex-wrap: wrap; gap: .375rem; }
+/* 大表默认不换行 (29 列用户表), 单元格级换行走 text-wrap 工具类 */
+.sp-adm table.table th, .sp-adm table.table td { white-space: nowrap; }
+/* 列显示面板 */
+.sp-adm-colpanel { min-width: 220px; max-height: 320px; overflow-y: auto; }
+.sp-adm-colpanel .dropdown-item { display: flex; align-items: center; gap: .5rem; cursor: pointer; user-select: none; }
+/* 排序表头 (th > button.table-sort) */
+table.table th .table-sort { cursor: pointer; }
+/* 空态图标 */
+.empty .mi, .empty-header .mi { font-size: 3rem; color: var(--tblr-secondary); }
+
+/* ---------- 7. 图表容器高度 (ECharts 页, 替代内联 style) ---------- */
+.sp-chart { width: 100%; }
+.sp-chart-240 { height: 240px; }
+.sp-chart-320 { height: 320px; }
+.sp-chart-380 { height: 380px; }

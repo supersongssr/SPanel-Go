@@ -10,14 +10,14 @@
  *     stateKey: 'adm-users',                 // localStorage 前缀 (列显隐/页大小)
  *     columns: [
  *       {key:'id', title:'ID', sortable:true},
- *       {key:'enable', title:'状态', render: r => r.enable===1?'<span class="sp-tag sp-tag-green">可用</span>':'<span class="sp-tag sp-tag-red">禁用</span>'},
+ *       {key:'enable', title:'状态', render: r => r.enable===1?'<span class="badge bg-green-lt">可用</span>':'<span class="badge bg-red-lt">禁用</span>'},
  *     ],
  *     defaultOrder: ['id','asc'],
  *     search: true,                           // 或 '搜索 id/用户名/邮箱'
- *     ops: r => '<a class="sp-btn sp-btn-sm" href="...">编辑</a>',   // 行操作列 (首列, 不可排序/隐藏)
+ *     ops: r => '<a class="btn btn-sm" href="...">编辑</a>',   // 行操作列 (首列, 不可排序/隐藏)
  *     params: () => ({status: window.xxx}),   // 每次加载附加的查询参数
  *   });
- * 依赖: api.js (SPanelAPI), sp-ui.js (SPUI), spanel.css §18
+ * 依赖: api.js (SPanelAPI), sp-ui.js (SPUI), tabler.min.css + spanel-admin.css (方案 D)
  */
 (function () {
   function esc(s) {
@@ -88,55 +88,63 @@
       applyColVisibility();
     }
 
-    /* ---- DOM ---- */
-    mount.classList.add('sp-adm');
+    /* ---- DOM (方案 D: Tabler card 结构 — card-header 工具栏 + table-responsive 表体 + card-footer 分页) ---- */
+    mount.classList.add('card', 'sp-adm');
     mount.innerHTML =
-      '<div class="sp-adm-toolbar">' +
+      '<div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">' +
         (opts.search === false ? '' :
-          '<div class="sp-adm-search"><i class="mi">search</i>' +
-          '<input type="text" placeholder="' + esc(opts.search === true ? '搜索…' : opts.search) + '"></div>') +
-        '<div class="sp-adm-tools">' +
-          '<select class="sp-select" title="每页条数">' +
+          '<div class="input-icon flex-grow-1" style="min-width:220px;max-width:360px">' +
+          '<span class="input-icon-addon"><i class="mi">search</i></span>' +
+          '<input type="text" class="form-control" placeholder="' + esc(opts.search === true ? '搜索…' : opts.search) + '"></div>') +
+        '<div class="d-flex align-items-center gap-2">' +
+          '<select class="form-select form-select-sm w-auto" title="每页条数">' +
           pageSizeOpts.map(function (n) {
             return '<option value="' + n + '"' + (n === st.pageSize ? ' selected' : '') + '>' + (n === 0 ? '全部' : n + ' 条/页') + '</option>';
           }).join('') +
           '</select>' +
-          '<div class="sp-adm-cols">' +
-            '<button type="button" class="sp-btn sp-btn-sm"><i class="mi">visibility</i>列显示</button>' +
-            '<div class="sp-adm-colpanel">' +
-            '<label style="color:var(--sp-brand);font-weight:500" data-reset="1"><i class="mi" style="font-size:16px">restart_alt</i>重置默认列</label>' +
-            '</div>' +
+          '<div class="dropdown sp-adm-cols">' +
+            '<button type="button" class="btn btn-sm dropdown-toggle"><i class="mi">visibility</i>列显示</button>' +
+            '<div class="dropdown-menu dropdown-menu-end sp-adm-colpanel"></div>' +
           '</div>' +
         '</div>' +
       '</div>' +
-      '<div class="sp-adm-tablewrap"><table class="sp-table sp-adm-table"><thead></thead><tbody></tbody></table>' +
-      '<div class="sp-adm-loading"><i class="mi">sync</i>加载中…</div></div>' +
-      '<div class="sp-adm-foot"><div class="sp-adm-info"></div><div class="sp-pagination"></div></div>';
+      '<div class="table-responsive position-relative">' +
+        '<table class="table table-vcenter card-table"><thead></thead><tbody></tbody></table>' +
+        '<div class="sp-adm-loading"><div class="spinner-border spinner-border-sm"></div>加载中…</div>' +
+      '</div>' +
+      '<div class="card-footer d-print-none">' +
+        '<div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">' +
+          '<div class="text-secondary sp-adm-info"></div>' +
+          '<ul class="pagination pagination-sm m-0 sp-pagination"></ul>' +
+        '</div>' +
+      '</div>';
 
     var $thead = mount.querySelector('thead');
     var $tbody = mount.querySelector('tbody');
     var $info = mount.querySelector('.sp-adm-info');
     var $pager = mount.querySelector('.sp-pagination');
     var $loading = mount.querySelector('.sp-adm-loading');
-    var $search = mount.querySelector('.sp-adm-search input');
-    var $ps = mount.querySelector('.sp-adm-tools select');
+    var $search = mount.querySelector('.input-icon input');
+    var $ps = mount.querySelector('.card-header select');
     var $colBtn = mount.querySelector('.sp-adm-cols button');
     var $colPanel = mount.querySelector('.sp-adm-colpanel');
 
-    /* ---- 列显示面板 ---- */
-    $colPanel.innerHTML = '<label style="color:var(--sp-brand);font-weight:500" data-reset="1"><i class="mi" style="font-size:16px">restart_alt</i>重置默认列</label>' +
+    /* ---- 列显示面板 (自研 .show 切换, 无 bootstrap JS) ---- */
+    $colPanel.innerHTML = '<button class="dropdown-item text-primary" type="button" data-reset="1">' +
+      '<i class="mi">restart_alt</i>重置默认列</button>' +
+      '<div class="dropdown-divider"></div>' +
       cols.map(function (c, i) {
-        return '<label><input type="checkbox" data-i="' + i + '"' + (colVisible(i, c.key) ? ' checked' : '') + '>' + esc(c.title || c.key) + '</label>';
+        return '<label class="dropdown-item"><input type="checkbox" data-i="' + i + '"' + (colVisible(i, c.key) ? ' checked' : '') + '>' + esc(c.title || c.key) + '</label>';
       }).join('');
     $colBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      $colPanel.classList.toggle('open');
+      $colPanel.classList.toggle('show');
     });
     $colPanel.addEventListener('click', function (e) {
       e.stopPropagation();
       if (e.target.closest('[data-reset]')) { resetCols(); return; }
     });
-    document.addEventListener('click', function () { $colPanel.classList.remove('open'); });
+    document.addEventListener('click', function () { $colPanel.classList.remove('show'); });
     $colPanel.addEventListener('change', function (e) {
       var t = e.target;
       if (t.tagName !== 'INPUT') return;
@@ -146,29 +154,26 @@
       applyColVisibility();
     });
 
-    /* ---- 表头 ---- */
+    /* ---- 表头 (排序指示走 Tabler th>button.table-sort .asc/.desc) ---- */
     function renderHead() {
       var html = '<tr>';
       if (hasOps) html += '<th>操作</th>';
       cols.forEach(function (c) {
         var sortable = c.sortable !== false; // 默认可排序
-        var cls = 'sp-th-sort' + (sortable ? '' : ' sp-th-nosort');
+        if (!sortable) { html += '<th>' + esc(c.title || c.key) + '</th>'; return; }
         var sorted = st.order[0] === c.key;
-        if (sorted) cls += ' sorted';
-        var arrow = !sortable ? '' :
-          '<i class="mi">' + (sorted && st.order[1] === 'desc' ? 'arrow_downward' : 'arrow_upward') + '</i>';
-        html += '<th class="' + cls + '" data-key="' + esc(c.key) + '">' + esc(c.title || c.key) + arrow + '</th>';
+        var cls = 'table-sort' + (sorted ? (st.order[1] === 'desc' ? ' desc' : ' asc') : '');
+        html += '<th><button type="button" class="' + cls + '" data-key="' + esc(c.key) + '">' + esc(c.title || c.key) + '</button></th>';
       });
       html += '</tr>';
       $thead.innerHTML = html;
 
-      $thead.querySelectorAll('th.sp-th-sort').forEach(function (th) {
-        var key = th.getAttribute('data-key');
-        if (th.classList.contains('sp-th-nosort')) return;
+      $thead.querySelectorAll('button.table-sort').forEach(function (btn) {
+        var key = btn.getAttribute('data-key');
         var colDef = null;
         cols.forEach(function (c) { if (c.key === key) colDef = c; });
         if (!colDef || colDef.sortable === false) return;
-        th.addEventListener('click', function () {
+        btn.addEventListener('click', function () {
           if (st.order[0] === key) st.order[1] = st.order[1] === 'asc' ? 'desc' : 'asc';
           else st.order = [key, 'asc'];
           st.page = 1;
@@ -248,7 +253,8 @@
     function renderRows(items) {
       if (!items.length) {
         $tbody.innerHTML = '<tr><td colspan="' + (cols.length + (hasOps ? 1 : 0)) + '">' +
-          '<div class="sp-empty"><i class="mi">inbox</i>暂无数据</div></td></tr>';
+          '<div class="empty"><div class="empty-header"><i class="mi">inbox</i></div>' +
+          '<div class="empty-title">暂无数据</div></div></td></tr>';
         return;
       }
       var html = '';
@@ -274,21 +280,23 @@
       else { from = 1; to = total; }
       $info.textContent = '共 ' + total + ' 条' + (st.pageSize > 0 ? ' · 第 ' + from + '-' + to + ' 条' : '');
 
-      /* 页码窗口: ‹ 1 … p-1 p p+1 … N › */
-      var btn = function (p, text, on, dis) {
-        return '<button data-p="' + p + '"' + (on ? ' class="on"' : '') + (dis ? ' disabled' : '') + '>' + text + '</button>';
+      /* 页码窗口: ‹ 1 … p-1 p p+1 … N › (Tabler pagination 结构) */
+      var li = function (p, text, on, dis, span) {
+        var inner = span ? '<span class="page-link">' + text + '</span>'
+                         : '<a class="page-link" href="javascript:void(0)" data-p="' + p + '">' + text + '</a>';
+        return '<li class="page-item' + (on ? ' active' : '') + (dis ? ' disabled' : '') + '">' + inner + '</li>';
       };
-      var h = btn(st.page - 1, '‹', false, st.page <= 1);
+      var h = li(st.page - 1, '‹', false, st.page <= 1);
       var win = 7;
       var s = Math.max(1, st.page - 3);
       var e = Math.min(pages, s + win - 1);
       s = Math.max(1, Math.min(s, e - win + 1));
-      if (s > 1) { h += btn(1, '1', st.page === 1); if (s > 2) h += '<span style="color:var(--sp-hint)">…</span>'; }
-      for (var p = s; p <= e; p++) h += btn(p, p, p === st.page);
-      if (e < pages) { if (e < pages - 1) h += '<span style="color:var(--sp-hint)">…</span>'; h += btn(pages, pages, false); }
-      h += btn(st.page + 1, '›', false, st.page >= pages);
+      if (s > 1) { h += li(1, '1', st.page === 1); if (s > 2) h += li(0, '…', false, true, true); }
+      for (var p = s; p <= e; p++) h += li(p, p, p === st.page);
+      if (e < pages) { if (e < pages - 1) h += li(0, '…', false, true, true); h += li(pages, pages, false); }
+      h += li(st.page + 1, '›', false, st.page >= pages);
       $pager.innerHTML = st.pageSize > 0 && pages > 1 ? h : '';
-      $pager.querySelectorAll('button').forEach(function (b) {
+      $pager.querySelectorAll('a.page-link').forEach(function (b) {
         b.addEventListener('click', function () {
           var p = parseInt(b.getAttribute('data-p'), 10);
           if (p >= 1 && p <= pages && p !== st.page) { st.page = p; load(); }

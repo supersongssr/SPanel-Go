@@ -6,49 +6,61 @@
   <title>系统概览 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="dashboard" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="dashboard">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">系统概览</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">系统概览</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner" x-data="adminIndexPage()">
-      <div class="sp-grid">
-        <div class="sp-col-3">
-          <div class="sp-card sp-adm-stat">
-            <div class="sp-adm-stat-num c-dark" x-text="d.total_users ?? '—'"></div>
-            <div class="sp-adm-stat-label">总用户</div>
+    <div x-data="adminIndexPage()">
+      <div class="row row-cards">
+        <div class="col-sm-6 col-xl-3">
+          <div class="card">
+            <div class="card-body">
+              <div class="subheader">总用户</div>
+              <div class="h1 mb-0" x-text="d.total_users ?? '—'"></div>
+            </div>
           </div>
         </div>
-        <div class="sp-col-3">
-          <div class="sp-card sp-adm-stat">
-            <div class="sp-adm-stat-num c-blue" x-text="d.online_30m ?? '—'"></div>
-            <div class="sp-adm-stat-label">30 分钟在线</div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="card">
+            <div class="card-body">
+              <div class="subheader">30 分钟在线</div>
+              <div class="h1 mb-0 text-blue" x-text="d.online_30m ?? '—'"></div>
+            </div>
           </div>
         </div>
-        <div class="sp-col-3">
-          <div class="sp-card sp-adm-stat">
-            <div class="sp-adm-stat-num c-orange" x-text="d.today_traffic ?? '—'"></div>
-            <div class="sp-adm-stat-label">今日流量</div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="card">
+            <div class="card-body">
+              <div class="subheader">今日流量</div>
+              <div class="h1 mb-0 text-orange" x-text="d.today_traffic ?? '—'"></div>
+            </div>
           </div>
         </div>
-        <div class="sp-col-3">
-          <div class="sp-card sp-adm-stat">
-            <div class="sp-adm-stat-num c-green" x-text="d.real_nodes ?? '—'"></div>
-            <div class="sp-adm-stat-label">真实节点</div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="card">
+            <div class="card-body">
+              <div class="subheader">真实节点</div>
+              <div class="h1 mb-0 text-green" x-text="d.real_nodes ?? '—'"></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="sp-grid sp-mt-6">
-        <div class="sp-col-12">
-          <div class="sp-card sp-adm-stat-cta">
-            <p>分组/等级决策数据(节点池防墙红线 · 组流量利用率 · 用户超编 · G5 迁移候选)已迁移至节点决策台</p>
-            <a class="sp-btn sp-btn-brand" href="/admin/node-decision.html"><i class="mi">assessment</i>进入节点决策台</a>
-            &nbsp;
-            <a class="sp-btn sp-btn-flat" href="/admin/node-group-traffic.html"><i class="mi">show_chart</i>组流量统计</a>
+      <div class="card mt-3">
+        <div class="card-body text-center">
+          <p class="text-secondary">分组/等级决策数据(节点池防墙红线 · 组流量利用率 · 用户超编 · G5 迁移候选)已迁移至节点决策台</p>
+          <div class="d-flex flex-wrap justify-content-center gap-2">
+            <a class="btn btn-primary" href="/admin/node-decision.html"><i class="mi">assessment</i>进入节点决策台</a>
+            <a class="btn" href="/admin/node-group-traffic.html"><i class="mi">show_chart</i>组流量统计</a>
           </div>
         </div>
       </div>

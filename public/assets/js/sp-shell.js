@@ -1,17 +1,18 @@
-/* SPanel 共享骨架注入 — 方案 C (单点维护, 复刻旧版 main.tpl 信息架构)
+/* SPanel 共享骨架注入 — 方案 D (admin: Tabler 骨架 / user·auth: 方案 C 旧骨架)
  *
  * 页面用法:
- *   <body data-sp-area="user" data-sp-page="dashboard" [data-sp-active="tickets"]>
- *     <main class="sp-content"> ... 页面内容 ... </main>
+ *   <body data-sp-area="admin" data-sp-page="users" [data-sp-active="tickets"]>
+ *     <main class="sp-content"> ... 页面内容 (Tabler 类) ... </main>
  *     <script src="/assets/js/api.js"></script>
  *     <script src="/assets/js/sp-ui.js"></script>
  *     <script src="/assets/js/sp-shell.js"></script>
  *   </body>
  *
- * - area="user"  → 注入橙色顶栏 + 左侧抽屉(五组菜单) + 页脚 marquee
+ * - area="admin" → 注入 Tabler 布局 (深色左侧栏 + 顶栏 + page-wrapper), main.sp-content 移入 page-body
+ * - area="user"  → 注入橙色顶栏 + 左侧抽屉(五组菜单) + 页脚 marquee (方案 C 原样)
  * - area="auth"  → 仅注入 modal/toast 节点 (登录页自有蓝底白卡布局)
- * - data-sp-page 用于高亮抽屉当前项; data-sp-active 可覆盖 (如工单子页高亮"技术支持")
- * - 抽屉/顶栏菜单 = 旧版 user/main.tpl 原样结构 (我的/商店/使用/帮助/账户)
+ * - data-sp-page 用于高亮侧栏当前项; data-sp-active 可覆盖 (如工单子页高亮"工单管理")
+ * - admin: 侧栏/顶栏交互全部自研 class 切换, 不依赖 tabler.min.js (方案 D2)
  */
 (function () {
   var body = document.body;
@@ -53,9 +54,31 @@
     });
   }
 
-  /* ---------- 通用反馈节点 (modal + toast, 所有页面都需要) ---------- */
+  /* ---------- 通用反馈节点 (modal + toast, 所有页面都需要; admin 用 Tabler 类) ---------- */
   function injectFeedbackNodes() {
     var div = document.createElement('div');
+    if (area === 'admin') {
+      /* Tabler modal (开合由 sp-ui.js 切换 .show / backdrop hidden, 不依赖 bootstrap JS) */
+      div.innerHTML =
+        '<div class="modal modal-blur modal-sm" id="spModal" aria-hidden="true">' +
+          '<div class="modal-dialog modal-dialog-centered" role="dialog" aria-modal="true">' +
+            '<div class="modal-content">' +
+              '<div class="modal-body" id="spModalMsg"></div>' +
+              '<div class="modal-footer">' +
+                '<button class="btn" id="spModalCancel" style="display:none">取消</button>' +
+                '<button class="btn btn-primary" id="spModalOk">知道了</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="modal-backdrop" id="spModalMask" hidden></div>' +
+        '<div class="sp-toast" id="spToast"></div>';
+      while (div.firstChild) body.appendChild(div.firstChild);
+      document.getElementById('spModalMask').addEventListener('click', function () {
+        window.SPUI && SPUI.hide();
+      });
+      return;
+    }
     div.innerHTML =
       '<div class="sp-modal" id="spModal" aria-hidden="true">' +
         '<div class="sp-modal-mask"></div>' +
@@ -88,7 +111,7 @@
     injectAppShell(MENU, { userDropHtml: userDropHtml });
   }
 
-  /* ---------- 管理区骨架 (旧 admin/main.tpl 六组菜单, 2026-11-18 admin 移植) ---------- */
+  /* ---------- 管理区骨架 (方案 D: Tabler 布局 — 深色侧栏 + 顶栏 + page-wrapper) ---------- */
   var ADMIN_MENU = [
     { title: '我的', items: [
       { key: 'dashboard',         href: '/admin/',                      icon: 'business_center',   text: '系统概览' },
@@ -129,19 +152,118 @@
 
   function injectAdminShell() {
     var u = (window.SP && SP.user()) || null;
-    /* 旧 admin/main.tpl: 顶栏头像下拉 = 用户中心/登出; 个人资料无菜单入口, 放下拉 */
-    var userDropHtml = u
-      ? '<a href="/admin/profile.html"><i class="mi">account_box</i>个人资料</a>' +
-        '<a href="/user/"><i class="mi">person</i>用户中心</a>' +
-        '<button class="sp-dd-danger" id="spLogoutBtn"><i class="mi">exit_to_app</i>登出</button>'
-      : '<a href="/auth/login.html"><i class="mi">account_box</i>登录</a>';
-    injectAppShell(ADMIN_MENU, {
-      userDropHtml: userDropHtml,
-      drawerLogoIcon: 'person_pin',
-      drawerLogoText: '管理面板',
-      headerBadge: '<span class="sp-header-admin-badge">ADMIN</span>',
-      drawerExtra: '<a href="/user/"><i class="mi">person</i>&nbsp;用户中心</a>'
+    var name = (u && (u.user_name || u.email)) || null;
+    var year = new Date().getFullYear();
+    var appName = (window.SP && SP.appName) || 'SPanel';
+
+    /* 侧栏菜单: 6 组, 分组常展开 (对齐旧版, 不用 Tabler dropdown 折叠) */
+    var navHtml = '';
+    ADMIN_MENU.forEach(function (g) {
+      navHtml += '<li class="nav-item"><div class="nav-section-title sp-menu-group">' + esc(g.title) + '</div></li>';
+      g.items.forEach(function (it) {
+        navHtml += '<li class="nav-item"><a class="nav-link" href="' + it.href + '" data-key="' + it.key + '">' +
+          '<i class="mi nav-link-icon">' + it.icon + '</i>' +
+          '<span class="nav-link-title">' + esc(it.text) + '</span></a></li>';
+      });
     });
+
+    /* 顶栏用户下拉 (旧 admin/main.tpl: 个人资料/用户中心/登出; 自研 .show 切换) */
+    var dropHtml = u
+      ? '<a class="dropdown-item" href="/admin/profile.html"><i class="mi">account_box</i>个人资料</a>' +
+        '<a class="dropdown-item" href="/user/"><i class="mi">person</i>用户中心</a>' +
+        '<div class="dropdown-divider"></div>' +
+        '<button class="dropdown-item text-danger" id="spLogoutBtn" type="button"><i class="mi">exit_to_app</i>登出</button>'
+      : '<a class="dropdown-item" href="/auth/login.html"><i class="mi">account_box</i>登录</a>';
+
+    var shell = document.createElement('div');
+    shell.className = 'page';
+    shell.innerHTML =
+      '<aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark" id="spDrawer">' +
+        '<div class="container-fluid">' +
+          '<div class="navbar-brand"><i class="mi">person_pin</i><span>' + esc(appName) + ' 管理面板</span></div>' +
+          '<div class="navbar-collapse">' +
+            '<ul class="navbar-nav pt-lg-3">' + navHtml + '</ul>' +
+            '<div class="navbar-footer">' +
+              '<div class="navbar-nav">' +
+                '<a class="nav-link" href="/user/"><i class="mi nav-link-icon">person</i>' +
+                  '<span class="nav-link-title">用户中心</span></a>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</aside>' +
+      '<div class="page-wrapper">' +
+        '<header class="navbar navbar-expand-md d-print-none">' +
+          '<div class="container-xl">' +
+            '<div class="d-flex align-items-center flex-grow-1 d-lg-none">' +
+              '<button class="btn" id="spDrawerToggle" type="button" aria-label="打开菜单"><i class="mi">menu</i></button>' +
+              '<a class="navbar-brand" href="/admin/"><i class="mi">person_pin</i><span>管理面板</span></a>' +
+            '</div>' +
+            '<div class="navbar-nav flex-row order-md-last ms-auto align-items-center gap-2">' +
+              '<span class="badge bg-blue-lt d-none d-md-inline-flex">ADMIN</span>' +
+              '<div class="nav-item dropdown" id="spUserDrop">' +
+                '<button class="nav-link d-flex align-items-center gap-2" id="spUserBtn" type="button">' +
+                  '<i class="mi">account_circle</i>' +
+                  '<span class="nav-link-title">' + esc(name || '未登录') + '</span>' +
+                  '<i class="mi">expand_more</i>' +
+                '</button>' +
+                '<div class="dropdown-menu dropdown-menu-end" id="spUserMenu">' + dropHtml + '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</header>' +
+        '<div class="page-body"><div class="container-xl"></div></div>' +
+        '<footer class="footer footer-transparent d-print-none">' +
+          '<div class="container-xl"><div class="sp-marquee">&copy;' + year + ' ' + esc(appName) +
+            ' | Powered by <a href="/">SSP</a></div></div>' +
+        '</footer>' +
+      '</div>';
+    body.insertBefore(shell, body.firstChild);
+
+    /* 遮罩 (移动端侧栏) */
+    var mask = document.createElement('div');
+    mask.className = 'sp-drawer-mask';
+    mask.id = 'spDrawerMask';
+    body.appendChild(mask);
+
+    /* 内容骨架: main.sp-content 移入 page-body 容器 (Tabler container-xl 接管宽度) */
+    var container = shell.querySelector('.page-body .container-xl');
+    var content = document.querySelector('main.sp-content');
+    if (content) container.appendChild(content);
+
+    /* 当前页高亮 (li.active 携带 Tabler 侧栏激活态) */
+    if (pageKey) {
+      shell.querySelectorAll('.navbar-nav a.nav-link[data-key]').forEach(function (a) {
+        if (a.getAttribute('data-key') === pageKey) {
+          a.classList.add('active');
+          var li = a.closest('li');
+          if (li) li.classList.add('active');
+        }
+      });
+    }
+
+    /* 交互: 侧栏开合 (移动端) / 用户下拉 / 登出 — 全部自研切换 */
+    var drawer = document.getElementById('spDrawer');
+    var toggleBtn = document.getElementById('spDrawerToggle');
+    function openDrawer(o) {
+      drawer.classList.toggle('open', o);
+      mask.classList.toggle('show', o);
+    }
+    if (toggleBtn) toggleBtn.addEventListener('click', function () { openDrawer(!drawer.classList.contains('open')); });
+    mask.addEventListener('click', function () { openDrawer(false); });
+
+    var userBtn = document.getElementById('spUserBtn');
+    var userMenu = document.getElementById('spUserMenu');
+    if (userBtn) {
+      userBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        userMenu.classList.toggle('show');
+      });
+    }
+    document.addEventListener('click', function () { userMenu && userMenu.classList.remove('show'); });
+
+    var logoutBtn = document.getElementById('spLogoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', function () { window.SP && SP.logout(); });
   }
 
   /* ---------- 通用骨架注入 (用户区/管理区共用) ---------- */

@@ -7,6 +7,13 @@
  */
 (function () {
   function el(id) { return document.getElementById(id); }
+  /* admin 页骨架为 Tabler 类 (方案 D), 按钮类名/背景幕随区域切换; API 契约不变 */
+  var IS_ADMIN = document.body && document.body.getAttribute('data-sp-area') === 'admin';
+
+  function btnClass(kind) {
+    if (!IS_ADMIN) return kind === 'danger' ? 'sp-btn sp-btn-danger' : 'sp-btn sp-btn-brand';
+    return kind === 'danger' ? 'btn btn-danger' : 'btn btn-primary';
+  }
 
   function showModal(text, opts) {
     opts = opts || {};
@@ -16,15 +23,17 @@
     var btnOk = el('spModalOk');
     var btnCancel = el('spModalCancel');
     btnOk.textContent = opts.okText || '知道了';
+    btnCancel.textContent = opts.cancelText || '取消';
     btnCancel.style.display = opts.showCancel ? '' : 'none';
-    if (opts.danger) { btnOk.className = 'sp-btn sp-btn-danger'; }
-    else { btnOk.className = 'sp-btn sp-btn-brand'; }
+    btnOk.className = btnClass(opts.danger ? 'danger' : 'primary');
+    var mask = el('spModalMask');
     btnOk.onclick = function () {
       hide();
       if (typeof opts.onOk === 'function') opts.onOk();
     };
     btnCancel.onclick = hide;
     modal.classList.add('show');
+    if (mask && IS_ADMIN) mask.hidden = false;
     document.addEventListener('keydown', escClose);
     btnOk.focus();
   }
@@ -32,6 +41,8 @@
   function hide() {
     var modal = el('spModal');
     if (modal) modal.classList.remove('show');
+    var mask = el('spModalMask');
+    if (mask) mask.hidden = true;
     document.removeEventListener('keydown', escClose);
   }
 
