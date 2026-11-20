@@ -6,37 +6,54 @@
   <title>流量统计 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
   <script src="/assets/js/vendor/echarts.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="node-group-traffic" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="node-group-traffic">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">流量统计</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">流量统计</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner" x-data="groupTrafficPage()" x-init="load()">
+    <div x-data="groupTrafficPage()" x-init="load()">
       <!-- 合计卡 -->
-      <div class="sp-grid sp-mb-6">
-        <div class="sp-col-4"><div class="sp-card sp-adm-stat">
-          <div class="sp-adm-stat-num c-orange" x-text="d.total_used_lastday_gb ?? '—'"></div>
-          <div class="sp-adm-stat-label">昨日用量合计 (GB/天)</div>
-        </div></div>
-        <div class="sp-col-4"><div class="sp-card sp-adm-stat">
-          <div class="sp-adm-stat-num c-blue" x-text="d.total_supply_daily_gb ?? '—'"></div>
-          <div class="sp-adm-stat-label">可供日均合计 (GB/天)</div>
-        </div></div>
-        <div class="sp-col-4"><div class="sp-card sp-adm-stat">
-          <div class="sp-adm-stat-num c-dark" x-text="d.total_nodes ?? '—'"></div>
-          <div class="sp-adm-stat-label">活跃节点数 (7h 心跳)</div>
-        </div></div>
+      <div class="row row-cards mb-3">
+        <div class="col-sm-6 col-xl-4">
+          <div class="card">
+            <div class="card-body">
+              <div class="subheader">昨日用量合计 (GB/天)</div>
+              <div class="h1 mb-0 text-orange" x-text="d.total_used_lastday_gb ?? '—'"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+          <div class="card">
+            <div class="card-body">
+              <div class="subheader">可供日均合计 (GB/天)</div>
+              <div class="h1 mb-0 text-blue" x-text="d.total_supply_daily_gb ?? '—'"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+          <div class="card">
+            <div class="card-body">
+              <div class="subheader">活跃节点数 (7h 心跳)</div>
+              <div class="h1 mb-0" x-text="d.total_nodes ?? '—'"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 分组表 -->
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">show_chart</i>分组汇总</div>
-        <div class="sp-table-wrap">
-          <table class="sp-table">
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">show_chart</i>分组汇总</h3></div>
+        <div class="table-responsive">
+          <table class="table table-vcenter card-table">
             <thead><tr>
               <th>分组</th><th>节点</th><th>在线(90s)</th><th>不限量</th>
               <th>昨日用量</th><th>可供日均</th><th>周期累计</th><th>利用率</th>
@@ -46,32 +63,36 @@
                 <tr>
                   <td><b x-text="'G' + g.group"></b></td>
                   <td x-text="g.node_count"></td>
-                  <td><span class="sp-dot" :class="g.online_count > 0 ? 'green' : 'red'"></span><span x-text="g.online_count"></span></td>
+                  <td><span class="status" :class="g.online_count > 0 ? 'status-green' : 'status-red'"></span><span x-text="g.online_count"></span></td>
                   <td x-text="g.unlimited_count"></td>
                   <td x-text="(g.used_lastday_gb || 0) + ' GB'"></td>
                   <td x-text="(g.supply_daily_gb || 0) + ' GB'"></td>
                   <td x-text="fmtGB(g.used_total)"></td>
                   <td>
-                    <span class="sp-tag" :class="utilClass(g)" x-text="utilPct(g) + '%'"></span>
+                    <span class="badge" :class="utilClass(g)" x-text="utilPct(g) + '%'"></span>
                   </td>
                 </tr>
               </template>
-              <tr x-show="!summary.length"><td colspan="8"><div class="sp-empty"><i class="mi">inbox</i>暂无数据</div></td></tr>
+              <tr x-show="!summary.length"><td colspan="8"><div class="empty"><div class="empty-header"><i class="mi">inbox</i></div><div class="empty-title">暂无数据</div></div></td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
       <!-- 对比图 -->
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">bar_chart</i>各分组对比 (昨日 vs 可供日均, GB/天)</div>
-        <div id="barChart" style="height:320px"></div>
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">bar_chart</i>各分组对比 (昨日 vs 可供日均, GB/天)</h3></div>
+        <div class="card-body">
+          <div id="barChart" class="sp-chart sp-chart-320"></div>
+        </div>
       </div>
 
       <!-- 7 天趋势 -->
-      <div class="sp-card">
-        <div class="sp-card-title"><i class="mi">timeline</i>过去 7 天每日用量 (GB/天)</div>
-        <div id="lineChart" style="height:380px"></div>
+      <div class="card">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">timeline</i>过去 7 天每日用量 (GB/天)</h3></div>
+        <div class="card-body">
+          <div id="lineChart" class="sp-chart sp-chart-380"></div>
+        </div>
       </div>
     </div>
   </main>
@@ -93,9 +114,9 @@
         },
         utilClass(g) {
           const p = this.utilPct(g);
-          if (p >= 95) return 'sp-tag-red';
-          if (p >= 80) return 'sp-tag-orange';
-          return 'sp-tag-green';
+          if (p >= 95) return 'bg-red-lt';
+          if (p >= 80) return 'bg-orange-lt';
+          return 'bg-green-lt';
         },
         load() {
           SPanelAPI.request('/api/v2/admin/stats/node-group-traffic')

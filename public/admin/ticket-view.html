@@ -6,72 +6,83 @@
   <title>工单详情 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="tickets" data-sp-active="tickets" class="sp-admin" x-data="ticketViewPage()">
+<body data-sp-area="admin" data-sp-page="tickets" data-sp-active="tickets" x-data="ticketViewPage()">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">工单 <span x-show="id" x-cloak>#<span x-text="id"></span></span></h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">工单 <span x-show="id" x-cloak>#<span x-text="id"></span></span></h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner" x-init="init()">
+    <div x-init="init()">
       <template x-if="!invalid && loaded">
         <div>
           <!-- 用户信息卡 -->
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">account_box</i>发起人</div>
-            <div class="sp-grid">
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>ID</dt><dd><a :href="'/admin/user-edit.html?id=' + user.id" x-text="user.id"></a></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>用户名</dt><dd x-text="user.user_name"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>邮箱</dt><dd x-text="user.email"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>等级/群组</dt><dd x-text="user.class + ' / ' + user.node_group"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>余额</dt><dd :class="parseFloat(user.money) < 0 ? 'sp-text-danger' : ''" x-text="user.money + ' 元'"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>状态</dt><dd x-text="user.enable === 1 ? '可用' : '禁用'"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>等级有效期</dt><dd :class="user.class_expire && user.class_expire.indexOf('0000') === 0 ? 'sp-text-danger' : ''" x-text="user.class_expire || '—'"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>账号过期时间</dt><dd x-text="user.expire_in || '—'"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>流量 (已用/总量)</dt><dd><span x-text="fmtGB(user.used_traffic)"></span> / <span x-text="fmtGB(user.transfer_enable)"></span> <span class="sp-text-hint" x-text="user.transfer_enable ? '(' + Math.min(100, (user.used_traffic / user.transfer_enable * 100).toFixed(1)) + '%)' : ''"></span></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>最后使用</dt><dd x-text="user.last_ss_time || '从未使用'"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>备注</dt><dd x-text="user.remark || '—'"></dd></div></div>
-              <div class="sp-col-3"><div class="sp-dl-row"><dt>操作</dt><dd><button class="sp-btn sp-btn-sm" @click="maskUser()" :disabled="submitting"><i class="mi">switch_account</i>切换为该用户</button></dd></div></div>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">account_box</i>发起人</h3></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">ID</span><span class="text-break"><a :href="'/admin/user-edit.html?id=' + user.id" x-text="user.id"></a></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">用户名</span><span class="text-break" x-text="user.user_name"></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">邮箱</span><span class="text-break" x-text="user.email"></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">等级/群组</span><span class="text-break" x-text="user.class + ' / ' + user.node_group"></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">余额</span><span class="text-break" :class="parseFloat(user.money) < 0 ? 'text-danger' : ''" x-text="user.money + ' 元'"></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">状态</span><span class="text-break" x-text="user.enable === 1 ? '可用' : '禁用'"></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">等级有效期</span><span class="text-break" :class="user.class_expire && user.class_expire.indexOf('0000') === 0 ? 'text-danger' : ''" x-text="user.class_expire || '—'"></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">账号过期时间</span><span class="text-break" x-text="user.expire_in || '—'"></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">流量 (已用/总量)</span><span class="text-break"><span x-text="fmtGB(user.used_traffic)"></span> / <span x-text="fmtGB(user.transfer_enable)"></span> <span class="text-secondary" x-text="user.transfer_enable ? '(' + Math.min(100, (user.used_traffic / user.transfer_enable * 100).toFixed(1)) + '%)' : ''"></span></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">最后使用</span><span class="text-break" x-text="user.last_ss_time || '从未使用'"></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">备注</span><span class="text-break" x-text="user.remark || '—'"></span></div></div>
+                <div class="col-sm-6 col-xl-3"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">操作</span><span><button class="btn btn-sm" @click="maskUser()" :disabled="submitting"><i class="mi">switch_account</i>切换为该用户</button></span></div></div>
+              </div>
             </div>
           </div>
 
           <!-- 对话楼层 -->
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">question_answer</i>对话</div>
-            <template x-for="t in tickets" :key="t.id">
-              <div class="sp-alert" :class="t.is_admin ? 'sp-alert-info' : 'sp-alert-success'" style="margin-bottom:10px;flex-direction:column;align-items:stretch">
-                <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
-                  <b>
-                    <i class="mi" style="font-size:16px" x-text="t.is_admin ? 'support_agent' : 'person'"></i>
-                    <span x-text="t.is_admin ? '管理员' : '用户 #' + t.userid"></span>
-                    <span class="sp-text-hint" style="margin-left:8px" x-text="t.datetime"></span>
-                  </b>
-                  <span class="sp-text-hint">#<span x-text="t.id"></span></span>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">question_answer</i>对话</h3></div>
+            <div class="card-body">
+              <template x-for="t in tickets" :key="t.id">
+                <div class="alert mb-2" :class="t.is_admin ? 'alert alert-info' : 'alert alert-success'">
+                  <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                    <b>
+                      <i class="mi" style="font-size:16px" x-text="t.is_admin ? 'support_agent' : 'person'"></i>
+                      <span x-text="t.is_admin ? '管理员' : '用户 #' + t.userid"></span>
+                      <span class="text-secondary ms-2" x-text="t.datetime"></span>
+                    </b>
+                    <span class="text-secondary">#<span x-text="t.id"></span></span>
+                  </div>
+                  <div x-html="t.content" style="white-space:pre-wrap;word-break:break-word;margin-top:6px"></div>
                 </div>
-                <div x-html="t.content" style="white-space:pre-wrap;word-break:break-word;margin-top:6px"></div>
-              </div>
-            </template>
+              </template>
+            </div>
           </div>
 
           <!-- 回复 -->
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">reply</i>处理</div>
-            <textarea class="sp-textarea" rows="6" x-model="content" placeholder="回复内容 (markdown/纯文本)"></textarea>
-            <div class="sp-mt-4" style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="sp-btn sp-btn-brand" @click="submit('3')" :disabled="submitting"><i class="mi">send</i>回复并展示(邮件通知)</button>
-              <button class="sp-btn" @click="submit('1')" :disabled="submitting"><i class="mi">save</i>仅记录回复</button>
-              <button class="sp-btn" @click="submit('2')" :disabled="submitting"><i class="mi">skip_next</i>跳过</button>
-              <button class="sp-btn sp-btn-danger" @click="submit('0')" :disabled="submitting"><i class="mi">close</i>关闭</button>
-              <a class="sp-btn sp-btn-flat" :href="nextId ? '/admin/ticket-view.html?id=' + nextId : '/admin/tickets.html'">
-                下一张 <i class="mi">arrow_forward</i>
-              </a>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">reply</i>处理</h3></div>
+            <div class="card-body">
+              <textarea class="form-control" rows="6" x-model="content" placeholder="回复内容 (markdown/纯文本)"></textarea>
+              <div class="mt-2 d-flex flex-wrap gap-2">
+                <button class="btn btn-primary" @click="submit('3')" :disabled="submitting"><i class="mi">send</i>回复并展示(邮件通知)</button>
+                <button class="btn" @click="submit('1')" :disabled="submitting"><i class="mi">save</i>仅记录回复</button>
+                <button class="btn" @click="submit('2')" :disabled="submitting"><i class="mi">skip_next</i>跳过</button>
+                <button class="btn btn-danger" @click="submit('0')" :disabled="submitting"><i class="mi">close</i>关闭</button>
+                <a class="btn" :href="nextId ? '/admin/ticket-view.html?id=' + nextId : '/admin/tickets.html'">
+                  下一张 <i class="mi">arrow_forward</i>
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </template>
       <template x-if="invalid">
-        <div class="sp-alert sp-alert-warn">
+        <div class="alert alert-warning">
           <i class="mi">warning</i>
           <span>工单无效 (可能已被清理或发起人注销), 即将跳转下一张有效工单…</span>
         </div>

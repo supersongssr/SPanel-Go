@@ -6,82 +6,49 @@
   <title>节点决策台 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
   <script src="/assets/js/vendor/echarts.min.js"></script>
-  <style>
-    /* 决策台专用样式 (对齐旧版 nodeDecision.tpl 色板) */
-    .nd-sev-red td { background:#fdecea; }
-    .nd-sev-yellow td { background:#fff8e1; }
-    .nd-sev-green td { background:#e8f5e9; }
-    .nd-matrix th, .nd-matrix td { text-align:center; border:1px solid var(--sp-divider) !important; }
-    .nd-matrix th { white-space:nowrap; }
-    .nd-matrix .nd-lv { text-align:left; white-space:nowrap; font-weight:600; }
-    .nd-pool { font-size:18px; font-weight:700; line-height:1.15; }
-    .nd-need { font-size:11px; opacity:.72; }
-    .nd-matrix td { min-width:64px; }
-    .nd-c-red { background:#fdecea; color:#b71c1c; }
-    .nd-c-yellow { background:#fff8e1; color:#e65100; }
-    .nd-c-green { background:#e8f5e9; color:#1b5e20; }
-    .nd-gray { color:#90a4ae; }
-    .nd-i { padding:8px 14px; border-radius:3px; margin-bottom:8px; font-size:14px; }
-    .nd-i-red { background:#fdecea; color:#b71c1c; border-left:4px solid #e53935; }
-    .nd-i-yellow { background:#fff8e1; color:#e65100; border-left:4px solid #fb8c00; }
-    .nd-i-green { background:#e8f5e9; color:#1b5e20; border-left:4px solid #43a047; }
-    .nd-v-add, .nd-v-broken { color:#b71c1c; font-weight:700; }
-    .nd-v-watch { color:#e65100; font-weight:700; }
-    .nd-v-trim { color:#0d47a1; font-weight:700; }
-    .nd-v-ok { color:#1b5e20; }
-    .nd-st-ok { color:#1b5e20; }
-    .nd-st-cold { color:#90a4ae; }
-    .nd-st-over, .nd-v-broken { font-weight:700; }
-    .nd-st-over, .nd-st-risk, .nd-st-cycle { color:#e65100; font-weight:700; }
-    .nd-st-over { color:#b71c1c; }
-    details.nd-drop { margin-bottom:10px; }
-    details.nd-drop summary { cursor:pointer; font-weight:600; padding:8px 0; color:var(--sp-text-2nd); }
-    .nd-sub { font-size:12px; color:#90a4ae; margin:2px 0 10px; }
-    .nd-tbl th, .nd-tbl td { white-space:nowrap; } /* 旧版 .nd-tbl nowrap */
-    .sp-table-wrap { -webkit-overflow-scrolling: touch; } /* 移动端表格横滑顺滑 */
-    @media (max-width: 600px) {
-      .nd-matrix th, .nd-matrix td { padding: 8px 6px; }
-      .nd-matrix td { min-width: 46px; }
-      .nd-pool { font-size: 15px; }
-      .nd-need { font-size: 10px; }
-      #ndTrendChart { height: 240px; }
-      .nd-sub { font-size: 12px; word-break: break-word; }
-    }
-  </style>
 </head>
-<body data-sp-area="admin" data-sp-page="node-decision" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="node-decision">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">节点决策台</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">节点决策台</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner" x-data="ndPage()" x-init="load()">
+    <div x-data="ndPage()" x-init="load()">
 
       <!-- A · 决策摘要 -->
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">priority_high</i>A · 决策摘要</div>
-        <p class="nd-sub">数据时间 <span x-text="d.generated_at"></span> · 红色须优先处理(R9=防墙红线 · R14=分组裁决 · R10=节点超额)
-          <a href="javascript:void(0)" @click="load()">刷新</a></p>
-        <template x-if="d.insights && d.insights.length">
-          <div>
-            <template x-for="(it, i) in d.insights" :key="i">
-              <div class="nd-i" :class="'nd-i-' + it.sev" x-text="it.msg"></div>
-            </template>
-          </div>
-        </template>
-        <template x-if="d.insights && !d.insights.length">
-          <p class="nd-c-green" style="font-size:15px">✓ 全部指标正常, 无待决策项</p>
-        </template>
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">priority_high</i>A · 决策摘要</h3></div>
+        <div class="card-body">
+          <p class="nd-sub">数据时间 <span x-text="d.generated_at"></span> · 红色须优先处理(R9=防墙红线 · R14=分组裁决 · R10=节点超额)
+            <a href="javascript:void(0)" @click="load()">刷新</a></p>
+          <template x-if="d.insights && d.insights.length">
+            <div>
+              <template x-for="(it, i) in d.insights" :key="i">
+                <div class="nd-i" :class="'nd-i-' + it.sev" x-text="it.msg"></div>
+              </template>
+            </div>
+          </template>
+          <template x-if="d.insights && !d.insights.length">
+            <p class="nd-c-green" style="font-size:15px">✓ 全部指标正常, 无待决策项</p>
+          </template>
+        </div>
       </div>
 
       <!-- F · 分组扩容/迁移裁决 -->
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">gavel</i>F · 分组扩容/迁移裁决</div>
-        <p class="nd-sub">每组单一结论: 红线信号(昨日或今日外推 util&gt;95% · 超额节点≥50% · 人/台&gt;250)→➕缺节点 · 黄线/趋势→观察 · util&lt;40%且人/台&lt;80→可迁出 · 缺口台数按「单台日供给=供给日均÷可用台数」估算</p>
-        <div class="sp-table-wrap">
-          <table class="sp-table nd-tbl">
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">gavel</i>F · 分组扩容/迁移裁决</h3></div>
+        <div class="card-body">
+          <p class="nd-sub">每组单一结论: 红线信号(昨日或今日外推 util&gt;95% · 超额节点≥50% · 人/台&gt;250)→➕缺节点 · 黄线/趋势→观察 · util&lt;40%且人/台&lt;80→可迁出 · 缺口台数按「单台日供给=供给日均÷可用台数」估算</p>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-vcenter card-table nd-tbl">
             <thead><tr>
               <th>组</th><th>判定</th><th>缺口/冗余</th><th>可用台</th><th>超额节点</th>
               <th>昨日util</th><th>今日外推</th><th>人/台</th><th>覆盖/$</th>
@@ -101,25 +68,27 @@
                   <td x-text="vd(g) ? vd(g).cov_live : '—'"></td>
                   <td x-text="vd(g) ? vd(g).supply : '—'"></td>
                   <td x-text="vd(g) ? vd(g).need : '—'"></td>
-                  <td class="sp-wrap" style="max-width:340px" x-text="vd(g) ? vd(g).reasons : '—'"></td>
-                  <td><a class="sp-btn sp-btn-sm" :href="'/admin/node-ctl.html?group=' + g + '&class=10'">调整节点</a></td>
+                  <td class="text-wrap" style="max-width:340px" x-text="vd(g) ? vd(g).reasons : '—'"></td>
+                  <td><a class="btn btn-sm" :href="'/admin/node-ctl.html?group=' + g + '&class=10'">调整节点</a></td>
                 </tr>
               </template>
-              <tr x-show="!(d.group_ids||[]).some(g => vd(g))"><td colspan="13"><div class="sp-empty"><i class="mi">inbox</i>暂无裁决数据</div></td></tr>
+              <tr x-show="!(d.group_ids||[]).some(g => vd(g))"><td colspan="13"><div class="empty"><div class="empty-header"><i class="mi">inbox</i></div><div class="empty-title">暂无裁决数据</div></div></td></tr>
             </tbody>
           </table>
         </div>
         <template x-if="d.transfer && d.transfer.msg">
-          <div class="nd-i nd-i-yellow" style="margin-top:8px" x-text="'调配总纲: ' + d.transfer.msg + ' · 注: R9 缺口补 clone 即可, 本表缺口需真实节点(或提限额)'"></div>
+          <div class="card-body"><div class="nd-i nd-i-yellow" style="margin-top:8px" x-text="'调配总纲: ' + d.transfer.msg + ' · 注: R9 缺口补 clone 即可, 本表缺口需真实节点(或提限额)'"></div></div>
         </template>
       </div>
 
       <!-- B · 组总览 -->
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">dashboard_customize</i>B · 组总览</div>
-        <p class="nd-sub">用户目标 <span x-text="d.group_target"></span> 人/组 · 在线口径: user.t(30min内有流量上报) · 供给口径: 可用真实节点(订阅池+7h心跳) · 超额/外推口径: 仅心跳内服役节点</p>
-        <div class="sp-table-wrap">
-          <table class="sp-table nd-tbl">
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">dashboard_customize</i>B · 组总览</h3></div>
+        <div class="card-body">
+          <p class="nd-sub">用户目标 <span x-text="d.group_target"></span> 人/组 · 在线口径: user.t(30min内有流量上报) · 供给口径: 可用真实节点(订阅池+7h心跳) · 超额/外推口径: 仅心跳内服役节点</p>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-vcenter card-table nd-tbl">
             <thead><tr>
               <th>组</th><th>用户(目标)</th><th>30min在线</th><th>24h活跃</th>
               <th>今日实时流量</th><th>昨日用量</th><th>供给日均</th><th>利用率(昨/今推)</th><th>超额节点</th>
@@ -143,10 +112,10 @@
                   <td x-text="gd(g) ? gd(g).cov_live : '—'"></td>
                   <td x-text="gd(g) ? gd(g).cost_per_live : '—'"></td>
                   <td x-text="gd(g) ? '$' + (gd(g).cost || 0) : '—'"></td>
-                  <td><a class="sp-btn sp-btn-sm" :href="'/admin/node-ctl.html?group=' + g + '&class=10'">调整节点</a></td>
+                  <td><a class="btn btn-sm" :href="'/admin/node-ctl.html?group=' + g + '&class=10'">调整节点</a></td>
                 </tr>
               </template>
-              <tr style="background:rgba(0,0,0,.03)">
+              <tr class="nd-total-row">
                 <td colspan="14" style="text-align:right;font-weight:600">全站每$覆盖基准</td>
                 <td x-html="d.coverage_base_display ? d.coverage_base_display.cov_live + ' 人/$ <span class=nd-need>' + d.coverage_base_display.cost_per_live + '/人</span>' : '—'"></td>
                 <td></td>
@@ -157,11 +126,13 @@
       </div>
 
       <!-- C · 节点池矩阵 -->
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">grid_on</i>C · 节点池矩阵(防墙红线)</div>
-        <p class="nd-sub">格内大字=该级累计可见节点池(node_class≤c, 真实+clone), 小字=该级可获取数(<span x-text="d.sub_limit_desc"></span>) · 红=池≤需(该级用户将拿满全池)或池=0 · 黄=贴线(余量≤10%) · 灰"—"=该级无用户 · 悬浮看明细</p>
-        <div class="sp-table-wrap">
-          <table class="sp-table nd-matrix">
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">grid_on</i>C · 节点池矩阵(防墙红线)</h3></div>
+        <div class="card-body">
+          <p class="nd-sub">格内大字=该级累计可见节点池(node_class≤c, 真实+clone), 小字=该级可获取数(<span x-text="d.sub_limit_desc"></span>) · 红=池≤需(该级用户将拿满全池)或池=0 · 黄=贴线(余量≤10%) · 灰"—"=该级无用户 · 悬浮看明细</p>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-vcenter card-table nd-matrix">
             <thead><tr>
               <th class="nd-lv">等级(月价)</th>
               <template x-for="g in (d.group_ids||[])" :key="'ch'+g"><th x-text="'G' + g"></th></template>
@@ -190,9 +161,11 @@
           </table>
         </div>
 
-        <p class="nd-sub" style="margin-top:14px">附: 用户分布(总数 / 30min在线)</p>
-        <div class="sp-table-wrap">
-          <table class="sp-table nd-matrix" style="opacity:.75">
+        <div class="card-body">
+          <p class="nd-sub" style="margin-top:14px">附: 用户分布(总数 / 30min在线)</p>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-vcenter card-table nd-matrix" style="opacity:.75">
             <thead><tr>
               <th class="nd-lv">等级</th>
               <template x-for="g in (d.group_ids||[])" :key="'uh'+g"><th x-text="'G' + g"></th></template>
@@ -217,131 +190,135 @@
       </div>
 
       <!-- D · 7 天流量趋势 -->
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">timeline</i>D · 7 天流量趋势(每日用量, GB)</div>
-        <div id="ndTrendChart" style="height:320px; width:100%"></div>
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">timeline</i>D · 7 天流量趋势(每日用量, GB)</h3></div>
+        <div class="card-body">
+          <div id="ndTrendChart" class="sp-chart sp-chart-320"></div>
+        </div>
       </div>
 
       <!-- E · 下钻明细 -->
-      <div class="sp-card">
-        <div class="sp-card-title"><i class="mi">zoom_in</i>E · 下钻明细</div>
+      <div class="card">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">zoom_in</i>E · 下钻明细</h3></div>
+        <div class="card-body">
 
-        <details class="nd-drop">
-          <summary>G5 候选迁移节点 (<span x-text="(d.g5_candidates||[]).length"></span>)</summary>
-          <p class="nd-sub">R10 溢出候选: 非核心组 (优先级 5→0) 心跳内且昨日用量高的节点, 可迁去 G5 补红线</p>
-          <div class="sp-table-wrap">
-            <table class="sp-table">
-              <thead><tr><th>ID</th><th>节点</th><th>等级</th><th>成本$</th><th>实时在线</th><th>昨日用量</th><th></th></tr></thead>
-              <tbody>
-                <template x-for="n in (d.g5_candidates||[])" :key="'g5_'+n.id">
-                  <tr>
-                    <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'L' + n.class"></td>
-                    <td x-text="'$' + n.cost"></td><td x-text="n.alive"></td><td x-text="(n.used_gb ?? n.used_lastday ?? '—') + (n.used_gb != null ? 'GB' : '')"></td>
-                    <td><a class="sp-btn sp-btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
-                  </tr>
-                </template>
-                <tr x-show="!(d.g5_candidates||[]).length"><td colspan="7"><span class="nd-gray">无候选</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </details>
+          <details class="nd-drop">
+            <summary>G5 候选迁移节点 (<span x-text="(d.g5_candidates||[]).length"></span>)</summary>
+            <p class="nd-sub">R10 溢出候选: 非核心组 (优先级 5→0) 心跳内且昨日用量高的节点, 可迁去 G5 补红线</p>
+            <div class="table-responsive">
+              <table class="table table-vcenter card-table">
+                <thead><tr><th>ID</th><th>节点</th><th>等级</th><th>成本$</th><th>实时在线</th><th>昨日用量</th><th></th></tr></thead>
+                <tbody>
+                  <template x-for="n in (d.g5_candidates||[])" :key="'g5_'+n.id">
+                    <tr>
+                      <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'L' + n.class"></td>
+                      <td x-text="'$' + n.cost"></td><td x-text="n.alive"></td><td x-text="(n.used_gb ?? n.used_lastday ?? '—') + (n.used_gb != null ? 'GB' : '')"></td>
+                      <td><a class="btn btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
+                    </tr>
+                  </template>
+                  <tr x-show="!(d.g5_candidates||[]).length"><td colspan="7"><span class="nd-gray">无候选</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
 
-        <details class="nd-drop">
-          <summary>在线节点分层 (<span x-text="(d.node_alive_rows||[]).length"></span>)</summary>
-          <p class="nd-sub">心跳内真实节点: 状态分层 — 超额(今日已达配额) / 风险(外推&gt;95%) / 冷启动(配额0或无历史) / 周期满 / 可用</p>
-          <div class="sp-table-wrap">
-            <table class="sp-table">
-              <thead><tr><th>ID</th><th>节点</th><th>组</th><th>等级</th><th>在线人数</th><th>昨日用量</th><th>今日/日配额</th><th>状态</th></tr></thead>
-              <tbody>
-                <template x-for="n in (d.node_alive_rows||[])" :key="'na_'+n.id">
-                  <tr>
-                    <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="'L' + n.class"></td>
-                    <td x-text="n.alive"></td><td x-text="(n.used_gb ?? n.used_lastday ?? '—') + (n.used_gb != null ? 'GB' : '')"></td>
-                    <td x-text="(n.today_gb || 0) + ' / ' + (n.quota_gb || 0) + 'GB' + (n.today_pct !== null ? ' (' + n.today_pct + '%)' : '')"></td>
-                    <td><span :class="'nd-st-' + n.status" x-text="n.status_label"></span></td>
-                  </tr>
-                </template>
-                <tr x-show="!(d.node_alive_rows||[]).length"><td colspan="8"><span class="nd-gray">无在线节点</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </details>
+          <details class="nd-drop">
+            <summary>在线节点分层 (<span x-text="(d.node_alive_rows||[]).length"></span>)</summary>
+            <p class="nd-sub">心跳内真实节点: 状态分层 — 超额(今日已达配额) / 风险(外推&gt;95%) / 冷启动(配额0或无历史) / 周期满 / 可用</p>
+            <div class="table-responsive">
+              <table class="table table-vcenter card-table">
+                <thead><tr><th>ID</th><th>节点</th><th>组</th><th>等级</th><th>在线人数</th><th>昨日用量</th><th>今日/日配额</th><th>状态</th></tr></thead>
+                <tbody>
+                  <template x-for="n in (d.node_alive_rows||[])" :key="'na_'+n.id">
+                    <tr>
+                      <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="'L' + n.class"></td>
+                      <td x-text="n.alive"></td><td x-text="(n.used_gb ?? n.used_lastday ?? '—') + (n.used_gb != null ? 'GB' : '')"></td>
+                      <td x-text="(n.today_gb || 0) + ' / ' + (n.quota_gb || 0) + 'GB' + (n.today_pct !== null ? ' (' + n.today_pct + '%)' : '')"></td>
+                      <td><span :class="'nd-st-' + n.status" x-text="n.status_label"></span></td>
+                    </tr>
+                  </template>
+                  <tr x-show="!(d.node_alive_rows||[]).length"><td colspan="8"><span class="nd-gray">无在线节点</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
 
-        <details class="nd-drop">
-          <summary>离线节点 (<span x-text="(d.offline_nodes||[]).length"></span>)</summary>
-          <div class="sp-table-wrap">
-            <table class="sp-table">
-              <thead><tr><th>ID</th><th>节点</th><th>组</th><th>等级</th><th>心跳距今</th><th></th></tr></thead>
-              <tbody>
-                <template x-for="n in (d.offline_nodes||[])" :key="'off_'+n.id">
-                  <tr>
-                    <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="n.class"></td>
-                    <td x-text="fmtMin(n.heartbeat_min)"></td>
-                    <td><a class="sp-btn sp-btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
-                  </tr>
-                </template>
-                <tr x-show="!(d.offline_nodes||[]).length"><td colspan="6"><span class="nd-gray">无</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </details>
+          <details class="nd-drop">
+            <summary>离线节点 (<span x-text="(d.offline_nodes||[]).length"></span>)</summary>
+            <div class="table-responsive">
+              <table class="table table-vcenter card-table">
+                <thead><tr><th>ID</th><th>节点</th><th>组</th><th>等级</th><th>心跳距今</th><th></th></tr></thead>
+                <tbody>
+                  <template x-for="n in (d.offline_nodes||[])" :key="'off_'+n.id">
+                    <tr>
+                      <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="n.class"></td>
+                      <td x-text="fmtMin(n.heartbeat_min)"></td>
+                      <td><a class="btn btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
+                    </tr>
+                  </template>
+                  <tr x-show="!(d.offline_nodes||[]).length"><td colspan="6"><span class="nd-gray">无</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
 
-        <details class="nd-drop">
-          <summary>超配额隐藏节点 (<span x-text="(d.overquota_hidden||[]).length"></span>)</summary>
-          <div class="sp-table-wrap">
-            <table class="sp-table">
-              <thead><tr><th>ID</th><th>节点</th><th>组</th><th>等级</th><th>今日/日配额</th><th></th></tr></thead>
-              <tbody>
-                <template x-for="n in (d.overquota_hidden||[])" :key="'oq_'+n.id">
-                  <tr>
-                    <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="n.class"></td>
-                    <td x-text="(n.today_gb || 0) + ' / ' + (n.quota_gb || 0) + 'GB'"></td>
-                    <td><a class="sp-btn sp-btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
-                  </tr>
-                </template>
-                <tr x-show="!(d.overquota_hidden||[]).length"><td colspan="6"><span class="nd-gray">无</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </details>
+          <details class="nd-drop">
+            <summary>超配额隐藏节点 (<span x-text="(d.overquota_hidden||[]).length"></span>)</summary>
+            <div class="table-responsive">
+              <table class="table table-vcenter card-table">
+                <thead><tr><th>ID</th><th>节点</th><th>组</th><th>等级</th><th>今日/日配额</th><th></th></tr></thead>
+                <tbody>
+                  <template x-for="n in (d.overquota_hidden||[])" :key="'oq_'+n.id">
+                    <tr>
+                      <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="n.class"></td>
+                      <td x-text="(n.today_gb || 0) + ' / ' + (n.quota_gb || 0) + 'GB'"></td>
+                      <td><a class="btn btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
+                    </tr>
+                  </template>
+                  <tr x-show="!(d.overquota_hidden||[]).length"><td colspan="6"><span class="nd-gray">无</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
 
-        <details class="nd-drop">
-          <summary>停用节点 (<span x-text="(d.disabled_nodes||[]).length"></span>)</summary>
-          <div class="sp-table-wrap">
-            <table class="sp-table">
-              <thead><tr><th>ID</th><th>节点</th><th>组</th><th>等级</th><th>周期已用/限额</th><th>心跳距今</th><th></th></tr></thead>
-              <tbody>
-                <template x-for="n in (d.disabled_nodes||[])" :key="'dis_'+n.id">
-                  <tr>
-                    <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="n.class"></td>
-                    <td x-text="(n.used_gb || 0) + ' / ' + (n.limit_gb || 0) + 'GB'"></td>
-                    <td x-text="fmtMin(n.heartbeat_min)"></td>
-                    <td><a class="sp-btn sp-btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
-                  </tr>
-                </template>
-                <tr x-show="!(d.disabled_nodes||[]).length"><td colspan="7"><span class="nd-gray">无</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </details>
+          <details class="nd-drop">
+            <summary>停用节点 (<span x-text="(d.disabled_nodes||[]).length"></span>)</summary>
+            <div class="table-responsive">
+              <table class="table table-vcenter card-table">
+                <thead><tr><th>ID</th><th>节点</th><th>组</th><th>等级</th><th>周期已用/限额</th><th>心跳距今</th><th></th></tr></thead>
+                <tbody>
+                  <template x-for="n in (d.disabled_nodes||[])" :key="'dis_'+n.id">
+                    <tr>
+                      <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="n.class"></td>
+                      <td x-text="(n.used_gb || 0) + ' / ' + (n.limit_gb || 0) + 'GB'"></td>
+                      <td x-text="fmtMin(n.heartbeat_min)"></td>
+                      <td><a class="btn btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
+                    </tr>
+                  </template>
+                  <tr x-show="!(d.disabled_nodes||[]).length"><td colspan="7"><span class="nd-gray">无</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
 
-        <details class="nd-drop">
-          <summary>配置隐藏节点 (<span x-text="(d.config_hidden||[]).length"></span>)</summary>
-          <div class="sp-table-wrap">
-            <table class="sp-table">
-              <thead><tr><th>ID</th><th>节点</th><th>组</th><th>等级</th><th></th></tr></thead>
-              <tbody>
-                <template x-for="n in (d.config_hidden||[])" :key="'cfg_'+n.id">
-                  <tr>
-                    <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="n.class"></td>
-                    <td><a class="sp-btn sp-btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
-                  </tr>
-                </template>
-                <tr x-show="!(d.config_hidden||[]).length"><td colspan="5"><span class="nd-gray">无</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </details>
+          <details class="nd-drop">
+            <summary>配置隐藏节点 (<span x-text="(d.config_hidden||[]).length"></span>)</summary>
+            <div class="table-responsive">
+              <table class="table table-vcenter card-table">
+                <thead><tr><th>ID</th><th>节点</th><th>组</th><th>等级</th><th></th></tr></thead>
+                <tbody>
+                  <template x-for="n in (d.config_hidden||[])" :key="'cfg_'+n.id">
+                    <tr>
+                      <td x-text="n.id"></td><td x-text="n.name"></td><td x-text="'G' + n.group"></td><td x-text="n.class"></td>
+                      <td><a class="btn btn-sm" :href="'/admin/node-edit.html?id=' + n.id">编辑</a></td>
+                    </tr>
+                  </template>
+                  <tr x-show="!(d.config_hidden||[]).length"><td colspan="5"><span class="nd-gray">无</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </div>
       </div>
     </div>
   </main>

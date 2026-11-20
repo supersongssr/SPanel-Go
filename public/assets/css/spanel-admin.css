@@ -131,3 +131,45 @@ table.table th .table-sort { cursor: pointer; }
 .sp-chart-240 { height: 240px; }
 .sp-chart-320 { height: 320px; }
 .sp-chart-380 { height: 380px; }
+
+/* ---------- 8. 节点决策台 (node-decision 专属) ---------- */
+/* 决策台专用样式 (对齐旧版 nodeDecision.tpl 色板; 由页面 <style> 块迁移) */
+.nd-sev-red td { background:#fdecea; }
+.nd-sev-yellow td { background:#fff8e1; }
+.nd-sev-green td { background:#e8f5e9; }
+.nd-matrix th, .nd-matrix td { text-align:center; border:1px solid var(--tblr-border-color) !important; }
+.nd-matrix th { white-space:nowrap; }
+.nd-matrix .nd-lv { text-align:left; white-space:nowrap; font-weight:600; }
+.nd-pool { font-size:18px; font-weight:700; line-height:1.15; }
+.nd-need { font-size:11px; opacity:.72; }
+.nd-matrix td { min-width:64px; }
+.nd-c-red { background:#fdecea; color:#b71c1c; }
+.nd-c-yellow { background:#fff8e1; color:#e65100; }
+.nd-c-green { background:#e8f5e9; color:#1b5e20; }
+.nd-gray { color:#90a4ae; }
+.nd-i { padding:8px 14px; border-radius:3px; margin-bottom:8px; font-size:14px; }
+.nd-i-red { background:#fdecea; color:#b71c1c; border-left:4px solid #e53935; }
+.nd-i-yellow { background:#fff8e1; color:#e65100; border-left:4px solid #fb8c00; }
+.nd-i-green { background:#e8f5e9; color:#1b5e20; border-left:4px solid #43a047; }
+.nd-v-add, .nd-v-broken { color:#b71c1c; font-weight:700; }
+.nd-v-watch { color:#e65100; font-weight:700; }
+.nd-v-trim { color:#0d47a1; font-weight:700; }
+.nd-v-ok { color:#1b5e20; }
+.nd-st-ok { color:#1b5e20; }
+.nd-st-cold { color:#90a4ae; }
+.nd-st-over, .nd-v-broken { font-weight:700; }
+.nd-st-over, .nd-st-risk, .nd-st-cycle { color:#e65100; font-weight:700; }
+.nd-st-over { color:#b71c1c; }
+.nd-total-row td { background:rgba(0,0,0,.03); } /* B 卡合计行 (原内联 background, 去内联色) */
+details.nd-drop { margin-bottom:10px; }
+details.nd-drop summary { cursor:pointer; font-weight:600; padding:8px 0; color:var(--tblr-secondary); }
+.nd-sub { font-size:12px; color:#90a4ae; margin:2px 0 10px; }
+.nd-tbl th, .nd-tbl td { white-space:nowrap; } /* 旧版 .nd-tbl nowrap */
+@media (max-width: 600px) {
+  .nd-matrix th, .nd-matrix td { padding: 8px 6px; }
+  .nd-matrix td { min-width: 46px; }
+  .nd-pool { font-size: 15px; }
+  .nd-need { font-size: 10px; }
+  #ndTrendChart { height: 240px; }
+  .nd-sub { font-size: 12px; word-break: break-word; }
+}
