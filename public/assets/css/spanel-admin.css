@@ -47,9 +47,26 @@ main.sp-content { display: contents; }
   position: fixed; inset: 0; z-index: 1054; background: rgba(0, 0, 0, .45);
   display: none;
 }
+/* 桌面 (≥992px): 侧栏全高 flex 列, 菜单区内部滚动, footer 钉底 (Tabler 默认不钉底/隐藏 footer 文字) */
+@media (min-width: 992px) {
+  #spDrawer { position: fixed; top: 0; bottom: 0; left: 0; display: flex; flex-direction: column; }
+  #spDrawer > .container-fluid {
+    flex: 1 1 auto; min-height: 0; min-width: 0;
+    display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch;
+  }
+  #spDrawer .navbar-collapse {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; flex-direction: column;
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  #spDrawer .navbar-footer { margin-top: auto; }
+  #spDrawer .navbar-footer .nav-link-title { display: block; }
+}
 @media (max-width: 991.98px) {
   body { overflow-x: hidden; }
   #spDrawer {
+    /* 折叠类会在元素上改写 --tblr-sidebar-width 为 4rem, 移动端抽屉必须保持全宽 */
+    --tblr-sidebar-width: 16rem;
     position: fixed; top: 0; bottom: 0; left: 0; z-index: 1055;
     width: var(--tblr-sidebar-width); max-width: 84vw;
     display: flex; flex-direction: column;
@@ -74,6 +91,26 @@ main.sp-content { display: contents; }
 #spDrawerToggle .mi { font-size: 1.5rem; }
 /* 用户下拉: .dropdown-menu.show 由自研 JS 切换 (无 bootstrap JS) */
 #spUserMenu .dropdown-item { display: flex; align-items: center; }
+
+/* 侧栏折叠 (condensed) 模式 — sp-shell.js 给 #spDrawer 挂 Tabler .navbar-folded-hover:
+   平时 4rem 图标栏 (页宽 +12rem), 悬停/聚焦展开回 16rem 浮层。仅桌面 (≥992px) 生效。 */
+@media (min-width: 992px) {
+  /* 品牌行: 折叠态只留图标并居中 (Tabler 仅 overflow 裁切, 补隐藏避免露出半个字符) */
+  #spDrawer.navbar-folded-hover:not(:hover) .navbar-brand { justify-content: center; padding-inline: 0; }
+  #spDrawer.navbar-folded-hover:not(:hover) .navbar-brand > span { display: none; }
+  /* 菜单项: 图标居中, 收起文字占位 (Tabler 已置 width:0/opacity:0) */
+  #spDrawer.navbar-folded-hover:not(:hover) .nav-link { justify-content: center; }
+  #spDrawer.navbar-folded-hover:not(:hover) .nav-link .nav-link-title { display: none; }
+  /* 分组标题: 折叠态降为短分隔线 */
+  #spDrawer.navbar-folded-hover:not(:hover) .sp-menu-group {
+    height: 1px; padding: 0; margin: .75rem .875rem;
+    background: var(--tblr-navbar-border-color, rgba(255, 255, 255, .08));
+    text-indent: -9999px;
+  }
+}
+
+/* 侧栏底部折叠钮 (nav-link 样式的 button, 与"用户中心"并列) */
+#spDrawer .sp-fold-btn { width: 100%; border: 0; background: none; font: inherit; cursor: pointer; text-align: start; }
 
 /* ---------- 4. 页脚 marquee (复刻旧 ui-footer 滚动条) ---------- */
 .sp-marquee {

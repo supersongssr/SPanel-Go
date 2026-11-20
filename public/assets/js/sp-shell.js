@@ -156,7 +156,7 @@
     var year = new Date().getFullYear();
     var appName = (window.SP && SP.appName) || 'SPanel';
 
-    /* 侧栏菜单: 6 组, 分组常展开 (对齐旧版, 不用 Tabler dropdown 折叠) */
+    /* 侧栏菜单: 分组常展开 (对齐旧版, 不用 Tabler dropdown 折叠) */
     var navHtml = '';
     ADMIN_MENU.forEach(function (g) {
       navHtml += '<li class="nav-item"><div class="nav-section-title sp-menu-group">' + esc(g.title) + '</div></li>';
@@ -175,6 +175,18 @@
         '<button class="dropdown-item text-danger" id="spLogoutBtn" type="button"><i class="mi">exit_to_app</i>登出</button>'
       : '<a class="dropdown-item" href="/auth/login.html"><i class="mi">account_box</i>登录</a>';
 
+    /* 顶栏右侧: ADMIN 徽标 + 用户下拉 */
+    var toolsHtml =
+      '<span class="badge bg-blue-lt d-none d-md-inline-flex">ADMIN</span>' +
+      '<div class="nav-item dropdown" id="spUserDrop">' +
+        '<button class="nav-link d-flex align-items-center gap-2" id="spUserBtn" type="button">' +
+          '<i class="mi">account_circle</i>' +
+          '<span class="nav-link-title">' + esc(name || '未登录') + '</span>' +
+          '<i class="mi">expand_more</i>' +
+        '</button>' +
+        '<div class="dropdown-menu dropdown-menu-end" data-tblr-popper id="spUserMenu">' + dropHtml + '</div>' +
+      '</div>';
+
     var shell = document.createElement('div');
     shell.className = 'page';
     shell.innerHTML =
@@ -183,11 +195,14 @@
           '<div class="navbar-brand"><i class="mi">person_pin</i><span>' + esc(appName) + ' 管理面板</span></div>' +
           '<div class="navbar-collapse">' +
             '<ul class="navbar-nav pt-lg-3">' + navHtml + '</ul>' +
-            '<div class="navbar-footer">' +
-              '<div class="navbar-nav">' +
-                '<a class="nav-link" href="/user/"><i class="mi nav-link-icon">person</i>' +
-                  '<span class="nav-link-title">用户中心</span></a>' +
-              '</div>' +
+          '</div>' +
+          '<div class="navbar-footer">' +
+            '<div class="navbar-nav">' +
+              '<a class="nav-link" href="/user/"><i class="mi nav-link-icon">person</i>' +
+                '<span class="nav-link-title">用户中心</span></a>' +
+              '<button class="nav-link sp-fold-btn" id="spSidebarFold" type="button">' +
+                '<i class="mi nav-link-icon">chevron_left</i>' +
+                '<span class="nav-link-title">收起菜单</span></button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -199,17 +214,7 @@
               '<button class="btn" id="spDrawerToggle" type="button" aria-label="打开菜单"><i class="mi">menu</i></button>' +
               '<a class="navbar-brand" href="/admin/"><i class="mi">person_pin</i><span>管理面板</span></a>' +
             '</div>' +
-            '<div class="navbar-nav flex-row order-md-last ms-auto align-items-center gap-2">' +
-              '<span class="badge bg-blue-lt d-none d-md-inline-flex">ADMIN</span>' +
-              '<div class="nav-item dropdown" id="spUserDrop">' +
-                '<button class="nav-link d-flex align-items-center gap-2" id="spUserBtn" type="button">' +
-                  '<i class="mi">account_circle</i>' +
-                  '<span class="nav-link-title">' + esc(name || '未登录') + '</span>' +
-                  '<i class="mi">expand_more</i>' +
-                '</button>' +
-                '<div class="dropdown-menu dropdown-menu-end" id="spUserMenu">' + dropHtml + '</div>' +
-              '</div>' +
-            '</div>' +
+            '<div class="navbar-nav flex-row order-md-last ms-auto align-items-center gap-2">' + toolsHtml + '</div>' +
           '</div>' +
         '</header>' +
         '<div class="page-body"><div class="container-xl"></div></div>' +
@@ -242,8 +247,29 @@
       });
     }
 
-    /* 交互: 侧栏开合 (移动端) / 用户下拉 / 登出 — 全部自研切换 */
+    /* 交互: 侧栏折叠 (桌面) / 侧栏开合 (移动端) / 用户下拉 / 登出 — 全部自研切换 */
     var drawer = document.getElementById('spDrawer');
+
+    /* 侧栏折叠 (condensed): Tabler .navbar-folded-hover — 平时 4rem 图标栏, 悬停展开; 偏好记忆 localStorage */
+    var FOLD_KEY = 'sp.admin.sidebarFolded';
+    var foldBtn = document.getElementById('spSidebarFold');
+    var folded = false;
+    try { folded = localStorage.getItem(FOLD_KEY) === '1'; } catch (e) {}
+    function applyFold(f) {
+      drawer.classList.toggle('navbar-folded-hover', f);
+      if (foldBtn) {
+        foldBtn.querySelector('.mi').textContent = f ? 'chevron_right' : 'chevron_left';
+        var foldTitle = foldBtn.querySelector('.nav-link-title');
+        if (foldTitle) foldTitle.textContent = f ? '展开菜单' : '收起菜单';
+      }
+    }
+    applyFold(folded);
+    if (foldBtn) foldBtn.addEventListener('click', function () {
+      folded = !folded;
+      try { localStorage.setItem(FOLD_KEY, folded ? '1' : '0'); } catch (e) {}
+      applyFold(folded);
+    });
+
     var toggleBtn = document.getElementById('spDrawerToggle');
     function openDrawer(o) {
       drawer.classList.toggle('open', o);

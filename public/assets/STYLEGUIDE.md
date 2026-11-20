@@ -44,6 +44,7 @@
 ```
 
 - 骨架由 `sp-shell.js` admin 分支注入: 深色左侧栏 (`aside.navbar-vertical` + 6 组菜单常展开) + 顶栏 + `page-wrapper`; `main.sp-content` 被移入 `page-body > .container-xl`, 自身 `display:contents`
+- 侧栏底部有折叠钮 (condensed): 给侧栏挂 Tabler `.navbar-folded-hover`, 平时 4rem 图标栏, 悬停展开 16rem 浮层; 偏好记忆于 localStorage `sp.admin.sidebarFolded`, 仅 ≥992px 生效 (移动端抽屉始终全宽)
 - 侧栏/下拉/模态/toast 交互全部自研 class 切换, **不引入** `tabler.min.js` (方案 D2)
 - 高亮: `data-sp-page` (或 `data-sp-active` 覆盖) → 对应 `li.nav-item.active`
 - 反馈: `SPUI.msg/confirm/toast` API 不变 (内部已换 Tabler modal/toast 皮肤)
