@@ -6,34 +6,39 @@
   <title>邀请与返利 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="invites" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="invites">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">邀请与返利</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">邀请与返利</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner">
-      <!-- 加邀请次数 (PHP invite.tpl 表单; 修 uid=0 崩溃: 空/0 明确报错) -->
-      <div class="sp-card sp-mb-6" x-data="inviteAddPage()">
-        <div class="sp-card-title"><i class="mi">loyalty</i>加邀请次数</div>
-        <div class="sp-grid" style="align-items:flex-end">
-          <div class="sp-col-4"><div class="sp-form-row">
-            <label class="sp-form-label">用户 ID 或邮箱</label>
-            <input class="sp-input" type="text" x-model="uid" placeholder="user_id / user@example.com">
+    <!-- 加邀请次数 (PHP invite.tpl 表单; 修 uid=0 崩溃: 空/0 明确报错) -->
+    <div class="card mb-3" x-data="inviteAddPage()">
+      <div class="card-header"><h3 class="card-title"><i class="mi me-2">loyalty</i>加邀请次数</h3></div>
+      <div class="card-body">
+        <div class="row align-items-end">
+          <div class="col-sm-6 col-xl-4"><div class="mb-3">
+            <label class="form-label">用户 ID 或邮箱</label>
+            <input class="form-control" type="text" x-model="uid" placeholder="user_id / user@example.com">
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">增加数量</label>
-            <input class="sp-input" type="text" x-model="num">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">增加数量</label>
+            <input class="form-control" type="text" x-model="num">
           </div></div>
-          <div class="sp-col-3">
-            <button class="sp-btn sp-btn-brand" @click="add()" :disabled="saving"><i class="mi">add</i>添加</button>
+          <div class="col-sm-6 col-xl-3">
+            <button class="btn btn-primary" @click="add()" :disabled="saving"><i class="mi">add</i>添加</button>
           </div>
         </div>
       </div>
-      <div id="inviteTable"></div>
     </div>
+    <div id="inviteTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -71,10 +76,10 @@
         { key: 'total',         title: '订单金额', sortable: true },
         { key: 'event_user_id', title: '消费者', sortable: true,
           render: r => '<a href="/admin/user-edit.html?id=' + r.event_user_id + '">' + r.event_user_id + '</a>' +
-            '<br><span class="sp-text-hint">' + r.event_user_name + '</span>' },
+            '<br><span class="text-secondary">' + r.event_user_name + '</span>' },
         { key: 'ref_user_id',   title: '返利获得者', sortable: true,
           render: r => '<a href="/admin/user-edit.html?id=' + r.ref_user_id + '">' + r.ref_user_id + '</a>' +
-            '<br><span class="sp-text-hint">' + r.ref_user_name + '</span>' },
+            '<br><span class="text-secondary">' + r.ref_user_name + '</span>' },
         { key: 'ref_get',       title: '返利金额', sortable: true },
         { key: 'datetime',      title: '时间', sortable: true, render: r => fmtTs(r.datetime) },
       ]

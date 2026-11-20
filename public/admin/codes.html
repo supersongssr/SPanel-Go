@@ -6,21 +6,24 @@
   <title>充值与捐赠记录 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="codes" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="codes">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">充值与捐赠记录</h1></div>
-    </div>
-    <div class="sp-content-inner">
-      <div class="sp-mb-6" style="display:flex;gap:8px;flex-wrap:wrap">
-        <a class="sp-btn sp-btn-brand" href="/admin/code-create.html"><i class="mi">qr_code</i>生成充值码</a>
-        <a class="sp-btn" href="/admin/code-donate.html"><i class="mi">volunteer_activism</i>添加捐赠/支出</a>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">充值与捐赠记录</h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none d-flex gap-2 flex-wrap">
+          <a class="btn btn-primary" href="/admin/code-create.html"><i class="mi">qr_code</i>生成充值码</a>
+          <a class="btn" href="/admin/code-donate.html"><i class="mi">volunteer_activism</i>添加捐赠/支出</a>
+        </div>
       </div>
-      <div id="codeTable"></div>
     </div>
+    <div id="codeTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -34,20 +37,20 @@
       defaultOrder: ['id', 'desc'],
       columns: [
         { key: 'id',     title: 'ID', sortable: true },
-        { key: 'code',   title: '内容', sortable: true, tdClass: 'sp-num' },
+        { key: 'code',   title: '内容', sortable: true, tdClass: 'font-monospace' },
         { key: 'type',   title: '类型', sortable: true,
-          render: r => r.type === -1 ? '<span class="sp-tag sp-tag-blue">充值码</span>' :
-            r.type === -2 ? '<span class="sp-tag sp-tag-orange">捐赠/支出</span>' : '<span class="sp-tag sp-tag-grey">已废弃</span>' },
+          render: r => r.type === -1 ? '<span class="badge bg-blue-lt">充值码</span>' :
+            r.type === -2 ? '<span class="badge bg-orange-lt">捐赠/支出</span>' : '<span class="badge bg-secondary-lt">已废弃</span>' },
         { key: 'number', title: '金额', sortable: true,
           render: r => (r.type === -1 ? '充值 ' : r.type === -2 ? '支出 ' : '') + r.number + ' 元' },
         { key: 'isused', title: '是否已使用', sortable: true,
-          render: r => r.isused === 1 ? '<span class="sp-tag sp-tag-green">已使用</span>' : '<span class="sp-tag sp-tag-grey">未使用</span>' },
+          render: r => r.isused === 1 ? '<span class="badge bg-green-lt">已使用</span>' : '<span class="badge bg-secondary-lt">未使用</span>' },
         { key: 'userid', title: '用户ID', sortable: true,
           render: r => r.userid === 0 ? '未使用' : '<a href="/admin/user-edit.html?id=' + r.userid + '">' + r.userid + '</a>' },
         { key: 'user_name', title: '用户名',
-          render: r => r.userid === 0 || !r.user_name ? '<span class="sp-text-hint">未使用</span>' : r.user_name },
+          render: r => r.userid === 0 || !r.user_name ? '<span class="text-secondary">未使用</span>' : r.user_name },
         { key: 'usedatetime', title: '使用时间', sortable: true,
-          render: r => r.isused === 1 ? r.usedatetime : '<span class="sp-text-hint">未使用</span>' },
+          render: r => r.isused === 1 ? r.usedatetime : '<span class="text-secondary">未使用</span>' },
       ]
     });
   </script>

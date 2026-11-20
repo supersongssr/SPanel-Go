@@ -6,17 +6,20 @@
   <title>购买记录 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="boughts" data-sp-active="boughts" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="boughts" data-sp-active="boughts">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">购买记录</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">购买记录</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner">
-      <div id="boughtTable"></div>
-    </div>
+    <div id="boughtTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -43,15 +46,15 @@
           render: r => '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a>' },
         { key: 'user_name', title: '用户名', sortable: true },
         { key: 'renew',    title: '自动续费时间', sortable: true,
-          render: r => r.renew === 0 ? '<span class="sp-tag sp-tag-grey">已中止</span>' :
-            '<span class="sp-tag sp-tag-blue">' + fmtTs(r.renew) + '</span>' },
+          render: r => r.renew === 0 ? '<span class="badge bg-secondary-lt">已中止</span>' :
+            '<span class="badge bg-blue-lt">' + fmtTs(r.renew) + '</span>' },
         { key: 'auto_reset_bandwidth', title: '续费时重置流量',
           render: r => r.auto_reset_bandwidth === 0 ? '不重置' : '重置' },
         { key: 'coupon',   title: '优惠码' },
       ],
       ops: r => (r.renew === 0
-        ? '<button class="sp-btn sp-btn-sm" disabled>已中止</button>'
-        : '<button class="sp-btn sp-btn-sm sp-btn-danger" data-stop="' + r.id + '">中止续费</button>')
+        ? '<button class="btn btn-sm" disabled>已中止</button>'
+        : '<button class="btn btn-sm btn-danger" data-stop="' + r.id + '">中止续费</button>')
     });
     document.getElementById('boughtTable').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-stop]');

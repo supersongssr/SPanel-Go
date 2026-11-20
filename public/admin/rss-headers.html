@@ -6,40 +6,45 @@
   <title>订阅请求记录 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="rss-headers" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="rss-headers">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">订阅请求记录</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">订阅请求记录</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner">
-      <!-- 过滤 + 轮询 + 清空 (PHP rss_headers.tpl: ?user_id=&q= + 5s 自动刷新 + clear) -->
-      <div class="sp-card sp-mb-6" x-data="{ polling: false, timer: null }"
-           x-init="timer = setInterval(() => { if (polling && window.__rssTbl) window.__rssTbl.reload(); }, 5000)">
-        <div class="sp-grid" style="align-items:flex-end">
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">用户 ID</label>
-            <input class="sp-input" id="f-user" type="text" placeholder="user_id">
+    <!-- 过滤 + 轮询 + 清空 (PHP rss_headers.tpl: ?user_id=&q= + 5s 自动刷新 + clear) -->
+    <div class="card mb-3" x-data="{ polling: false, timer: null }"
+         x-init="timer = setInterval(() => { if (polling && window.__rssTbl) window.__rssTbl.reload(); }, 5000)">
+      <div class="card-body">
+        <div class="row align-items-end">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">用户 ID</label>
+            <input class="form-control" id="f-user" type="text" placeholder="user_id">
           </div></div>
-          <div class="sp-col-3">
-            <button class="sp-btn sp-btn-brand sp-btn-sm" id="f-apply"><i class="mi">search</i>应用</button>
+          <div class="col-sm-6 col-xl-3">
+            <button class="btn btn-primary btn-sm" id="f-apply"><i class="mi">search</i>应用</button>
           </div>
-          <div class="sp-col-3">
-            <label class="sp-check">
-              <input type="checkbox" x-model="polling">
-              5s 自动刷新
+          <div class="col-sm-6 col-xl-3">
+            <label class="form-check">
+              <input class="form-check-input" type="checkbox" x-model="polling">
+              <span class="form-check-label">5s 自动刷新</span>
             </label>
           </div>
-          <div class="sp-col-3" style="text-align:right">
-            <button class="sp-btn sp-btn-danger sp-btn-sm" id="f-clear"><i class="mi">delete_sweep</i>清空记录</button>
+          <div class="col-sm-6 col-xl-3 text-end">
+            <button class="btn btn-danger btn-sm" id="f-clear"><i class="mi">delete_sweep</i>清空记录</button>
           </div>
         </div>
-        <p class="sp-text-hint" style="font-size:12px">采集开关: config.yaml rss_header_capture.enabled (当前采集 /link/:token 订阅请求)。</p>
+        <p class="text-secondary small mb-0">采集开关: config.yaml rss_header_capture.enabled (当前采集 /link/:token 订阅请求)。</p>
       </div>
-      <div id="rssTable"></div>
     </div>
+    <div id="rssTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -65,14 +70,14 @@
         { key: 'created_at', title: '时间', sortable: true },
         { key: 'user_id',    title: '用户', sortable: true,
           render: r => (r.user_id
-            ? '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a><br><span class="sp-text-hint">' + (r.email || '') + '</span>'
+            ? '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a><br><span class="text-secondary">' + (r.email || '') + '</span>'
             : '匿名') },
-        { key: 'app',        title: '客户端', sortable: false, render: r => r.app || '<span class="sp-text-hint">unknown</span>' },
-        { key: 'ip',         title: 'IP', sortable: false, tdClass: 'sp-num' },
+        { key: 'app',        title: '客户端', sortable: false, render: r => r.app || '<span class="text-secondary">unknown</span>' },
+        { key: 'ip',         title: 'IP', sortable: false, tdClass: 'font-monospace' },
         { key: 'uri',        title: '请求链接', sortable: false },
-        { key: 'user_agent', title: 'UA', sortable: false, tdClass: 'sp-wrap' },
+        { key: 'user_agent', title: 'UA', sortable: false, tdClass: 'text-wrap' },
       ],
-      ops: r => '<a class="sp-btn sp-btn-sm" href="/admin/rss-header-view.html?id=' + r.id + '">详情</a>'
+      ops: r => '<a class="btn btn-sm" href="/admin/rss-header-view.html?id=' + r.id + '">详情</a>'
     });
     document.getElementById('f-apply').addEventListener('click', function () { window.__rssTbl.reload(); });
     document.getElementById('f-clear').addEventListener('click', function () {

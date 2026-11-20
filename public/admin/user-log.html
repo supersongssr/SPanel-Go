@@ -6,39 +6,44 @@
   <title>用户操作记录 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="user-log" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="user-log">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">用户操作记录</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">用户操作记录</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner">
-      <!-- 过滤 (PHP user_log.tpl 过滤表单) -->
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">filter_list</i>过滤</div>
-        <div class="sp-grid">
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">用户 ID</label>
-            <input class="sp-input" id="f-user" type="text" placeholder="user_id">
+    <!-- 过滤 (PHP user_log.tpl 过滤表单) -->
+    <div class="card mb-3">
+      <div class="card-header"><h3 class="card-title"><i class="mi me-2">filter_list</i>过滤</h3></div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">用户 ID</label>
+            <input class="form-control" id="f-user" type="text" placeholder="user_id">
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">操作者 ID</label>
-            <input class="sp-input" id="f-operator" type="text" placeholder="operator_id">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">操作者 ID</label>
+            <input class="form-control" id="f-operator" type="text" placeholder="operator_id">
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">级别</label>
-            <select class="sp-select" id="f-level">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">级别</label>
+            <select class="form-select" id="f-level">
               <option value="">全部</option>
               <option value="info">info</option>
               <option value="warning">warning</option>
               <option value="error">error</option>
             </select>
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">分类</label>
-            <select class="sp-select" id="f-category">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">分类</label>
+            <select class="form-select" id="f-category">
               <option value="">全部</option>
               <option value="auth">auth</option><option value="profile">profile</option>
               <option value="security">security</option><option value="money">money</option>
@@ -47,21 +52,21 @@
               <option value="node">node</option>
             </select>
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">开始日期</label>
-            <input class="sp-input" id="f-from" type="date">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">开始日期</label>
+            <input class="form-control" id="f-from" type="date">
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">结束日期</label>
-            <input class="sp-input" id="f-to" type="date">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">结束日期</label>
+            <input class="form-control" id="f-to" type="date">
           </div></div>
-          <div class="sp-col-3" style="display:flex;align-items:flex-end">
-            <button class="sp-btn sp-btn-brand sp-btn-sm" id="f-apply"><i class="mi">search</i>应用过滤</button>
+          <div class="col-sm-6 col-xl-3 d-flex align-items-end">
+            <button class="btn btn-primary btn-sm" id="f-apply"><i class="mi">search</i>应用过滤</button>
           </div>
         </div>
       </div>
-      <div id="logTable"></div>
     </div>
+    <div id="logTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -75,15 +80,15 @@
       });
     }
     function levelTag(l) {
-      const cls = l === 'error' ? 'sp-tag-red' : l === 'warning' ? 'sp-tag-orange' : 'sp-tag-blue';
-      return '<span class="sp-tag ' + cls + '">' + esc(l) + '</span>';
+      const cls = l === 'error' ? 'bg-red-lt' : l === 'warning' ? 'bg-orange-lt' : 'bg-blue-lt';
+      return '<span class="badge ' + cls + '">' + esc(l) + '</span>';
     }
     function fmtDetail(d) {
       if (!d) return '';
       try {
         const obj = JSON.parse(d);
-        return '<details><summary style="cursor:pointer;color:var(--sp-brand)">diff</summary>' +
-          '<pre style="white-space:pre-wrap;font-size:12px;max-width:420px">' + esc(JSON.stringify(obj, null, 1)) + '</pre></details>';
+        return '<details><summary class="link-primary cursor-pointer">diff</summary>' +
+          '<pre class="small" style="white-space:pre-wrap;max-width:420px">' + esc(JSON.stringify(obj, null, 1)) + '</pre></details>';
       } catch (e) { return ''; }
     }
 
@@ -118,11 +123,11 @@
         { key: 'message',      title: '摘要', sortable: false },
         { key: 'user_id',      title: '用户', sortable: true,
           render: r => r.user_id ? '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a>' +
-            (r.user_name ? '<br><span class="sp-text-hint">' + esc(r.user_name) + '</span>' : '') : '—' },
+            (r.user_name ? '<br><span class="text-secondary">' + esc(r.user_name) + '</span>' : '') : '—' },
         { key: 'operator_id',  title: '操作者', sortable: false,
           render: r => r.operator_id === 0 ? '系统' :
             (r.operator_id + (r.operator_name ? ' (' + esc(r.operator_name) + ')' : '')) +
-            '<br><span class="sp-text-hint">' + ({0:'系统',1:'本人',2:'管理员',3:'API/节点'}[r.operator_type] || '') + '</span>' },
+            '<br><span class="text-secondary">' + ({0:'系统',1:'本人',2:'管理员',3:'API/节点'}[r.operator_type] || '') + '</span>' },
         { key: 'ip',           title: 'IP', sortable: false },
         { key: 'detail',       title: '详情', sortable: false, render: r => fmtDetail(r.detail) },
       ]

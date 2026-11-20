@@ -6,17 +6,20 @@
   <title>审计记录 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="detect-log" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="detect-log">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">审计记录</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">审计记录</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner">
-      <div id="logTable"></div>
-    </div>
+    <div id="logTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -47,13 +50,13 @@
       columns: [
         { key: 'id',         title: 'ID', sortable: true },
         { key: 'user_id',    title: '用户', sortable: true,
-          render: r => '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a><br><span class="sp-text-hint">' + esc(r.user_name) + '</span>' },
+          render: r => '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a><br><span class="text-secondary">' + esc(r.user_name) + '</span>' },
         { key: 'node_id',    title: '节点', sortable: true,
-          render: r => r.node_id + '<br><span class="sp-text-hint">' + esc(r.node_name) + '</span>' },
+          render: r => r.node_id + '<br><span class="text-secondary">' + esc(r.node_name) + '</span>' },
         { key: 'rule_id',    title: '规则', sortable: true,
-          render: r => r.rule_id + '<br><span class="sp-text-hint">' + esc(r.rule_name) + '</span>' },
+          render: r => r.rule_id + '<br><span class="text-secondary">' + esc(r.rule_name) + '</span>' },
         { key: 'rule_text',  title: '规则描述' },
-        { key: 'rule_regex', title: '规则正则', tdClass: 'sp-num' },
+        { key: 'rule_regex', title: '规则正则', tdClass: 'font-monospace' },
         { key: 'rule_type',  title: '规则类型',
           render: r => r.rule_type === 1 ? '数据包明文匹配' : '数据包十六进制匹配' },
         { key: 'datetime',   title: '时间', sortable: true, render: r => fmtTs(r.datetime) },

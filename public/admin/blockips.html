@@ -6,30 +6,35 @@
   <title>节点被封IP - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="blockips" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="blockips">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">节点被封IP</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">节点被封IP</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner">
-      <!-- 页内解封表单 (PHP POST /admin/unblock) -->
-      <div class="sp-card sp-mb-6" x-data="unblockPage()">
-        <div class="sp-card-title"><i class="mi">lock_open</i>解封</div>
-        <div class="sp-grid" style="align-items:flex-end">
-          <div class="sp-col-4"><div class="sp-form-row">
-            <label class="sp-form-label">IP</label>
-            <input class="sp-input" type="text" x-model="ip" placeholder="1.2.3.4" @keydown.enter="unblock()">
+    <!-- 页内解封表单 (PHP POST /admin/unblock) -->
+    <div class="card mb-3" x-data="unblockPage()">
+      <div class="card-header"><h3 class="card-title"><i class="mi me-2">lock_open</i>解封</h3></div>
+      <div class="card-body">
+        <div class="row align-items-end">
+          <div class="col-sm-6 col-xl-4"><div class="mb-3">
+            <label class="form-label">IP</label>
+            <input class="form-control" type="text" x-model="ip" placeholder="1.2.3.4" @keydown.enter="unblock()">
           </div></div>
-          <div class="sp-col-3">
-            <button class="sp-btn sp-btn-brand" @click="unblock()" :disabled="sending"><i class="mi">lock_open</i>发送解封命令</button>
+          <div class="col-sm-6 col-xl-3">
+            <button class="btn btn-primary" @click="unblock()" :disabled="sending"><i class="mi">lock_open</i>发送解封命令</button>
           </div>
         </div>
       </div>
-      <div id="blockTable"></div>
     </div>
+    <div id="blockTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -65,10 +70,10 @@
         { key: 'id',       title: 'ID', sortable: true },
         { key: 'name',     title: '节点名称' },
         { key: 'nodeid',   title: '节点ID' },
-        { key: 'ip',       title: 'IP', tdClass: 'sp-num' },
+        { key: 'ip',       title: 'IP', tdClass: 'font-monospace' },
         { key: 'datetime', title: '时间', sortable: true, render: r => fmtTs(r.datetime) },
       ],
-      ops: r => '<button class="sp-btn sp-btn-sm sp-btn-danger" data-unblock="' + esc(r.ip) + '">解封</button>'
+      ops: r => '<button class="btn btn-sm btn-danger" data-unblock="' + esc(r.ip) + '">解封</button>'
     });
     document.getElementById('blockTable').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-unblock]');

@@ -6,17 +6,20 @@
   <title>在线IP - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="audit-alive" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="audit-alive">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">在线IP</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">在线IP</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner">
-      <div id="aliveTable"></div>
-    </div>
+    <div id="aliveTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -43,13 +46,13 @@
       columns: [
         { key: 'id',        title: 'ID', sortable: true },
         { key: 'userid',    title: '用户', sortable: true,
-          render: r => '<a href="/admin/user-edit.html?id=' + r.userid + '">' + r.userid + '</a><br><span class="sp-text-hint">' + esc(r.user_name) + '</span>' },
+          render: r => '<a href="/admin/user-edit.html?id=' + r.userid + '">' + r.userid + '</a><br><span class="text-secondary">' + esc(r.user_name) + '</span>' },
         { key: 'nodeid',    title: '节点', sortable: true,
           render: r => r.nodeid ? (esc(r.node_name || ('#' + r.nodeid))) : '—' },
-        { key: 'ip',        title: 'IP', tdClass: 'sp-num' },
+        { key: 'ip',        title: 'IP', tdClass: 'font-monospace' },
         { key: 'datetime',  title: '时间', sortable: true, render: r => fmtTs(r.datetime) },
         { key: 'is_node',   title: '是否为中转连接',
-          render: r => r.is_node ? '<span class="sp-tag sp-tag-orange">是</span>' : '否' },
+          render: r => r.is_node ? '<span class="badge bg-orange-lt">是</span>' : '否' },
       ]
     });
   </script>

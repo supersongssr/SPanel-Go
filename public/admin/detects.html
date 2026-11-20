@@ -6,21 +6,24 @@
   <title>审计规则 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="detects" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="detects">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">审计规则</h1></div>
-    </div>
-    <div class="sp-content-inner">
-      <div class="sp-mb-6">
-        <a class="sp-btn sp-btn-brand" href="/admin/detect-edit.html"><i class="mi">add</i>添加规则</a>
-        <a class="sp-btn sp-btn-flat" href="/admin/detect-log.html"><i class="mi">assignment_late</i>审计记录</a>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">审计规则</h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none d-flex gap-2 flex-wrap">
+          <a class="btn btn-primary" href="/admin/detect-edit.html"><i class="mi">add</i>添加规则</a>
+          <a class="btn" href="/admin/detect-log.html"><i class="mi">assignment_late</i>审计记录</a>
+        </div>
       </div>
-      <div id="detectTable"></div>
     </div>
+    <div id="detectTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -36,13 +39,13 @@
         { key: 'id',    title: 'ID', sortable: true },
         { key: 'name',  title: '名称', sortable: true },
         { key: 'text',  title: '介绍', sortable: true },
-        { key: 'regex', title: '正则表达式', sortable: true, tdClass: 'sp-num' },
+        { key: 'regex', title: '正则表达式', sortable: true, tdClass: 'font-monospace' },
         { key: 'type',  title: '类型', sortable: true,
-          render: r => r.type === 1 ? '<span class="sp-tag sp-tag-blue">数据包明文匹配</span>' : '<span class="sp-tag sp-tag-orange">数据包十六进制匹配</span>' },
+          render: r => r.type === 1 ? '<span class="badge bg-blue-lt">数据包明文匹配</span>' : '<span class="badge bg-orange-lt">数据包十六进制匹配</span>' },
       ],
       ops: r =>
-        '<a class="sp-btn sp-btn-sm" href="/admin/detect-edit.html?id=' + r.id + '">编辑</a>' +
-        '<button class="sp-btn sp-btn-sm sp-btn-danger" data-del="' + r.id + '" data-name="' + esc(r.name) + '">删除</button>'
+        '<a class="btn btn-sm" href="/admin/detect-edit.html?id=' + r.id + '">编辑</a>' +
+        '<button class="btn btn-sm btn-danger" data-del="' + r.id + '" data-name="' + esc(r.name) + '">删除</button>'
     });
     document.getElementById('detectTable').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-del]');

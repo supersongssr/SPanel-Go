@@ -6,21 +6,24 @@
   <title>商品 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="shops" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="shops">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">商品</h1></div>
-    </div>
-    <div class="sp-content-inner">
-      <div class="sp-mb-6">
-        <a class="sp-btn sp-btn-brand" href="/admin/shop-edit.html"><i class="mi">add</i>添加商品</a>
-        <a class="sp-btn sp-btn-flat" href="/admin/boughts.html"><i class="mi">shopping_cart</i>购买记录</a>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">商品</h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none d-flex gap-2">
+          <a class="btn btn-primary" href="/admin/shop-edit.html"><i class="mi">add</i>添加商品</a>
+          <a class="btn" href="/admin/boughts.html"><i class="mi">shopping_cart</i>购买记录</a>
+        </div>
       </div>
-      <div id="shopTable"></div>
     </div>
+    <div id="shopTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -42,13 +45,13 @@
         { key: 'auto_reset_bandwidth', title: '重置流量', sortable: true,
           render: r => r.auto_reset_bandwidth === 0 ? '不自动重置' : '自动重置' },
         { key: 'status', title: '状态', sortable: true,
-          render: r => r.status === 1 ? '<span class="sp-tag sp-tag-green">上架</span>' : '<span class="sp-tag sp-tag-grey">下架</span>' },
+          render: r => r.status === 1 ? '<span class="badge bg-green-lt">上架</span>' : '<span class="badge bg-secondary-lt">下架</span>' },
         { key: 'period_sales', title: '周期销量' },
       ],
       ops: r =>
-        '<a class="sp-btn sp-btn-sm" href="/admin/shop-edit.html?id=' + r.id + '">编辑</a>' +
+        '<a class="btn btn-sm" href="/admin/shop-edit.html?id=' + r.id + '">编辑</a>' +
         (r.status === 1
-          ? '<button class="sp-btn sp-btn-sm sp-btn-danger" data-off="' + r.id + '" data-name="' + r.name + '">下架</button>'
+          ? '<button class="btn btn-sm btn-danger" data-off="' + r.id + '" data-name="' + r.name + '">下架</button>'
           : '')
     });
     document.getElementById('shopTable').addEventListener('click', function (e) {

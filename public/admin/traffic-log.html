@@ -6,17 +6,20 @@
   <title>流量记录 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="traffic-log" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="traffic-log">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">流量记录</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">流量记录</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner">
-      <div id="trafficTable"></div>
-    </div>
+    <div id="trafficTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -47,7 +50,7 @@
       columns: [
         { key: 'id',         title: 'ID', sortable: true },
         { key: 'user_id',    title: '用户', sortable: true,
-          render: r => '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a><br><span class="sp-text-hint">' + esc(r.user_name) + '</span>' },
+          render: r => '<a href="/admin/user-edit.html?id=' + r.user_id + '">' + r.user_id + '</a><br><span class="text-secondary">' + esc(r.user_name) + '</span>' },
         { key: 'node_name',  title: '使用节点' },
         { key: 'rate',       title: '倍率', sortable: true },
         { key: 'origin_traffic', title: '实际使用流量' },

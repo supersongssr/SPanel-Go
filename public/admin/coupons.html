@@ -6,54 +6,59 @@
   <title>优惠码 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="coupons" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="coupons">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">优惠码</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">优惠码</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner">
-      <!-- 页内生成表单 (PHP coupon.tpl) -->
-      <div class="sp-card sp-mb-6" x-data="couponGenPage()">
-        <div class="sp-card-title"><i class="mi">card_giftcard</i>生成优惠码</div>
-        <div class="sp-grid">
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">生成方式</label>
-            <select class="sp-select" x-model.number="generate_type">
+    <!-- 页内生成表单 (PHP coupon.tpl) -->
+    <div class="card mb-3" x-data="couponGenPage()">
+      <div class="card-header"><h3 class="card-title"><i class="mi me-2">card_giftcard</i>生成优惠码</h3></div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">生成方式</label>
+            <select class="form-select" x-model.number="generate_type">
               <option value="1">定制 (使用输入的码)</option>
               <option value="2">随机 8 位</option>
               <option value="3">前缀 + 随机 8 位</option>
             </select>
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">优惠码/前缀 (方式 1/3 必填)</label>
-            <input class="sp-input" type="text" x-model="prefix">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">优惠码/前缀 (方式 1/3 必填)</label>
+            <input class="form-control" type="text" x-model="prefix">
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">有效期 (小时)</label>
-            <input class="sp-input" type="text" x-model="expire">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">有效期 (小时)</label>
+            <input class="form-control" type="text" x-model="expire">
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">限定商品 ID (空 = 全部)</label>
-            <input class="sp-input" type="text" x-model="shop">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">限定商品 ID (空 = 全部)</label>
+            <input class="form-control" type="text" x-model="shop">
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">折扣额度 (%, 如 25 = 75 折)</label>
-            <input class="sp-input" type="text" x-model.number="credit">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">折扣额度 (%, 如 25 = 75 折)</label>
+            <input class="form-control" type="text" x-model.number="credit">
           </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">次数 (0 = 不限, 1 = 一次性)</label>
-            <input class="sp-input" type="text" x-model.number="onetime">
+          <div class="col-sm-6 col-xl-3"><div class="mb-3">
+            <label class="form-label">次数 (0 = 不限, 1 = 一次性)</label>
+            <input class="form-control" type="text" x-model.number="onetime">
           </div></div>
-          <div class="sp-col-3" style="display:flex;align-items:flex-end">
-            <button class="sp-btn sp-btn-brand" @click="gen()" :disabled="saving"><i class="mi">add</i>生成</button>
+          <div class="col-sm-6 col-xl-3 d-flex align-items-end">
+            <button class="btn btn-primary" @click="gen()" :disabled="saving"><i class="mi">add</i>生成</button>
           </div>
         </div>
       </div>
-      <div id="couponTable"></div>
     </div>
+    <div id="couponTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -91,16 +96,16 @@
       defaultOrder: ['id', 'desc'],
       columns: [
         { key: 'id',      title: 'ID', sortable: true },
-        { key: 'code',    title: '优惠码', sortable: true, tdClass: 'sp-num' },
+        { key: 'code',    title: '优惠码', sortable: true, tdClass: 'font-monospace' },
         { key: 'expire',  title: '过期时间', sortable: true,
           render: r => r.expired
-            ? '<span class="sp-tag sp-tag-grey">' + r.expire + ' 已过期</span>'
-            : '<span class="sp-tag sp-tag-green">' + r.expire + '</span>' },
+            ? '<span class="badge bg-secondary-lt">' + r.expire + ' 已过期</span>'
+            : '<span class="badge bg-green-lt">' + r.expire + '</span>' },
         { key: 'shop',    title: '限定商品ID', sortable: true, render: r => r.shop || '全部' },
         { key: 'credit',  title: '额度(%)', sortable: true },
         { key: 'onetime', title: '次数', sortable: true, render: r => r.onetime === 0 ? '不限' : r.onetime },
       ],
-      ops: r => '<button class="sp-btn sp-btn-sm sp-btn-danger" data-del="' + r.id + '" data-code="' + r.code + '">删除</button>'
+      ops: r => '<button class="btn btn-sm btn-danger" data-del="' + r.id + '" data-code="' + r.code + '">删除</button>'
     });
     document.getElementById('couponTable').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-del]');

@@ -6,20 +6,23 @@
   <title>公告管理 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="announcements" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="announcements">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">公告管理</h1></div>
-    </div>
-    <div class="sp-content-inner">
-      <div class="sp-mb-6">
-        <a class="sp-btn sp-btn-brand" href="/admin/announcement-edit.html"><i class="mi">add</i>发布公告</a>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">公告管理</h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+          <a class="btn btn-primary" href="/admin/announcement-edit.html"><i class="mi">add</i>发布公告</a>
+        </div>
       </div>
-      <div id="annTable"></div>
     </div>
+    <div id="annTable"></div>
   </main>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/sp-ui.js"></script>
@@ -40,8 +43,8 @@
         } },
       ],
       ops: r =>
-        '<a class="sp-btn sp-btn-sm" href="/admin/announcement-edit.html?id=' + r.id + '">编辑</a>' +
-        '<button class="sp-btn sp-btn-sm sp-btn-danger" data-del="' + r.id + '">删除</button>'
+        '<a class="btn btn-sm" href="/admin/announcement-edit.html?id=' + r.id + '">编辑</a>' +
+        '<button class="btn btn-sm btn-danger" data-del="' + r.id + '">删除</button>'
     });
     document.getElementById('annTable').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-del]');
