@@ -6,89 +6,98 @@
   <title>商品编辑 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="shops" data-sp-active="shops" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="shops" data-sp-active="shops">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading" x-text="isEdit ? '商品编辑 #' + (f.id||'') : '添加商品'"></h1></div>
-    </div>
-    <div class="sp-content-inner" x-data="shopFormPage()" x-init="init()">
+    <div x-data="shopFormPage()" x-init="init()">
+      <div class="page-header d-print-none">
+        <div class="row align-items-center">
+          <div class="col">
+            <h2 class="page-title" x-text="isEdit ? '商品编辑 #' + (f.id||'') : '添加商品'"></h2>
+          </div>
+        </div>
+      </div>
       <form @submit.prevent="save()" x-show="loaded || !isEdit" x-cloak>
-        <div class="sp-card sp-mb-6">
-          <div class="sp-card-title"><i class="mi">shop</i>基本</div>
-          <div class="sp-grid">
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">名称</label>
-              <input class="sp-input" type="text" x-model="f.name">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">价格 (元)</label>
-              <input class="sp-input" type="text" x-model="f.price">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">自动续费 (0=不续费 / N 天后续费)</label>
-              <input class="sp-input" type="text" x-model.number="f.auto_renew">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">续费时重置流量 (0/1)</label>
-              <select class="sp-select" x-model.number="f.auto_reset_bandwidth">
-                <option value="0">不自动重置</option><option value="1">自动重置</option>
-              </select>
-            </div></div>
-            <div class="sp-col-9"><div class="sp-form-row">
-              <label class="sp-form-label">附加说明 (content_extra, 购买页展示)</label>
-              <input class="sp-input" type="text" x-model="f.content_extra">
-            </div></div>
+        <div class="card mb-3">
+          <div class="card-header"><h3 class="card-title"><i class="mi me-2">shop</i>基本</h3></div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">名称</label>
+                <input class="form-control" type="text" x-model="f.name">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">价格 (元)</label>
+                <input class="form-control" type="text" x-model="f.price">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">自动续费 (0=不续费 / N 天后续费)</label>
+                <input class="form-control" type="text" x-model.number="f.auto_renew">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">续费时重置流量 (0/1)</label>
+                <select class="form-select" x-model.number="f.auto_reset_bandwidth">
+                  <option value="0">不自动重置</option><option value="1">自动重置</option>
+                </select>
+              </div></div>
+              <div class="col-md-9"><div class="mb-3">
+                <label class="form-label">附加说明 (content_extra, 购买页展示)</label>
+                <input class="form-control" type="text" x-model="f.content_extra">
+              </div></div>
+            </div>
           </div>
         </div>
 
-        <div class="sp-card sp-mb-6">
-          <div class="sp-card-title"><i class="mi">card_membership</i>内容效果 (留空/0 = 不生效)</div>
-          <div class="sp-grid">
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">添加流量 (G)</label>
-              <input class="sp-input" type="text" x-model="f.bandwidth">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">有效期 (天)</label>
-              <input class="sp-input" type="text" x-model="f.expire">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">升级等级</label>
-              <input class="sp-input" type="text" x-model="f.class">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">等级有效期 (天)</label>
-              <input class="sp-input" type="text" x-model="f.class_expire">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">重置周期 (每 N 天)</label>
-              <input class="sp-input" type="text" x-model="f.reset">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">每次重置流量 (G)</label>
-              <input class="sp-input" type="text" x-model="f.reset_value">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">重置持续 (天)</label>
-              <input class="sp-input" type="text" x-model="f.reset_exp">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">限速 (Mbps)</label>
-              <input class="sp-input" type="text" x-model="f.speedlimit">
-            </div></div>
-            <div class="sp-col-3"><div class="sp-form-row">
-              <label class="sp-form-label">连接数</label>
-              <input class="sp-input" type="text" x-model="f.connector">
-            </div></div>
+        <div class="card mb-3">
+          <div class="card-header"><h3 class="card-title"><i class="mi me-2">card_membership</i>内容效果 (留空/0 = 不生效)</h3></div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">添加流量 (G)</label>
+                <input class="form-control" type="text" x-model="f.bandwidth">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">有效期 (天)</label>
+                <input class="form-control" type="text" x-model="f.expire">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">升级等级</label>
+                <input class="form-control" type="text" x-model="f.class">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">等级有效期 (天)</label>
+                <input class="form-control" type="text" x-model="f.class_expire">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">重置周期 (每 N 天)</label>
+                <input class="form-control" type="text" x-model="f.reset">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">每次重置流量 (G)</label>
+                <input class="form-control" type="text" x-model="f.reset_value">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">重置持续 (天)</label>
+                <input class="form-control" type="text" x-model="f.reset_exp">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">限速 (Mbps)</label>
+                <input class="form-control" type="text" x-model="f.speedlimit">
+              </div></div>
+              <div class="col-sm-6 col-xl-3"><div class="mb-3">
+                <label class="form-label">连接数</label>
+                <input class="form-control" type="text" x-model="f.connector">
+              </div></div>
+            </div>
           </div>
         </div>
 
-        <div class="sp-mb-6">
-          <button type="submit" class="sp-btn sp-btn-brand" :disabled="saving"><i class="mi">save</i>保存</button>
-          <a class="sp-btn sp-btn-flat" href="/admin/shops.html">返回列表</a>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <button type="submit" class="btn btn-primary" :disabled="saving"><i class="mi">save</i>保存</button>
+          <a class="btn" href="/admin/shops.html">返回列表</a>
         </div>
       </form>
     </div>

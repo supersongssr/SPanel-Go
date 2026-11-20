@@ -6,40 +6,47 @@
   <title>审计规则编辑 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="detects" data-sp-active="detects" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="detects" data-sp-active="detects">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading" x-text="isEdit ? '规则编辑 #' + (f.id||'') : '添加审计规则'"></h1></div>
-    </div>
-    <div class="sp-content-inner" x-data="detectFormPage()" x-init="init()">
-      <div class="sp-card" x-show="loaded || !isEdit">
-        <div class="sp-grid">
-          <div class="sp-col-6"><div class="sp-form-row">
-            <label class="sp-form-label">名称</label>
-            <input class="sp-input" type="text" x-model="f.name">
-          </div></div>
-          <div class="sp-col-6"><div class="sp-form-row">
-            <label class="sp-form-label">介绍</label>
-            <input class="sp-input" type="text" x-model="f.text">
-          </div></div>
-          <div class="sp-col-8"><div class="sp-form-row">
-            <label class="sp-form-label">正则表达式</label>
-            <input class="sp-input" type="text" x-model="f.regex" placeholder="如 BitTorrent protocol">
-          </div></div>
-          <div class="sp-col-4"><div class="sp-form-row">
-            <label class="sp-form-label">类型</label>
-            <select class="sp-select" x-model.number="f.type">
-              <option value="1">数据包明文匹配</option>
-              <option value="2">数据包 hex 匹配</option>
-            </select>
-          </div></div>
+    <div x-data="detectFormPage()" x-init="init()">
+      <div class="page-header d-print-none">
+        <div class="row align-items-center">
+          <div class="col">
+            <h2 class="page-title" x-text="isEdit ? '规则编辑 #' + (f.id||'') : '添加审计规则'"></h2>
+          </div>
         </div>
-        <div class="sp-mt-4" style="display:flex;gap:8px">
-          <button class="sp-btn sp-btn-brand" @click="save()" :disabled="saving"><i class="mi">save</i>保存</button>
-          <a class="sp-btn sp-btn-flat" href="/admin/detects.html">返回列表</a>
+      </div>
+      <div class="card" x-show="loaded || !isEdit">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6"><div class="mb-3">
+              <label class="form-label">名称</label>
+              <input class="form-control" type="text" x-model="f.name">
+            </div></div>
+            <div class="col-md-6"><div class="mb-3">
+              <label class="form-label">介绍</label>
+              <input class="form-control" type="text" x-model="f.text">
+            </div></div>
+            <div class="col-md-8"><div class="mb-3">
+              <label class="form-label">正则表达式</label>
+              <input class="form-control" type="text" x-model="f.regex" placeholder="如 BitTorrent protocol">
+            </div></div>
+            <div class="col-sm-6 col-xl-4"><div class="mb-3">
+              <label class="form-label">类型</label>
+              <select class="form-select" x-model.number="f.type">
+                <option value="1">数据包明文匹配</option>
+                <option value="2">数据包 hex 匹配</option>
+              </select>
+            </div></div>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <button class="btn btn-primary" @click="save()" :disabled="saving"><i class="mi">save</i>保存</button>
+            <a class="btn" href="/admin/detects.html">返回列表</a>
+          </div>
         </div>
       </div>
     </div>

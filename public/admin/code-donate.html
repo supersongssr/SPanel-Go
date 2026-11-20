@@ -6,35 +6,44 @@
   <title>添加捐赠/支出 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="codes" data-sp-active="codes" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="codes" data-sp-active="codes">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">添加捐赠/支出</h1></div>
-    </div>
-    <div class="sp-content-inner" x-data="donatePage()">
-      <div class="sp-card">
-        <div class="sp-card-title"><i class="mi">volunteer_activism</i>捐赠/支出记录</div>
-        <div class="sp-grid">
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">金额 (元)</label>
-            <input class="sp-input" type="text" x-model="amount">
-          </div></div>
-          <div class="sp-col-3"><div class="sp-form-row">
-            <label class="sp-form-label">类型</label>
-            <select class="sp-select" x-model.number="type">
-              <option value="-1">捐赠</option>
-              <option value="-2">支出</option>
-            </select>
-          </div></div>
-          <div class="sp-col-6"><div class="sp-form-row">
-            <label class="sp-form-label">备注/摘要 (code 字段)</label>
-            <input class="sp-input" type="text" x-model="code" placeholder="如: 服务器续费 -XX 2026-11">
-          </div></div>
-          <div class="sp-col-3" style="display:flex;align-items:flex-end">
-            <button class="sp-btn sp-btn-brand" @click="add()" :disabled="saving"><i class="mi">save</i>添加</button>
+    <div x-data="donatePage()">
+      <div class="page-header d-print-none">
+        <div class="row align-items-center">
+          <div class="col">
+            <h2 class="page-title">添加捐赠/支出</h2>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">volunteer_activism</i>捐赠/支出记录</h3></div>
+        <div class="card-body">
+          <div class="row align-items-end">
+            <div class="col-sm-6 col-xl-3"><div class="mb-3">
+              <label class="form-label">金额 (元)</label>
+              <input class="form-control" type="text" x-model="amount">
+            </div></div>
+            <div class="col-sm-6 col-xl-3"><div class="mb-3">
+              <label class="form-label">类型</label>
+              <select class="form-select" x-model.number="type">
+                <option value="-1">捐赠</option>
+                <option value="-2">支出</option>
+              </select>
+            </div></div>
+            <div class="col-md-6"><div class="mb-3">
+              <label class="form-label">备注/摘要 (code 字段)</label>
+              <input class="form-control" type="text" x-model="code" placeholder="如: 服务器续费 -XX 2026-11">
+            </div></div>
+            <div class="col-sm-6 col-xl-3 d-flex align-items-end">
+              <div class="mb-3">
+                <button class="btn btn-primary" @click="add()" :disabled="saving"><i class="mi">save</i>添加</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

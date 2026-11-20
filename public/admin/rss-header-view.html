@@ -6,52 +6,59 @@
   <title>订阅请求详情 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="rss-headers" data-sp-active="rss-headers" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="rss-headers" data-sp-active="rss-headers">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">订阅请求详情 <span x-show="d.id" x-cloak>#<span x-text="d.id"></span></span></h1></div>
-    </div>
-    <div class="sp-content-inner" x-data="rssViewPage()" x-init="init()">
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">content_paste</i>请求</div>
-        <div class="sp-grid">
-          <div class="sp-col-4"><div class="sp-dl-row"><dt>用户</dt><dd x-text="(d.user_id || '匿名') + ' / ' + (d.email || '—')"></dd></div></div>
-          <div class="sp-col-4"><div class="sp-dl-row"><dt>客户端 (app)</dt><dd x-text="d.app || '—'"></dd></div></div>
-          <div class="sp-col-4"><div class="sp-dl-row"><dt>IP / 时间</dt><dd x-text="(d.ip || '—') + ' / ' + (d.created_at || '')"></dd></div></div>
-          <div class="sp-col-12"><div class="sp-dl-row"><dt>Token</dt><dd class="sp-num sp-break-all" x-text="d.token || '—'"></dd></div></div>
-          <div class="sp-col-12"><div class="sp-dl-row"><dt>URI</dt><dd class="sp-break-all" x-text="(d.method || 'GET') + ' ' + (d.uri || '')"></dd></div></div>
-          <div class="sp-col-12"><div class="sp-dl-row"><dt>User-Agent</dt><dd class="sp-break-all" x-text="d.user_agent || '—'"></dd></div></div>
+    <div x-data="rssViewPage()" x-init="init()">
+      <div class="page-header d-print-none">
+        <div class="row align-items-center">
+          <div class="col">
+            <h2 class="page-title">订阅请求详情 <span x-show="d.id" x-cloak>#<span x-text="d.id"></span></span></h2>
+          </div>
+        </div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">content_paste</i>请求</h3></div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-sm-6 col-xl-4"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">用户</span><span class="text-break" x-text="(d.user_id || '匿名') + ' / ' + (d.email || '—')"></span></div></div>
+            <div class="col-sm-6 col-xl-4"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">客户端 (app)</span><span class="text-break" x-text="d.app || '—'"></span></div></div>
+            <div class="col-sm-6 col-xl-4"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">IP / 时间</span><span class="text-break" x-text="(d.ip || '—') + ' / ' + (d.created_at || '')"></span></div></div>
+            <div class="col-12"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">Token</span><span class="font-monospace text-break" x-text="d.token || '—'"></span></div></div>
+            <div class="col-12"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">URI</span><span class="text-break" x-text="(d.method || 'GET') + ' ' + (d.uri || '')"></span></div></div>
+            <div class="col-12"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">User-Agent</span><span class="text-break" x-text="d.user_agent || '—'"></span></div></div>
+          </div>
         </div>
       </div>
 
-      <div class="sp-grid">
-        <div class="sp-col-6">
-          <div class="sp-card">
-            <div class="sp-card-title"><i class="mi">list_alt</i>查询参数 (query)</div>
-            <div class="sp-table-wrap" style="max-height:420px">
-              <table class="sp-table">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">list_alt</i>查询参数 (query)</h3></div>
+            <div class="table-responsive" style="max-height:420px">
+              <table class="table table-vcenter card-table">
                 <thead><tr><th>Key</th><th>Value</th></tr></thead>
                 <tbody>
                   <template x-for="(v, k) in flatObj(d.query)" :key="k">
-                    <tr><td class="sp-num" x-text="k"></td><td class="sp-wrap sp-num" x-text="v"></td></tr>
+                    <tr><td class="font-monospace" x-text="k"></td><td class="text-wrap font-monospace" x-text="v"></td></tr>
                   </template>
                 </tbody>
               </table>
             </div>
           </div>
         </div>
-        <div class="sp-col-6">
-          <div class="sp-card">
-            <div class="sp-card-title"><i class="mi">http</i>请求头 (headers)</div>
-            <div class="sp-table-wrap" style="max-height:420px">
-              <table class="sp-table">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">http</i>请求头 (headers)</h3></div>
+            <div class="table-responsive" style="max-height:420px">
+              <table class="table table-vcenter card-table">
                 <thead><tr><th>Header</th><th>Value</th></tr></thead>
                 <tbody>
                   <template x-for="(v, k) in flatObj(d.headers)" :key="k">
-                    <tr><td class="sp-num" x-text="k"></td><td class="sp-wrap sp-num" x-text="v"></td></tr>
+                    <tr><td class="font-monospace" x-text="k"></td><td class="text-wrap font-monospace" x-text="v"></td></tr>
                   </template>
                 </tbody>
               </table>
@@ -59,7 +66,7 @@
           </div>
         </div>
       </div>
-      <div class="sp-mt-4"><a class="sp-btn sp-btn-flat" href="/admin/rss-headers.html"><i class="mi">arrow_back</i>返回列表</a></div>
+      <div class="mt-2"><a class="btn" href="/admin/rss-headers.html"><i class="mi">arrow_back</i>返回列表</a></div>
     </div>
   </main>
   <script src="/assets/js/api.js"></script>

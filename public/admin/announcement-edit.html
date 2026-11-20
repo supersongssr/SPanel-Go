@@ -6,51 +6,60 @@
   <title>发布公告 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="announcements" data-sp-active="announcements" class="sp-admin" x-data="annFormPage()">
+<body data-sp-area="admin" data-sp-page="announcements" data-sp-active="announcements" x-data="annFormPage()">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading" x-text="isEdit ? '公告编辑 #' + (f.id||'') : '发布公告'"></h1></div>
-    </div>
-    <div class="sp-content-inner" x-init="init()
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">announcement</i>内容</div>
-        <div class="sp-form-row">
-          <label class="sp-form-label">HTML 内容 (content, 公告弹窗/邮件用)</label>
-          <textarea class="sp-textarea" rows="5" x-model="f.content"></textarea>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title" x-text="isEdit ? '公告编辑 #' + (f.id||'') : '发布公告'"></h2>
         </div>
-        <div class="sp-form-row">
-          <label class="sp-form-label">Markdown (公告页展示)</label>
-          <textarea class="sp-textarea" rows="10" x-model="f.markdown"></textarea>
+      </div>
+    </div>
+    <div x-init="init()">
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">announcement</i>内容</h3></div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">HTML 内容 (content, 公告弹窗/邮件用)</label>
+            <textarea class="form-control" rows="5" x-model="f.content"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Markdown (公告页展示)</label>
+            <textarea class="form-control" rows="10" x-model="f.markdown"></textarea>
+          </div>
         </div>
       </div>
 
       <template x-if="!isEdit">
-        <div class="sp-card sp-mb-6">
-          <div class="sp-card-title"><i class="mi">mail</i>邮件群发 (可选)</div>
-          <div class="sp-form-row">
-            <label class="sp-check">
-              <input type="checkbox" x-model="issend" :true-value="1" :false-value="0">
-              同时邮件群发给用户 (分批 50/批, 断点自动续发)
-            </label>
+        <div class="card mb-3">
+          <div class="card-header"><h3 class="card-title"><i class="mi me-2">mail</i>邮件群发 (可选)</h3></div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-check">
+                <input class="form-check-input" type="checkbox" x-model="issend" :true-value="1" :false-value="0">
+                <span class="form-check-label">同时邮件群发给用户 (分批 50/批, 断点自动续发)</span>
+              </label>
+            </div>
+            <div class="mb-3" x-show="issend == 1" x-cloak>
+              <label class="form-label">仅发送给等级 ≥ (VIP 等级)</label>
+              <input class="form-control" type="text" x-model.number="f.vip" style="max-width:120px">
+            </div>
+            <div class="alert alert-info" x-show="issend == 1" x-cloak>
+              <i class="mi">info</i>大用户量时单请求只发一批, 页面会提示进度并自动携带游标续发直至完成。
+            </div>
+            <div class="progress progress-sm mt-2" x-show="sending" x-cloak><div class="progress-bar" :style="'width:' + progress + '%'"></div></div>
+            <p class="text-secondary small" x-show="sending" x-cloak x-text="statusText"></p>
           </div>
-          <div class="sp-form-row" x-show="issend == 1" x-cloak>
-            <label class="sp-form-label">仅发送给等级 ≥ (VIP 等级)</label>
-            <input class="sp-input" type="text" x-model.number="f.vip" style="max-width:120px">
-          </div>
-          <div class="sp-alert sp-alert-info" x-show="issend == 1" x-cloak style="margin-top:8px">
-            <i class="mi">info</i>大用户量时单请求只发一批, 页面会提示进度并自动携带游标续发直至完成。
-          </div>
-          <div class="sp-progress sp-mt-4" x-show="sending" x-cloak><i :style="'width:' + progress + '%'"></i></div>
-          <p class="sp-text-hint" x-show="sending" x-cloak x-text="statusText"></p>
         </div>
       </template>
 
-      <div class="sp-mb-6" style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="sp-btn sp-btn-brand" @click="save()" :disabled="sending"><i class="mi">save</i>保存</button>
-        <a class="sp-btn sp-btn-flat" href="/admin/announcements.html">返回列表</a>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button class="btn btn-primary" @click="save()" :disabled="sending"><i class="mi">save</i>保存</button>
+        <a class="btn" href="/admin/announcements.html">返回列表</a>
       </div>
     </div>
   </main>

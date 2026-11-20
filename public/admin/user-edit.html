@@ -6,38 +6,43 @@
   <title>用户编辑 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="users" data-sp-active="users" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="users" data-sp-active="users">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container">
-        <h1 class="sp-content-heading">
-          用户编辑 <span x-show="f.id" x-cloak>#<span x-text="f.id"></span></span>
-          <a class="sp-btn sp-btn-sm sp-btn-flat" style="margin-left:10px;vertical-align:middle" x-show="f.id" x-cloak
-             :href="'/admin/user-log.html?user_id=' + f.id">查看操作记录</a>
-        </h1>
+    <div x-data="userEditPage()" x-init="init()">
+      <div class="page-header d-print-none">
+        <div class="row align-items-center">
+          <div class="col">
+            <h2 class="page-title">用户编辑 <span x-show="f.id" x-cloak>#<span x-text="f.id"></span></span></h2>
+          </div>
+          <div class="col-auto ms-auto d-print-none">
+            <a class="btn btn-sm" x-show="f.id" x-cloak
+               :href="'/admin/user-log.html?user_id=' + f.id">查看操作记录</a>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="sp-content-inner" x-data="userEditPage()" x-init="init()">
       <!-- 页头统计 (PHP edit.tpl 裸统计, 卡片化) -->
-      <div class="sp-card sp-mb-6" x-show="loaded" x-cloak>
-        <div class="sp-grid">
-          <div class="sp-col-4">
-            <div class="sp-dl-row"><dt>订阅计数(今/昨)</dt><dd x-text="(f.rss_count||0) + ' / ' + (f.rss_count_lastday||0)"></dd></div>
-            <div class="sp-dl-row"><dt>订阅IP数(今/昨)</dt><dd x-text="(f.rss_ips_count||0) + ' / ' + (f.rss_ips_lastday||0)"></dd></div>
-            <div class="sp-dl-row"><dt>最近订阅IP</dt><dd x-text="f.rss_ip || '—'"></dd></div>
-          </div>
-          <div class="sp-col-4">
-            <div class="sp-dl-row"><dt>t (最近上报)</dt><dd x-text="f.t || 0"></dd></div>
-            <div class="sp-dl-row"><dt>u / d (bytes)</dt><dd x-text="(f.u||0) + ' / ' + (f.d||0)"></dd></div>
-            <div class="sp-dl-row"><dt>last_day_t (昨日)</dt><dd x-text="f.last_day_t || 0"></dd></div>
-          </div>
-          <div class="sp-col-4">
-            <div class="sp-dl-row"><dt>累计充值</dt><dd x-text="f.top_up ?? '—'"></dd></div>
-            <div class="sp-dl-row"><dt>UUID</dt><dd class="sp-break-all" style="max-width:220px" x-text="f.v2ray_uuid || '—'"></dd></div>
-            <div class="sp-dl-row"><dt>积分 / 违规 / 禁用文案</dt><dd x-text="(f.score??0) + ' / ' + (f.ban_times??0) + ' / ' + (f.warming||'—')"></dd></div>
+      <div class="card mb-3" x-show="loaded" x-cloak>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">订阅计数(今/昨)</span><span class="text-break" x-text="(f.rss_count||0) + ' / ' + (f.rss_count_lastday||0)"></span></div>
+              <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">订阅IP数(今/昨)</span><span class="text-break" x-text="(f.rss_ips_count||0) + ' / ' + (f.rss_ips_lastday||0)"></span></div>
+              <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">最近订阅IP</span><span class="text-break" x-text="f.rss_ip || '—'"></span></div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">t (最近上报)</span><span class="text-break" x-text="f.t || 0"></span></div>
+              <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">u / d (bytes)</span><span class="text-break" x-text="(f.u||0) + ' / ' + (f.d||0)"></span></div>
+              <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">last_day_t (昨日)</span><span class="text-break" x-text="f.last_day_t || 0"></span></div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">累计充值</span><span class="text-break" x-text="f.top_up ?? '—'"></span></div>
+              <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">UUID</span><span class="text-break" style="max-width:220px" x-text="f.v2ray_uuid || '—'"></span></div>
+              <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">积分 / 违规 / 禁用文案</span><span class="text-break" x-text="(f.score??0) + ' / ' + (f.ban_times??0) + ' / ' + (f.warming||'—')"></span></div>
+            </div>
           </div>
         </div>
       </div>
@@ -45,171 +50,183 @@
       <template x-if="loaded">
         <form @submit.prevent="save()">
           <!-- 账户 -->
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">account_box</i>账户</div>
-            <div class="sp-grid">
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">邮箱</label>
-                <input class="sp-input" type="text" x-model="f.email">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">备注 (仅对管理员可见)</label>
-                <input class="sp-input" type="text" x-model="f.remark">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">密码 (不修改请留空)</label>
-                <input class="sp-input" type="password" autocomplete="new-password" x-model="f.pass" placeholder="留空则不修改">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">金钱</label>
-                <input class="sp-input" type="text" x-model="f.money">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">用户启用</label>
-                <label class="sp-switch"><input type="checkbox" x-model="f.enable" :value="1" :true-value="1" :false-value="0"><i></i></label>
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">是否开启二次验证</label>
-                <label class="sp-switch"><input type="checkbox" x-model="f.ga_enable" :value="1" :true-value="1" :false-value="0"><i></i></label>
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">单端口多用户承载端口</label>
-                <select class="sp-select" x-model.number="f.is_multi_user">
-                  <option value="0">非单端口多用户承载端口</option>
-                  <option value="1">混淆式单端口多用户承载端口</option>
-                  <option value="2">协议式单端口多用户承载端口</option>
-                </select>
-              </div></div>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">account_box</i>账户</h3></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">邮箱</label>
+                  <input class="form-control" type="text" x-model="f.email">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">备注 (仅对管理员可见)</label>
+                  <input class="form-control" type="text" x-model="f.remark">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">密码 (不修改请留空)</label>
+                  <input class="form-control" type="password" autocomplete="new-password" x-model="f.pass" placeholder="留空则不修改">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">金钱</label>
+                  <input class="form-control" type="text" x-model="f.money">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">用户启用</label>
+                  <label class="form-check form-switch"><input class="form-check-input" type="checkbox" x-model="f.enable" :value="1" :true-value="1" :false-value="0"></label>
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">是否开启二次验证</label>
+                  <label class="form-check form-switch"><input class="form-check-input" type="checkbox" x-model="f.ga_enable" :value="1" :true-value="1" :false-value="0"></label>
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">单端口多用户承载端口</label>
+                  <select class="form-select" x-model.number="f.is_multi_user">
+                    <option value="0">非单端口多用户承载端口</option>
+                    <option value="1">混淆式单端口多用户承载端口</option>
+                    <option value="2">协议式单端口多用户承载端口</option>
+                  </select>
+                </div></div>
+              </div>
             </div>
           </div>
 
           <!-- 连接 -->
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">vpn_key</i>连接</div>
-            <div class="sp-grid">
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">连接端口</label>
-                <input class="sp-input" type="text" x-model="f.port">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">连接密码</label>
-                <input class="sp-input" type="text" x-model="f.passwd">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">自定义加密</label>
-                <input class="sp-input" type="text" x-model="f.method">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">自定义协议</label>
-                <input class="sp-input" type="text" x-model="f.protocol">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">自定义协议参数</label>
-                <input class="sp-input" type="text" x-model="f.protocol_param">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">自定义混淆方式</label>
-                <input class="sp-input" type="text" x-model="f.obfs">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">自定义混淆参数</label>
-                <input class="sp-input" type="text" x-model="f.obfs_param">
-              </div></div>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">vpn_key</i>连接</h3></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">连接端口</label>
+                  <input class="form-control" type="text" x-model="f.port">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">连接密码</label>
+                  <input class="form-control" type="text" x-model="f.passwd">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">自定义加密</label>
+                  <input class="form-control" type="text" x-model="f.method">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">自定义协议</label>
+                  <input class="form-control" type="text" x-model="f.protocol">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">自定义协议参数</label>
+                  <input class="form-control" type="text" x-model="f.protocol_param">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">自定义混淆方式</label>
+                  <input class="form-control" type="text" x-model="f.obfs">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">自定义混淆参数</label>
+                  <input class="form-control" type="text" x-model="f.obfs_param">
+                </div></div>
+              </div>
             </div>
           </div>
 
           <!-- 流量 -->
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">data_usage</i>流量</div>
-            <div class="sp-grid">
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">总流量 (GB)</label>
-                <input class="sp-input" type="text" x-model="f.transfer_enable_gb">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">已用流量 (只读)</label>
-                <input class="sp-input" type="text" :value="usedTrafficText" readonly>
-                <p class="sp-text-hint" style="font-size:12px;margin:4px 0 0">U: <span x-text="(f.u/1e9).toFixed(2)"></span>GB · D: <span x-text="(f.d/1e9).toFixed(2)"></span>GB · Limit: <span x-text="((f.transfer_limit||0)/1e9).toFixed(2)"></span></p>
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">流量限制 (bytes, 周期下行配额)</label>
-                <input class="sp-input" type="text" x-model="f.transfer_limit">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">自动重置流量日 (几号, 0=不重置)</label>
-                <input class="sp-input" type="text" x-model="f.auto_reset_day">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">重置流量值 (GB)</label>
-                <input class="sp-input" type="text" x-model="f.auto_reset_bandwidth">
-              </div></div>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">data_usage</i>流量</h3></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">总流量 (GB)</label>
+                  <input class="form-control" type="text" x-model="f.transfer_enable_gb">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">已用流量 (只读)</label>
+                  <input class="form-control" type="text" :value="usedTrafficText" readonly>
+                  <p class="text-secondary small mt-1 mb-0">U: <span x-text="(f.u/1e9).toFixed(2)"></span>GB · D: <span x-text="(f.d/1e9).toFixed(2)"></span>GB · Limit: <span x-text="((f.transfer_limit||0)/1e9).toFixed(2)"></span></p>
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">流量限制 (bytes, 周期下行配额)</label>
+                  <input class="form-control" type="text" x-model="f.transfer_limit">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">自动重置流量日 (几号, 0=不重置)</label>
+                  <input class="form-control" type="text" x-model="f.auto_reset_day">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">重置流量值 (GB)</label>
+                  <input class="form-control" type="text" x-model="f.auto_reset_bandwidth">
+                </div></div>
+              </div>
             </div>
           </div>
 
           <!-- 邀请与等级 -->
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">loyalty</i>邀请与等级</div>
-            <div class="sp-grid">
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">可用邀请数量</label>
-                <input class="sp-input" type="text" x-model="f.invite_num">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">邀请人 ID</label>
-                <input class="sp-input" type="text" x-model="f.ref_by">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">用户群组</label>
-                <input class="sp-input" type="text" x-model="f.node_group">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">用户级别</label>
-                <input class="sp-input" type="text" x-model="f.class">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">用户等级过期时间</label>
-                <input class="sp-input" type="text" placeholder="2026-01-01 00:00:00" x-model="f.class_expire">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">用户账户过期时间</label>
-                <input class="sp-input" type="text" placeholder="2026-01-01 00:00:00" x-model="f.expire_in">
-              </div></div>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">loyalty</i>邀请与等级</h3></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">可用邀请数量</label>
+                  <input class="form-control" type="text" x-model="f.invite_num">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">邀请人 ID</label>
+                  <input class="form-control" type="text" x-model="f.ref_by">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">用户群组</label>
+                  <input class="form-control" type="text" x-model="f.node_group">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">用户级别</label>
+                  <input class="form-control" type="text" x-model="f.class">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">用户等级过期时间</label>
+                  <input class="form-control" type="text" placeholder="2026-01-01 00:00:00" x-model="f.class_expire">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">用户账户过期时间</label>
+                  <input class="form-control" type="text" placeholder="2026-01-01 00:00:00" x-model="f.expire_in">
+                </div></div>
+              </div>
             </div>
           </div>
 
           <!-- 限制 -->
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">speed</i>限制</div>
-            <div class="sp-grid">
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">用户限速 (Mbps, 每个节点)</label>
-                <input class="sp-input" type="text" x-model="f.node_speedlimit">
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">用户同时连接 IP 数</label>
-                <input class="sp-input" type="text" x-model="f.node_connector">
-              </div></div>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">speed</i>限制</h3></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">用户限速 (Mbps, 每个节点)</label>
+                  <input class="form-control" type="text" x-model="f.node_speedlimit">
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">用户同时连接 IP 数</label>
+                  <input class="form-control" type="text" x-model="f.node_connector">
+                </div></div>
+              </div>
             </div>
           </div>
 
           <!-- 禁访 -->
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">block</i>访问限制</div>
-            <div class="sp-grid">
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">禁止用户访问的 IP (一行一个)</label>
-                <textarea class="sp-textarea" rows="4" x-model="f.forbidden_ip" placeholder="1.2.3.4&#10;5.6.7.8"></textarea>
-              </div></div>
-              <div class="sp-col-6"><div class="sp-form-row">
-                <label class="sp-form-label">禁止用户访问的端口 (一行一个)</label>
-                <textarea class="sp-textarea" rows="4" x-model="f.forbidden_port" placeholder="25&#10;465"></textarea>
-              </div></div>
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">block</i>访问限制</h3></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">禁止用户访问的 IP (一行一个)</label>
+                  <textarea class="form-control" rows="4" x-model="f.forbidden_ip" placeholder="1.2.3.4&#10;5.6.7.8"></textarea>
+                </div></div>
+                <div class="col-md-6"><div class="mb-3">
+                  <label class="form-label">禁止用户访问的端口 (一行一个)</label>
+                  <textarea class="form-control" rows="4" x-model="f.forbidden_port" placeholder="25&#10;465"></textarea>
+                </div></div>
+              </div>
             </div>
           </div>
 
-          <div class="sp-mb-6">
-            <button type="submit" class="sp-btn sp-btn-brand" :disabled="saving"><i class="mi">save</i>保存修改</button>
-            <a class="sp-btn sp-btn-flat" href="/admin/users.html">返回列表</a>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button type="submit" class="btn btn-primary" :disabled="saving"><i class="mi">save</i>保存修改</button>
+            <a class="btn" href="/admin/users.html">返回列表</a>
           </div>
         </form>
       </template>

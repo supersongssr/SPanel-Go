@@ -6,29 +6,36 @@
   <title>充值统计 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="recharge-stats" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="recharge-stats">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">充值统计</h1></div>
-    </div>
-    <div class="sp-content-inner" x-data="rechargeStatsPage()" x-init="load()">
-      <div class="sp-card sp-mb-6">
-        <div class="sp-grid">
-          <div class="sp-col-6"><div class="sp-dl-row"><dt>用户总数</dt><dd x-text="d.sum_total ?? '—'"></dd></div></div>
-          <div class="sp-col-6"><div class="sp-dl-row"><dt>最近一笔充值</dt><dd x-text="d.latest_recharge ? fmtTs(d.latest_recharge) : '无记录'"></dd></div></div>
+    <div x-data="rechargeStatsPage()" x-init="load()">
+      <div class="page-header d-print-none">
+        <div class="row align-items-center">
+          <div class="col">
+            <h2 class="page-title">充值统计</h2>
+          </div>
         </div>
-        <p class="sp-text-hint" style="font-size:12px">
-          口径: code 表 type=-1 (金额充值) 且 isused=1; 窗口内去重用户数按分组统计, 占比 = 该组去重充值数 ÷ 该组用户总数。
-        </p>
+      </div>
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">用户总数</span><span class="text-break" x-text="d.sum_total ?? '—'"></span></div></div>
+            <div class="col-md-6"><div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">最近一笔充值</span><span class="text-break" x-text="d.latest_recharge ? fmtTs(d.latest_recharge) : '无记录'"></span></div></div>
+          </div>
+          <p class="text-secondary small mb-0">
+            口径: code 表 type=-1 (金额充值) 且 isused=1; 窗口内去重用户数按分组统计, 占比 = 该组去重充值数 ÷ 该组用户总数。
+          </p>
+        </div>
       </div>
 
-      <div class="sp-card">
-        <div class="sp-card-title"><i class="mi">equalizer</i>窗口 × 分组</div>
-        <div class="sp-table-wrap">
-          <table class="sp-table">
+      <div class="card">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">equalizer</i>窗口 × 分组</h3></div>
+        <div class="table-responsive">
+          <table class="table table-vcenter card-table">
             <thead><tr>
               <th>窗口</th>
               <template x-for="g in groups" :key="g">
@@ -43,11 +50,11 @@
                   <template x-for="g in groups" :key="g">
                     <td>
                       <span x-text="((w.stats || {})[g] || 0)"></span>
-                      <span class="sp-text-hint" style="margin-left:4px" x-text="('(' + ((w.pct || {})[g] || 0) + '%)')"></span>
+                      <span class="text-secondary ms-1" x-text="('(' + ((w.pct || {})[g] || 0) + '%)')"></span>
                     </td>
                   </template>
                   <td><b x-text="w.sum"></b></td>
-                  <td class="sp-num" x-text="w.amount"></td>
+                  <td class="font-monospace" x-text="w.amount"></td>
                 </tr>
               </template>
             </tbody>

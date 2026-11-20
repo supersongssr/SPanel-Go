@@ -6,72 +6,79 @@
   <title>添加用户 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="users" data-sp-active="users" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="users" data-sp-active="users">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container">
-        <h1 class="sp-content-heading">
-          添加用户
-          <a class="sp-btn sp-btn-sm sp-btn-flat" style="margin-left:10px;vertical-align:middle" href="/admin/users.html">返回用户列表</a>
-        </h1>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">添加用户</h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+          <a class="btn btn-sm" href="/admin/users.html">返回用户列表</a>
+        </div>
       </div>
     </div>
-    <div class="sp-content-inner" x-data="userCreatePage()">
+    <div x-data="userCreatePage()">
       <form @submit.prevent="save()">
         <!-- 账户 -->
-        <div class="sp-card sp-mb-6">
-          <div class="sp-card-title"><i class="mi">person_add</i>账户</div>
-          <div class="sp-grid">
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">用户名</label>
-              <input class="sp-input" type="text" x-model="f.user_name" required>
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">邮箱 (唯一登录账号)</label>
-              <input class="sp-input" type="email" x-model="f.email" required>
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">密码</label>
-              <input class="sp-input" type="password" autocomplete="new-password" x-model="f.password" required>
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">金钱 (元)</label>
-              <input class="sp-input" type="text" x-model="f.money" placeholder="0.00">
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">可用流量 (GB, 默认 100)</label>
-              <input class="sp-input" type="text" x-model.number="f.transfer_gb">
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">管理员身份</label>
-              <label class="sp-switch"><input type="checkbox" x-model="f.is_admin" :true-value="1" :false-value="0"><i></i></label>
-            </div></div>
+        <div class="card mb-3">
+          <div class="card-header"><h3 class="card-title"><i class="mi me-2">person_add</i>账户</h3></div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">用户名</label>
+                <input class="form-control" type="text" x-model="f.user_name" required>
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">邮箱 (唯一登录账号)</label>
+                <input class="form-control" type="email" x-model="f.email" required>
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">密码</label>
+                <input class="form-control" type="password" autocomplete="new-password" x-model="f.password" required>
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">金钱 (元)</label>
+                <input class="form-control" type="text" x-model="f.money" placeholder="0.00">
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">可用流量 (GB, 默认 100)</label>
+                <input class="form-control" type="text" x-model.number="f.transfer_gb">
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">管理员身份</label>
+                <label class="form-check form-switch"><input class="form-check-input" type="checkbox" x-model="f.is_admin" :true-value="1" :false-value="0"></label>
+              </div></div>
+            </div>
           </div>
         </div>
 
         <!-- 分组 / 等级 (PHP edit.tpl 口径) -->
-        <div class="sp-card sp-mb-6">
-          <div class="sp-card-title"><i class="mi">layers</i>分组与等级</div>
-          <div class="sp-grid">
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">节点分组</label>
-              <input class="sp-input" type="text" x-model.number="f.node_group">
-              <p class="sp-text-hint">用户只能访问到组别等于这个数字或 0 的节点</p>
-            </div></div>
-            <div class="sp-col-6"><div class="sp-form-row">
-              <label class="sp-form-label">等级</label>
-              <input class="sp-input" type="text" x-model.number="f.class">
-              <p class="sp-text-hint">用户只能访问到等级小于等于这个数字的节点</p>
-            </div></div>
+        <div class="card mb-3">
+          <div class="card-header"><h3 class="card-title"><i class="mi me-2">layers</i>分组与等级</h3></div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">节点分组</label>
+                <input class="form-control" type="text" x-model.number="f.node_group">
+                <p class="text-secondary small mt-1 mb-0">用户只能访问到组别等于这个数字或 0 的节点</p>
+              </div></div>
+              <div class="col-md-6"><div class="mb-3">
+                <label class="form-label">等级</label>
+                <input class="form-control" type="text" x-model.number="f.class">
+                <p class="text-secondary small mt-1 mb-0">用户只能访问到等级小于等于这个数字的节点</p>
+              </div></div>
+            </div>
           </div>
         </div>
 
-        <div style="display:flex;gap:10px">
-          <button class="sp-btn sp-btn-brand" type="submit" :disabled="saving"><i class="mi">check</i>确认添加</button>
-          <a class="sp-btn" href="/admin/users.html">取消</a>
+        <div class="d-flex gap-2 mb-3">
+          <button class="btn btn-primary" type="submit" :disabled="saving"><i class="mi">check</i>确认添加</button>
+          <a class="btn" href="/admin/users.html">取消</a>
         </div>
       </form>
     </div>

@@ -6,54 +6,65 @@
   <title>中转链路推导 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="relays" data-sp-active="relays" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="relays" data-sp-active="relays">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">中转链路推导</h1></div>
-    </div>
-    <div class="sp-content-inner" x-data="pathSearchPage()">
-      <div class="sp-card sp-mb-6">
-        <div class="sp-card-title"><i class="mi">alt_route</i>按用户推导</div>
-        <div class="sp-grid" style="align-items:flex-end">
-          <div class="sp-col-4"><div class="sp-form-row">
-            <label class="sp-form-label">用户 ID</label>
-            <input class="sp-input" type="text" x-model="uid" @keydown.enter="search()">
-          </div></div>
-          <div class="sp-col-3">
-            <button class="sp-btn sp-btn-brand" @click="search()" :disabled="loading"><i class="mi">search</i>推导</button>
+    <div x-data="pathSearchPage()">
+      <div class="page-header d-print-none">
+        <div class="row align-items-center">
+          <div class="col">
+            <h2 class="page-title">中转链路推导</h2>
           </div>
         </div>
-        <p class="sp-text-hint" style="font-size:12px">根据用户的端口与可见节点, 按优先级选中转规则并拼接链路; ❌ 标记 = 节点不可达 (超额/离线/未展示), 状态「阻断」。</p>
+      </div>
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">alt_route</i>按用户推导</h3></div>
+        <div class="card-body">
+          <div class="row align-items-end">
+            <div class="col-sm-6 col-xl-4"><div class="mb-3">
+              <label class="form-label">用户 ID</label>
+              <input class="form-control" type="text" x-model="uid" @keydown.enter="search()">
+            </div></div>
+            <div class="col-sm-6 col-xl-3">
+              <div class="mb-3">
+                <button class="btn btn-primary" @click="search()" :disabled="loading"><i class="mi">search</i>推导</button>
+              </div>
+            </div>
+          </div>
+          <p class="text-secondary small mb-0">根据用户的端口与可见节点, 按优先级选中转规则并拼接链路; ❌ 标记 = 节点不可达 (超额/离线/未展示), 状态「阻断」。</p>
+        </div>
       </div>
 
-      <div class="sp-card" x-show="user" x-cloak>
-        <div class="sp-card-title"><i class="mi">person</i>用户</div>
-        <div class="sp-dl-row"><dt>ID / 用户名</dt><dd x-text="(user ? user.id : '') + ' / ' + (user ? user.user_name : '')"></dd></div>
-        <div class="sp-dl-row"><dt>端口 / 等级 / 分组</dt><dd x-text="(user ? user.port : '') + ' / ' + (user ? user.class : '') + ' / ' + (user ? user.node_group : '')"></dd></div>
+      <div class="card" x-show="user" x-cloak>
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">person</i>用户</h3></div>
+        <div class="card-body">
+          <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">ID / 用户名</span><span class="text-break" x-text="(user ? user.id : '') + ' / ' + (user ? user.user_name : '')"></span></div>
+          <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary">端口 / 等级 / 分组</span><span class="text-break" x-text="(user ? user.port : '') + ' / ' + (user ? user.class : '') + ' / ' + (user ? user.node_group : '')"></span></div>
+        </div>
       </div>
 
-      <div class="sp-card sp-mt-6" x-show="searched" x-cloak>
-        <div class="sp-card-title"><i class="mi">route</i>链路</div>
-        <div class="sp-table-wrap">
-          <table class="sp-table">
+      <div class="card mt-3" x-show="searched" x-cloak>
+        <div class="card-header"><h3 class="card-title"><i class="mi me-2">route</i>链路</h3></div>
+        <div class="table-responsive">
+          <table class="table table-vcenter card-table">
             <thead><tr><th>链路</th><th>端口</th><th>始发节点</th><th>终点节点</th><th>状态</th></tr></thead>
             <tbody>
               <template x-for="(p, i) in paths" :key="i">
                 <tr>
-                  <td class="sp-wrap" x-text="p.path"></td>
-                  <td class="sp-num" x-text="p.port"></td>
+                  <td class="text-wrap" x-text="p.path"></td>
+                  <td class="font-monospace" x-text="p.port"></td>
                   <td><a x-show="p.begin_node_id" :href="'/admin/node-edit.html?id=' + p.begin_node_id" x-text="'节点 #' + p.begin_node_id"></a><span x-show="!p.begin_node_id">—</span></td>
                   <td><a x-show="p.end_node_id" :href="'/admin/node-edit.html?id=' + p.end_node_id" x-text="'节点 #' + p.end_node_id"></a><span x-show="!p.end_node_id">—</span></td>
                   <td>
-                    <span x-show="p.status === '通畅'" class="sp-tag sp-tag-green">通畅</span>
-                    <span x-show="p.status === '阻断'" class="sp-tag sp-tag-red">阻断</span>
+                    <span x-show="p.status === '通畅'" class="badge bg-green-lt">通畅</span>
+                    <span x-show="p.status === '阻断'" class="badge bg-red-lt">阻断</span>
                   </td>
                 </tr>
               </template>
-              <tr x-show="searched && !paths.length"><td colspan="5"><div class="sp-empty"><i class="mi">link_off</i>该用户无可命中中转规则</div></td></tr>
+              <tr x-show="searched && !paths.length"><td colspan="5"><div class="empty"><div class="empty-header"><i class="mi">link_off</i></div><div class="empty-title">该用户无可命中中转规则</div></div></td></tr>
             </tbody>
           </table>
         </div>

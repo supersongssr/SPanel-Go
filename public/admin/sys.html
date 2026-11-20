@@ -6,19 +6,24 @@
   <title>系统信息 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="dashboard" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="dashboard">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">系统信息</h1></div>
+    <div class="page-header d-print-none">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="page-title">系统信息</h2>
+        </div>
+      </div>
     </div>
-    <div class="sp-content-inner">
-      <div class="sp-card">
-        <div class="sp-card-title"><i class="mi">settings</i>系统信息</div>
+    <div class="card">
+      <div class="card-header"><h3 class="card-title"><i class="mi me-2">settings</i>系统信息</h3></div>
+      <div class="card-body">
         <p>Coming soon...</p>
-        <p class="sp-text-hint">该页面对应旧版 /admin/sys 占位页; 运维参数请使用 config.yaml 与 /api/v1/admin/jobs 任务接口。</p>
+        <p class="text-secondary">该页面对应旧版 /admin/sys 占位页; 运维参数请使用 config.yaml 与 /api/v1/admin/jobs 任务接口。</p>
       </div>
     </div>
   </main>

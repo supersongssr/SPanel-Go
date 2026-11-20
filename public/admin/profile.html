@@ -6,62 +6,74 @@
   <title>个人资料 - SPanel</title>
   <script src="/assets/js/auth-guard.js"></script>
   <link rel="stylesheet" href="/assets/css/material-icons.css">
-  <link rel="stylesheet" href="/assets/css/spanel.css">
+  <link rel="stylesheet" href="/assets/vendor/tabler/css/tabler.min.css">
+  <link rel="stylesheet" href="/assets/css/spanel-admin.css">
   <script defer src="/assets/js/alpine.min.js"></script>
 </head>
-<body data-sp-area="admin" data-sp-page="profile" class="sp-admin">
+<body data-sp-area="admin" data-sp-page="profile">
   <main class="sp-content">
-    <div class="sp-content-header">
-      <div class="sp-container"><h1 class="sp-content-heading">个人资料</h1></div>
-    </div>
-    <div class="sp-content-inner" x-data="profilePage()" x-init="init()">
-      <div class="sp-grid">
+    <div x-data="profilePage()" x-init="init()">
+      <div class="page-header d-print-none">
+        <div class="row align-items-center">
+          <div class="col">
+            <h2 class="page-title">个人资料</h2>
+          </div>
+        </div>
+      </div>
+      <div class="row">
         <!-- 返利流水 -->
-        <div class="sp-col-8">
-          <div class="sp-card">
-            <div class="sp-card-title"><i class="mi">loyalty</i>返利流水
-              <span class="sp-extra">共 <span x-text="rebateTotal"></span> 条</span>
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="mi me-2">loyalty</i>返利流水</h3>
+              <div class="card-actions text-secondary">共 <span x-text="rebateTotal"></span> 条</div>
             </div>
-            <div class="sp-table-wrap">
-              <table class="sp-table">
+            <div class="table-responsive">
+              <table class="table table-vcenter card-table">
                 <thead><tr><th>ID</th><th>用户</th><th>订单金额</th><th>返利</th><th>时间</th></tr></thead>
                 <tbody>
                   <template x-for="r in rebates" :key="r.id">
                     <tr>
-                      <td class="sp-num" x-text="r.id"></td>
+                      <td class="font-monospace" x-text="r.id"></td>
                       <td><a :href="'/admin/user-edit.html?id=' + r.userid" x-text="r.user_name || ('#' + r.userid)"></a></td>
-                      <td class="sp-num" x-text="r.total"></td>
-                      <td class="sp-num" x-text="r.ref_get"></td>
+                      <td class="font-monospace" x-text="r.total"></td>
+                      <td class="font-monospace" x-text="r.ref_get"></td>
                       <td x-text="r.datetime"></td>
                     </tr>
                   </template>
-                  <tr x-show="!rebates.length" x-cloak><td colspan="5"><div class="sp-empty"><i class="mi">inbox</i>暂无返利记录</div></td></tr>
+                  <tr x-show="!rebates.length" x-cloak><td colspan="5"><div class="empty"><div class="empty-header"><i class="mi">inbox</i></div><div class="empty-title">暂无返利记录</div></div></td></tr>
                 </tbody>
               </table>
             </div>
-            <div class="sp-pagination" x-show="pages > 1" x-cloak>
-              <button :disabled="page <= 1" @click="go(page - 1)">‹</button>
-              <button class="on" x-text="page + ' / ' + pages"></button>
-              <button :disabled="page >= pages" @click="go(page + 1)">›</button>
+            <div class="card-footer d-print-none" x-show="pages > 1" x-cloak>
+              <ul class="pagination pagination-sm m-0">
+                <li class="page-item" :class="{ disabled: page <= 1 }"><button class="page-link" :disabled="page <= 1" @click="go(page - 1)">‹</button></li>
+                <li class="page-item active"><button class="page-link" x-text="page + ' / ' + pages"></button></li>
+                <li class="page-item" :class="{ disabled: page >= pages }"><button class="page-link" :disabled="page >= pages" @click="go(page + 1)">›</button></li>
+              </ul>
             </div>
           </div>
         </div>
 
         <!-- 在线 IP + 最近登录 -->
-        <div class="sp-col-4">
-          <div class="sp-card sp-mb-6">
-            <div class="sp-card-title"><i class="mi">important_devices</i>在线 IP (5 分钟内)</div>
-            <template x-for="ip in onlineIps" :key="ip">
-              <div class="sp-dl-row"><dt><span class="sp-dot green"></span>IP</dt><dd class="sp-num" x-text="ip"></dd></div>
-            </template>
-            <div class="sp-empty" x-show="!onlineIps.length" x-cloak><i class="mi">wifi_off</i>暂无在线 IP</div>
+        <div class="col-md-4">
+          <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">important_devices</i>在线 IP (5 分钟内)</h3></div>
+            <div class="card-body">
+              <template x-for="ip in onlineIps" :key="ip">
+                <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary"><span class="status status-green"></span>IP</span><span class="font-monospace text-break" x-text="ip"></span></div>
+              </template>
+              <div class="empty" x-show="!onlineIps.length" x-cloak><div class="empty-header"><i class="mi">wifi_off</i></div><div class="empty-title">暂无在线 IP</div></div>
+            </div>
           </div>
-          <div class="sp-card">
-            <div class="sp-card-title"><i class="mi">history</i>最近登录 (10 次)</div>
-            <template x-for="l in logins" :key="l.ip + l.datetime">
-              <div class="sp-dl-row"><dt class="sp-num" x-text="l.ip"></dt><dd x-text="l.datetime"></dd></div>
-            </template>
-            <div class="sp-empty" x-show="!logins.length" x-cloak><i class="mi">inbox</i>暂无登录记录</div>
+          <div class="card">
+            <div class="card-header"><h3 class="card-title"><i class="mi me-2">history</i>最近登录 (10 次)</h3></div>
+            <div class="card-body">
+              <template x-for="l in logins" :key="l.ip + l.datetime">
+                <div class="mb-1 d-flex justify-content-between gap-3"><span class="text-secondary font-monospace" x-text="l.ip"></span><span class="text-break" x-text="l.datetime"></span></div>
+              </template>
+              <div class="empty" x-show="!logins.length" x-cloak><div class="empty-header"><i class="mi">inbox</i></div><div class="empty-title">暂无登录记录</div></div>
+            </div>
           </div>
         </div>
       </div>
